@@ -17,7 +17,7 @@ public class AuthController(IAuthService auth, IConfiguration config) : Controll
         Response.Cookies.Append("jwt", token, new CookieOptions
         {
             HttpOnly = true,
-            SameSite = SameSiteMode.Strict,
+            SameSite = SameSiteMode.None,
             Secure = false,   // set to true when deploying behind HTTPS
             Expires = DateTimeOffset.UtcNow.AddDays(expiryDays),
             Path = "/",
