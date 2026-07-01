@@ -18,7 +18,7 @@ public class AuthController(IAuthService auth, IConfiguration config) : Controll
         {
             HttpOnly = true,
             SameSite = SameSiteMode.None,
-            Secure = false,   // set to true when deploying behind HTTPS
+            Secure = true,   // set to true when deploying behind HTTPS
             Expires = DateTimeOffset.UtcNow.AddDays(expiryDays),
             Path = "/",
         });
