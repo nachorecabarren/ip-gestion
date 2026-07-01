@@ -1,0 +1,10 @@
+.auth-show {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  input { cursor: pointer; }
+}
+.auth-state { padding: 12px 0; }

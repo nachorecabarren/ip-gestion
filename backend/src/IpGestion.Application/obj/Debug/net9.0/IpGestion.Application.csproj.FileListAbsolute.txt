@@ -1,0 +1,15 @@
+/Users/ignaciorecabarren/Documents/ip-gestion/backend/src/IpGestion.Application/bin/Debug/net9.0/IpGestion.Application.deps.json
+/Users/ignaciorecabarren/Documents/ip-gestion/backend/src/IpGestion.Application/bin/Debug/net9.0/IpGestion.Application.dll
+/Users/ignaciorecabarren/Documents/ip-gestion/backend/src/IpGestion.Application/bin/Debug/net9.0/IpGestion.Application.pdb
+/Users/ignaciorecabarren/Documents/ip-gestion/backend/src/IpGestion.Application/bin/Debug/net9.0/IpGestion.Domain.dll
+/Users/ignaciorecabarren/Documents/ip-gestion/backend/src/IpGestion.Application/bin/Debug/net9.0/IpGestion.Domain.pdb
+/Users/ignaciorecabarren/Documents/ip-gestion/backend/src/IpGestion.Application/obj/Debug/net9.0/IpGestion.Application.csproj.AssemblyReference.cache
+/Users/ignaciorecabarren/Documents/ip-gestion/backend/src/IpGestion.Application/obj/Debug/net9.0/IpGestion.Application.GeneratedMSBuildEditorConfig.editorconfig
+/Users/ignaciorecabarren/Documents/ip-gestion/backend/src/IpGestion.Application/obj/Debug/net9.0/IpGestion.Application.AssemblyInfoInputs.cache
+/Users/ignaciorecabarren/Documents/ip-gestion/backend/src/IpGestion.Application/obj/Debug/net9.0/IpGestion.Application.AssemblyInfo.cs
+/Users/ignaciorecabarren/Documents/ip-gestion/backend/src/IpGestion.Application/obj/Debug/net9.0/IpGestion.Application.csproj.CoreCompileInputs.cache
+/Users/ignaciorecabarren/Documents/ip-gestion/backend/src/IpGestion.Application/obj/Debug/net9.0/IpGestio.32C391B3.Up2Date
+/Users/ignaciorecabarren/Documents/ip-gestion/backend/src/IpGestion.Application/obj/Debug/net9.0/IpGestion.Application.dll
+/Users/ignaciorecabarren/Documents/ip-gestion/backend/src/IpGestion.Application/obj/Debug/net9.0/refint/IpGestion.Application.dll
+/Users/ignaciorecabarren/Documents/ip-gestion/backend/src/IpGestion.Application/obj/Debug/net9.0/IpGestion.Application.pdb
+/Users/ignaciorecabarren/Documents/ip-gestion/backend/src/IpGestion.Application/obj/Debug/net9.0/ref/IpGestion.Application.dll

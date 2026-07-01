@@ -1,0 +1,97 @@
+<div class="equipo">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Mi Equipo</h1>
+      <p class="page-sub">Gestioná los empleados y las invitaciones de tu negocio</p>
+    </div>
+  </div>
+
+  <!-- Invitar -->
+  <div class="card">
+    <h3 class="section-title">Invitar empleado</h3>
+    <form [formGroup]="form" (ngSubmit)="invite()" class="invite-form">
+      <input formControlName="email" type="email" class="form-control"
+        placeholder="email@empleado.com" />
+      <button type="submit" class="btn btn--primary" [disabled]="inviting()">
+        {{ inviting() ? 'Generando…' : 'Enviar invitación' }}
+      </button>
+    </form>
+    <div *ngIf="inviteError()" class="invite-error">{{ inviteError() }}</div>
+
+    <!-- Link recién generado -->
+    <div *ngIf="lastLink() as link" class="invite-result">
+      <div class="invite-result__label">
+        Invitación creada para <strong>{{ link.email }}</strong>. Compartí este link:
+      </div>
+      <div class="invite-result__row">
+        <input class="form-control" [value]="link.acceptUrl" readonly />
+        <button class="btn btn--ghost" (click)="copyLink(link.acceptUrl, link.id)">
+          {{ copiedId() === link.id ? '¡Copiado!' : 'Copiar link' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empleados activos -->
+  <div class="card">
+    <h3 class="section-title">Empleados activos</h3>
+    <div *ngIf="loading()" class="empty-state">Cargando…</div>
+    <table class="table" *ngIf="!loading() && users().length > 0">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Email</th>
+          <th>Rol</th>
+          <th>Alta</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let u of users()">
+          <td>{{ u.displayName }}</td>
+          <td>{{ u.email }}</td>
+          <td>
+            <span class="badge" [class.badge--blue]="u.role === 'OWNER'">{{ roleLabel(u.role) }}</span>
+          </td>
+          <td>{{ u.createdAt | date:'dd/MM/yyyy' }}</td>
+          <td class="text-right">
+            <button *ngIf="u.role !== 'OWNER'" class="btn btn--ghost btn--sm btn--danger-text"
+              (click)="deactivate(u)">Desactivar</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <div *ngIf="!loading() && users().length === 0" class="empty-state">
+      <div class="empty-state__title">Todavía no hay empleados</div>
+    </div>
+  </div>
+
+  <!-- Invitaciones pendientes -->
+  <div class="card">
+    <h3 class="section-title">Invitaciones pendientes</h3>
+    <table class="table" *ngIf="invites().length > 0">
+      <thead>
+        <tr>
+          <th>Email</th>
+          <th>Expira</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let i of invites()">
+          <td>{{ i.email }}</td>
+          <td>{{ i.expiresAt | date:'dd/MM/yyyy' }}</td>
+          <td class="text-right">
+            <button class="btn btn--ghost btn--sm" (click)="copyLink(buildLink(i), i.id)">
+              {{ copiedId() === i.id ? '¡Copiado!' : 'Copiar link' }}
+            </button>
+            <button class="btn btn--ghost btn--sm btn--danger-text" (click)="cancelInvite(i)">Cancelar</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <div *ngIf="invites().length === 0" class="empty-state">
+      <div class="empty-state__title">No hay invitaciones pendientes</div>
+    </div>
+  </div>
+</div>

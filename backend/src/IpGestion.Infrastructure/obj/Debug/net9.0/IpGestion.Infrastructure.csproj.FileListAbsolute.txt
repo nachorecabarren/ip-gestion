@@ -1,0 +1,17 @@
+/Users/ignaciorecabarren/Documents/ip-gestion/backend/src/IpGestion.Infrastructure/bin/Debug/net9.0/IpGestion.Infrastructure.deps.json
+/Users/ignaciorecabarren/Documents/ip-gestion/backend/src/IpGestion.Infrastructure/bin/Debug/net9.0/IpGestion.Infrastructure.dll
+/Users/ignaciorecabarren/Documents/ip-gestion/backend/src/IpGestion.Infrastructure/bin/Debug/net9.0/IpGestion.Infrastructure.pdb
+/Users/ignaciorecabarren/Documents/ip-gestion/backend/src/IpGestion.Infrastructure/bin/Debug/net9.0/IpGestion.Application.dll
+/Users/ignaciorecabarren/Documents/ip-gestion/backend/src/IpGestion.Infrastructure/bin/Debug/net9.0/IpGestion.Domain.dll
+/Users/ignaciorecabarren/Documents/ip-gestion/backend/src/IpGestion.Infrastructure/bin/Debug/net9.0/IpGestion.Application.pdb
+/Users/ignaciorecabarren/Documents/ip-gestion/backend/src/IpGestion.Infrastructure/bin/Debug/net9.0/IpGestion.Domain.pdb
+/Users/ignaciorecabarren/Documents/ip-gestion/backend/src/IpGestion.Infrastructure/obj/Debug/net9.0/IpGestion.Infrastructure.csproj.AssemblyReference.cache
+/Users/ignaciorecabarren/Documents/ip-gestion/backend/src/IpGestion.Infrastructure/obj/Debug/net9.0/IpGestion.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+/Users/ignaciorecabarren/Documents/ip-gestion/backend/src/IpGestion.Infrastructure/obj/Debug/net9.0/IpGestion.Infrastructure.AssemblyInfoInputs.cache
+/Users/ignaciorecabarren/Documents/ip-gestion/backend/src/IpGestion.Infrastructure/obj/Debug/net9.0/IpGestion.Infrastructure.AssemblyInfo.cs
+/Users/ignaciorecabarren/Documents/ip-gestion/backend/src/IpGestion.Infrastructure/obj/Debug/net9.0/IpGestion.Infrastructure.csproj.CoreCompileInputs.cache
+/Users/ignaciorecabarren/Documents/ip-gestion/backend/src/IpGestion.Infrastructure/obj/Debug/net9.0/IpGestio.90539D9C.Up2Date
+/Users/ignaciorecabarren/Documents/ip-gestion/backend/src/IpGestion.Infrastructure/obj/Debug/net9.0/IpGestion.Infrastructure.dll
+/Users/ignaciorecabarren/Documents/ip-gestion/backend/src/IpGestion.Infrastructure/obj/Debug/net9.0/refint/IpGestion.Infrastructure.dll
+/Users/ignaciorecabarren/Documents/ip-gestion/backend/src/IpGestion.Infrastructure/obj/Debug/net9.0/IpGestion.Infrastructure.pdb
+/Users/ignaciorecabarren/Documents/ip-gestion/backend/src/IpGestion.Infrastructure/obj/Debug/net9.0/ref/IpGestion.Infrastructure.dll

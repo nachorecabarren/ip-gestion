@@ -1,0 +1,4 @@
+@use '../../../shared/styles/shared';
+
+.modal--sm { max-width: 420px; }
+.confirm-msg { margin: 0; font-size: 14px; color: var(--color-text-secondary); line-height: 1.5; }

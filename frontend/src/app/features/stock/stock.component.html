@@ -1,0 +1,341 @@
+<div class="stock">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Stock / Inventario</h1>
+      <p class="page-sub">Gestión de equipos unitarios, accesorios y canjes</p>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn--ghost" (click)="openCotizador()">📊 Cotizador de Canje</button>
+      <div class="dropdown-btn" *ngIf="hasSelected()">
+        <button class="btn btn--ghost">Acciones masivas ▾</button>
+      </div>
+      <button class="btn btn--primary" (click)="openNew()" *ngIf="auth.isOwner()">+ Agregar equipo</button>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab" [class.active]="activeTab() === 'equipos'" (click)="activeTab.set('equipos')">Equipos (Unitario)</button>
+    <button class="tab" [class.active]="activeTab() === 'bulk'" (click)="activeTab.set('bulk')">Accesorios (Bulk)</button>
+    <button class="tab" [class.active]="activeTab() === 'canjes'" (click)="activeTab.set('canjes')">Canjes Pendientes</button>
+  </div>
+
+  <!-- Filters (Equipos) -->
+  <div class="stock__filters" *ngIf="activeTab() === 'equipos'">
+    <div class="search-input">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" placeholder="Buscar por código..." (input)="search.set($any($event.target).value); loadItems()" />
+    </div>
+    <select class="filter-select" (change)="statusFilter.set($any($event.target).value); loadItems()">
+      <option value="">Todos los estados...</option>
+      <option value="AVAILABLE">Disponible</option>
+      <option value="RESERVED">Reservado</option>
+      <option value="SOLD">Vendido</option>
+      <option value="IN_REPAIR">En reparación</option>
+    </select>
+    <select class="filter-select" (change)="conditionFilter.set($any($event.target).value); loadItems()">
+      <option value="">Toda Condic.</option>
+      <option value="NEW">Nuevo</option>
+      <option value="USED">Usado</option>
+      <option value="A_PLUS">A+</option>
+      <option value="A">A</option>
+    </select>
+    <button class="btn btn--primary btn--sm" (click)="loadItems()">🔍 Buscar</button>
+  </div>
+
+  <!-- Equipos table -->
+  <div class="card" *ngIf="activeTab() === 'equipos'">
+    <div *ngIf="loading()" class="empty-state">Cargando...</div>
+    <div *ngIf="!loading() && items().length === 0" class="empty-state">
+      <div class="empty-state__title">Sin stock para mostrar.</div>
+    </div>
+    <table class="table" *ngIf="!loading() && items().length > 0">
+      <thead>
+        <tr>
+          <th style="width:36px"><input type="checkbox" /></th>
+          <th>MODELO</th><th>CÓDIGO</th><th>IMEI/SERIE</th>
+          <th>COND.</th><th>BAT.</th><th>COSTO</th><th>PRECIO</th><th>ESTADO</th><th>ACCIONES</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let item of items()" [class.selected]="isSelected(item.id)">
+          <td><input type="checkbox" [checked]="isSelected(item.id)" (change)="toggleSelect(item.id)" /></td>
+          <td>
+            <div><strong>{{ item.modelName }}</strong></div>
+            <div class="text-small">{{ item.color }} {{ item.storageGb ? item.storageGb + 'GB' : '' }}</div>
+          </td>
+          <td class="code">{{ item.internalCode }}</td>
+          <td class="code">{{ item.imeiSerial }}</td>
+          <td><span class="badge" [ngClass]="getConditionClass(item.condition)">{{ getConditionLabel(item.condition) }}</span></td>
+          <td>
+            <div class="battery" *ngIf="item.batteryPct !== null && item.batteryPct !== undefined">
+              <div class="battery__bar" [style.width.%]="item.batteryPct" [class.low]="item.batteryPct! < 80"></div>
+              <span>{{ item.batteryPct }}%</span>
+            </div>
+          </td>
+          <td>u$d {{ item.costUsd }}</td>
+          <td><strong>u$d {{ item.suggestedPriceUsd }}</strong></td>
+          <td><span class="badge" [ngClass]="getStatusClass(item.status)">{{ getStatusLabel(item.status) }}</span></td>
+          <td>
+            <div class="action-btns">
+              <button class="btn-icon-sm" title="Editar" (click)="openEdit(item)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              </button>
+              <button class="btn-icon-sm" title="Anular" (click)="voidItem(item.id)" *ngIf="item.status === 'AVAILABLE'">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="table-footer" *ngIf="!loading()">
+      <span>{{ total() }} resultados</span>
+    </div>
+  </div>
+
+  <!-- Bulk table -->
+  <div class="card" *ngIf="activeTab() === 'bulk'">
+    <table class="table" *ngIf="bulkItems().length > 0">
+      <thead>
+        <tr><th>ACCESORIO</th><th>COLOR</th><th>CANTIDAD</th><th>ALERTA STOCK</th><th>COSTO</th><th>PRECIO VENTA</th><th>UBICACIÓN</th></tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let b of bulkItems()">
+          <td><strong>{{ b.accessoryName }}</strong></td>
+          <td>{{ b.color ?? '—' }}</td>
+          <td>
+            <span [class.low-stock]="b.quantity <= b.lowStockThreshold">{{ b.quantity }}</span>
+            <span class="badge badge--red" *ngIf="b.quantity <= b.lowStockThreshold" style="margin-left:6px">Stock bajo</span>
+          </td>
+          <td>{{ b.lowStockThreshold }}</td>
+          <td>u$d {{ b.costUsd }}</td>
+          <td><strong>u$d {{ b.suggestedPriceUsd }}</strong></td>
+          <td>{{ b.locationName ?? '—' }}</td>
+        </tr>
+      </tbody>
+    </table>
+    <div *ngIf="bulkItems().length === 0" class="empty-state"><div class="empty-state__title">Sin accesorios en stock</div></div>
+  </div>
+
+  <!-- Canjes tab -->
+  <div class="card" *ngIf="activeTab() === 'canjes'">
+    <div class="empty-state">
+      <div class="empty-state__title">No hay canjes pendientes</div>
+      <div class="empty-state__sub">Los equipos recibidos como canje aparecerán aquí</div>
+    </div>
+  </div>
+</div>
+
+<!-- Cotizador de Canje modal -->
+<div class="modal-overlay" *ngIf="showCotizadorModal()" (click)="showCotizadorModal.set(false)">
+  <div class="modal" style="max-width:480px" (click)="$event.stopPropagation()">
+    <div class="modal__header">
+      <div><h2 class="modal__title">Cotizador de Canje</h2><p class="modal__sub">Calculá el valor de un equipo usado</p></div>
+      <button class="modal__close" (click)="showCotizadorModal.set(false)">✕</button>
+    </div>
+    <div class="modal__body" [formGroup]="cotizadorForm">
+      <div class="form-group">
+        <label>Modelo del equipo *</label>
+        <input type="text" formControlName="modelName" class="form-control" placeholder="ej: iPhone 13 Pro"
+          [class.form-control--error]="cotizadorForm.get('modelName')?.invalid && cotizadorForm.get('modelName')?.touched" />
+      </div>
+      <div class="form-row">
+        <div class="form-group form-group--grow">
+          <label>Storage GB *</label>
+          <select formControlName="storageGb" class="form-control">
+            <option [value]="64">64 GB</option>
+            <option [value]="128">128 GB</option>
+            <option [value]="256">256 GB</option>
+            <option [value]="512">512 GB</option>
+            <option [value]="1024">1 TB</option>
+          </select>
+        </div>
+        <div class="form-group form-group--grow">
+          <label>% Batería *</label>
+          <input type="number" formControlName="batteryPct" class="form-control" min="0" max="100"
+            [class.form-control--error]="cotizadorForm.get('batteryPct')?.invalid && cotizadorForm.get('batteryPct')?.touched" />
+        </div>
+      </div>
+
+      <div *ngIf="cotizadorResult()" class="cotizador-result">
+        <div class="cotizador-result__row">
+          <span>Valor base</span>
+          <strong>u$d {{ cotizadorResult()!.baseValueUsd | number:'1.0-0' }}</strong>
+        </div>
+        <div class="cotizador-result__row cotizador-result__row--highlight">
+          <span>Valor ajustado</span>
+          <strong>u$d {{ cotizadorResult()!.adjustedValueUsd | number:'1.0-0' }}</strong>
+        </div>
+        <div *ngIf="cotizadorResult()!.notes" class="cotizador-result__note">
+          ℹ {{ cotizadorResult()!.notes }}
+        </div>
+        <div *ngIf="cotizadorResult()!.baseValueUsd === 0" class="cotizador-result__note">
+          No hay valuación cargada para este modelo. Ingresá un valor manualmente.
+        </div>
+      </div>
+    </div>
+    <div class="modal__footer">
+      <button class="btn btn--ghost" (click)="showCotizadorModal.set(false)">Cerrar</button>
+      <button class="btn btn--primary" (click)="calcularCotizacion()" [disabled]="cotizadorLoading()">
+        {{ cotizadorLoading() ? 'Calculando…' : '📊 Calcular' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- New item modal -->
+<div class="modal-overlay" *ngIf="showNewModal()" (click)="showNewModal.set(false)">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal__header">
+      <div><h2 class="modal__title">Agregar equipo</h2><p class="modal__sub">Alta manual de stock</p></div>
+      <button class="modal__close" (click)="showNewModal.set(false)">✕</button>
+    </div>
+    <div class="modal__body" [formGroup]="newForm">
+      <div class="form-group">
+        <label>Modelo *</label>
+        <select formControlName="modelId" class="form-control"
+          [class.form-control--error]="newForm.get('modelId')?.invalid && newForm.get('modelId')?.touched">
+          <option value="">Seleccioná un modelo...</option>
+          <option *ngFor="let m of models()" [value]="m.id">{{ m.name }}</option>
+        </select>
+        <div class="auth-field-error" *ngIf="newForm.get('modelId')?.invalid && newForm.get('modelId')?.touched">
+          Seleccioná un modelo.
+        </div>
+        <div class="auth-field-error" *ngIf="models().length === 0">
+          ⚠ No hay modelos cargados. Agregá uno en Configuración → Modelos primero.
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group form-group--grow">
+          <label>IMEI / Serie</label>
+          <input type="text" formControlName="imeiSerial" class="form-control" placeholder="Opcional" />
+        </div>
+        <div class="form-group form-group--grow">
+          <label>Color</label>
+          <input type="text" formControlName="color" class="form-control" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Storage GB</label>
+          <input type="number" formControlName="storageGb" class="form-control" />
+        </div>
+        <div class="form-group">
+          <label>Condición *</label>
+          <select formControlName="condition" class="form-control">
+            <option value="NEW">Nuevo</option>
+            <option value="USED">Usado</option>
+            <option value="REFURBISHED">Reacondicionado</option>
+            <option value="A_PLUS">A+</option>
+            <option value="A">A</option>
+            <option value="B">B</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>% Batería</label>
+          <input type="number" formControlName="batteryPct" class="form-control" min="0" max="100" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group form-group--grow">
+          <label>Costo u$d *</label>
+          <input type="number" formControlName="costUsd" class="form-control" min="0"
+            [class.form-control--error]="newForm.get('costUsd')?.invalid && newForm.get('costUsd')?.touched" />
+          <div class="auth-field-error" *ngIf="newForm.get('costUsd')?.invalid && newForm.get('costUsd')?.touched">
+            Ingresá el costo.
+          </div>
+        </div>
+        <div class="form-group form-group--grow">
+          <label>Precio sugerido u$d *</label>
+          <input type="number" formControlName="suggestedPriceUsd" class="form-control" min="0"
+            [class.form-control--error]="newForm.get('suggestedPriceUsd')?.invalid && newForm.get('suggestedPriceUsd')?.touched" />
+          <div class="auth-field-error" *ngIf="newForm.get('suggestedPriceUsd')?.invalid && newForm.get('suggestedPriceUsd')?.touched">
+            Ingresá el precio de venta.
+          </div>
+        </div>
+        <div class="form-group form-group--grow">
+          <label>Precio mayorista u$d</label>
+          <input type="number" formControlName="wholesalePriceUsd" class="form-control" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Ubicación</label>
+        <select formControlName="locationId" class="form-control">
+          <option value="">Sin ubicación</option>
+          <option *ngFor="let l of locations()" [value]="l.id">{{ l.name }}</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Notas</label>
+        <textarea formControlName="notes" class="form-control" rows="2"></textarea>
+      </div>
+    </div>
+    <div class="modal__footer" style="flex-direction:column;align-items:stretch;gap:8px">
+      <div class="auth-error" *ngIf="newError()" style="margin:0">{{ newError() }}</div>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button class="btn btn--ghost" (click)="showNewModal.set(false)">Cancelar</button>
+        <button class="btn btn--primary" (click)="submitNew()" [disabled]="submitting()">
+          {{ submitting() ? 'Guardando…' : 'Agregar al stock' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Edit modal -->
+<div class="modal-overlay" *ngIf="showEditModal()" (click)="showEditModal.set(false)">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal__header">
+      <div>
+        <h2 class="modal__title">Editar Ítem</h2>
+        <p class="modal__sub">{{ editingItem()?.modelName }}</p>
+      </div>
+      <button class="modal__close" (click)="showEditModal.set(false)">✕</button>
+    </div>
+    <div class="modal__body" [formGroup]="editForm">
+      <div class="form-row">
+        <div class="form-group form-group--grow">
+          <label>Color</label>
+          <input type="text" formControlName="color" class="form-control" />
+        </div>
+        <div class="form-group form-group--sm">
+          <label>Storage GB</label>
+          <input type="number" formControlName="storageGb" class="form-control" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Condición</label>
+          <select formControlName="condition" class="form-control">
+            <option value="NEW">Nuevo</option><option value="USED">Usado</option>
+            <option value="REFURBISHED">Reacondicionado</option>
+            <option value="A_PLUS">A+</option><option value="A">A</option><option value="B">B</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>% Batería</label>
+          <input type="number" formControlName="batteryPct" class="form-control" min="0" max="100" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group form-group--grow">
+          <label>Precio sugerido u$d *</label>
+          <input type="number" formControlName="suggestedPriceUsd" class="form-control" />
+        </div>
+        <div class="form-group form-group--grow">
+          <label>Precio mayorista u$d</label>
+          <input type="number" formControlName="wholesalePriceUsd" class="form-control" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Notas</label>
+        <textarea formControlName="notes" class="form-control" rows="2"></textarea>
+      </div>
+    </div>
+    <div class="modal__footer">
+      <button class="btn btn--ghost" (click)="showEditModal.set(false)">Cancelar</button>
+      <button class="btn btn--primary" (click)="saveEdit()">Guardar cambios</button>
+    </div>
+  </div>
+</div>

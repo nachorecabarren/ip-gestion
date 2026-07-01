@@ -1,0 +1,70 @@
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <span class="auth-logo__mark">iP</span>
+      <span class="auth-logo__text">Gestión</span>
+    </div>
+
+    <h1 class="auth-title">Creá tu cuenta</h1>
+    <p class="auth-sub">Registrá tu negocio y empezá a gestionarlo.</p>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="auth-form">
+      <div class="form-group">
+        <label class="auth-label">Nombre del negocio</label>
+        <input formControlName="businessName" type="text" class="form-control"
+          [class.form-control--error]="invalid('businessName')" />
+        <div class="auth-field-error" *ngIf="invalid('businessName')">Ingresá el nombre del negocio.</div>
+      </div>
+
+      <div class="form-group">
+        <label class="auth-label">Tu nombre</label>
+        <input formControlName="displayName" type="text" class="form-control"
+          autocomplete="name"
+          [class.form-control--error]="invalid('displayName')" />
+        <div class="auth-field-error" *ngIf="invalid('displayName')">Ingresá tu nombre.</div>
+      </div>
+
+      <div class="form-group">
+        <label class="auth-label">Email</label>
+        <input formControlName="email" type="email" class="form-control"
+          placeholder="tu@email.com" autocomplete="username"
+          [class.form-control--error]="invalid('email')" />
+        <div class="auth-field-error" *ngIf="invalid('email')">Ingresá un email válido.</div>
+      </div>
+
+      <div class="form-group">
+        <label class="auth-label">Contraseña</label>
+        <input formControlName="password" [type]="showPassword() ? 'text' : 'password'"
+          class="form-control" placeholder="Mínimo 8 caracteres" autocomplete="new-password"
+          [class.form-control--error]="invalid('password')" />
+        <div class="auth-field-error" *ngIf="invalid('password')">La contraseña debe tener al menos 8 caracteres.</div>
+      </div>
+
+      <div class="form-group">
+        <label class="auth-label">Confirmar contraseña</label>
+        <input formControlName="confirmPassword" [type]="showPassword() ? 'text' : 'password'"
+          class="form-control" placeholder="Repetí la contraseña" autocomplete="new-password"
+          [class.form-control--error]="(form.errors?.['mismatch'] && form.get('confirmPassword')?.touched) || invalid('confirmPassword')" />
+        <div class="auth-field-error" *ngIf="form.errors?.['mismatch'] && form.get('confirmPassword')?.touched">
+          Las contraseñas no coinciden.
+        </div>
+      </div>
+
+      <label class="auth-show">
+        <input type="checkbox" [checked]="showPassword()" (change)="showPassword.set(!showPassword())" />
+        Mostrar contraseña
+      </label>
+
+      <div *ngIf="error()" class="auth-error">{{ error() }}</div>
+
+      <button type="submit" class="btn btn--primary auth-btn" [disabled]="loading()">
+        <span *ngIf="!loading()">Crear cuenta</span>
+        <span *ngIf="loading()">Creando…</span>
+      </button>
+    </form>
+
+    <p class="auth-foot">
+      ¿Ya tenés cuenta? <a routerLink="/login">Iniciá sesión</a>
+    </p>
+  </div>
+</div>

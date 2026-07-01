@@ -1,0 +1,128 @@
+<div class="cajas">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Cajas</h1>
+      <p class="page-sub">Saldos por moneda y movimientos de efectivo</p>
+    </div>
+    <button class="btn btn--primary" (click)="showModal.set(true)">+ Nuevo Movimiento</button>
+  </div>
+
+  <!-- Caja selector + saldos -->
+  <div class="cajas__grid">
+    <div class="cajas__selector">
+      <div class="caja-btn" *ngFor="let c of cajas()"
+        [class.active]="selectedCaja()?.id === c.id"
+        (click)="selectCaja(c)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
+        {{ c.name }}
+        <span class="caja-btn__default" *ngIf="c.isDefault">Principal</span>
+      </div>
+    </div>
+
+    <div class="cajas__balances" *ngIf="selectedCaja() as caja">
+      <div class="balance-card balance-card--usd">
+        <div class="balance-card__label">EFECTIVO USD</div>
+        <div class="balance-card__value">u$d {{ caja.balanceUsdCash.toFixed(2) }}</div>
+      </div>
+      <div class="balance-card balance-card--usdt">
+        <div class="balance-card__label">USDT</div>
+        <div class="balance-card__value">u$d {{ caja.balanceUsdt.toFixed(2) }}</div>
+      </div>
+      <div class="balance-card balance-card--ars">
+        <div class="balance-card__label">EFECTIVO ARS</div>
+        <div class="balance-card__value">$ {{ caja.balanceArsCash.toLocaleString('es-AR', {minimumFractionDigits:0}) }}</div>
+      </div>
+      <div class="balance-card balance-card--tr">
+        <div class="balance-card__label">TRANSFERENCIA ARS</div>
+        <div class="balance-card__value">$ {{ caja.balanceArsTr.toLocaleString('es-AR', {minimumFractionDigits:0}) }}</div>
+      </div>
+      <div class="balance-card balance-card--total">
+        <div class="balance-card__label">TOTAL ESTIMADO USD</div>
+        <div class="balance-card__value balance-card__value--big">u$d {{ totalUsd.toFixed(2) }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Movements table -->
+  <div class="card">
+    <div class="card-header-row">
+      <h3>Movimientos</h3>
+    </div>
+    <div *ngIf="loading()" class="empty-state">Cargando...</div>
+    <table class="table" *ngIf="!loading() && movements().length > 0">
+      <thead>
+        <tr><th>FECHA</th><th>TIPO</th><th>MÉTODO</th><th>DETALLE</th><th>CATEGORÍA</th><th>MONTO</th></tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let m of movements()">
+          <td>{{ m.createdAt | date:'dd/MM/yy HH:mm' }}</td>
+          <td><span class="badge" [ngClass]="['INCOME','SALE'].includes(m.type) ? 'badge--green' : 'badge--red'">{{ getTypeLabel(m.type) }}</span></td>
+          <td>{{ getMethodLabel(m.method) }}</td>
+          <td>{{ m.detail ?? '—' }}</td>
+          <td>{{ m.category ?? '—' }}</td>
+          <td [ngClass]="getTypeClass(m.type)">
+            <strong>{{ getTypeSign(m.type) }} {{ m.currency === 'ARS' ? '$' : 'u$d' }} {{ m.amount.toFixed(2) }}</strong>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <div *ngIf="!loading() && movements().length === 0" class="empty-state">
+      <div class="empty-state__title">Sin movimientos registrados</div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" *ngIf="showModal()" (click)="showModal.set(false)">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal__header">
+      <div><h2 class="modal__title">Nuevo Movimiento</h2></div>
+      <button class="modal__close" (click)="showModal.set(false)">✕</button>
+    </div>
+    <div class="modal__body" [formGroup]="form">
+      <div class="form-group">
+        <label>Caja *</label>
+        <select formControlName="cajaId" class="form-control">
+          <option *ngFor="let c of cajas()" [value]="c.id">{{ c.name }}</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="form-group form-group--grow">
+          <label>Tipo *</label>
+          <select formControlName="type" class="form-control">
+            <option value="INCOME">Ingreso</option>
+            <option value="EXPENSE">Egreso</option>
+          </select>
+        </div>
+        <div class="form-group form-group--grow">
+          <label>Método *</label>
+          <select formControlName="method" class="form-control">
+            <option value="USD_CASH">Efectivo USD</option>
+            <option value="USDT">USDT</option>
+            <option value="ARS_CASH">Efectivo ARS</option>
+            <option value="ARS_TR">Transferencia ARS</option>
+            <option value="MERCADOPAGO">MercadoPago</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group form-group--grow">
+          <label>Monto *</label>
+          <input type="number" formControlName="amount" class="form-control" />
+        </div>
+        <div class="form-group form-group--grow" *ngIf="form.get('currency')?.value === 'ARS'">
+          <label>TC (ARS/$)</label>
+          <input type="number" formControlName="exchangeRateUsd" class="form-control" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Detalle *</label>
+        <input type="text" formControlName="detail" class="form-control" placeholder="Descripción del movimiento" />
+      </div>
+    </div>
+    <div class="modal__footer">
+      <button class="btn btn--ghost" (click)="showModal.set(false)">Cancelar</button>
+      <button class="btn btn--primary" (click)="submit()" [disabled]="submitting()">Registrar</button>
+    </div>
+  </div>
+</div>

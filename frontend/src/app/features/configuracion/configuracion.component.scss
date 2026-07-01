@@ -1,0 +1,6 @@
+@use '../../shared/styles/shared';
+
+.catalog-header {
+  display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;
+  h3 { font-size: 14px; font-weight: 600; }
+}

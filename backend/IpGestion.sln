@@ -1,0 +1,17 @@
+
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IpGestion.API", "src\IpGestion.API\IpGestion.API.csproj", "{A1B2C3D4-0001-0000-0000-000000000001}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IpGestion.Application", "src\IpGestion.Application\IpGestion.Application.csproj", "{A1B2C3D4-0002-0000-0000-000000000001}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IpGestion.Domain", "src\IpGestion.Domain\IpGestion.Domain.csproj", "{A1B2C3D4-0003-0000-0000-000000000001}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IpGestion.Infrastructure", "src\IpGestion.Infrastructure\IpGestion.Infrastructure.csproj", "{A1B2C3D4-0004-0000-0000-000000000001}"
+EndProject
+Global
+  GlobalSection(SolutionConfigurationPlatforms) = preSolution
+    Debug|Any CPU = Debug|Any CPU
+    Release|Any CPU = Release|Any CPU
+  EndGlobalSection
+EndGlobal

@@ -1,0 +1,56 @@
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <span class="auth-logo__mark">iP</span>
+      <span class="auth-logo__text">Gestión</span>
+    </div>
+
+    <!-- Validando -->
+    <div *ngIf="validating()" class="auth-state">
+      <p class="auth-sub">Verificando invitación…</p>
+    </div>
+
+    <!-- Token inválido / expirado -->
+    <div *ngIf="!validating() && invalidToken()">
+      <h1 class="auth-title">Invitación no válida</h1>
+      <p class="auth-sub">Esta invitación no existe, ya fue utilizada o expiró. Pedile al administrador que te envíe una nueva.</p>
+      <p class="auth-foot"><a routerLink="/login">Volver al inicio de sesión</a></p>
+    </div>
+
+    <!-- Formulario de aceptación -->
+    <div *ngIf="!validating() && !invalidToken() && info() as i">
+      <h1 class="auth-title">Te invitaron a unirte</h1>
+      <p class="auth-sub">Vas a unirte a <strong>{{ i.businessName }}</strong> con el email <strong>{{ i.email }}</strong>.</p>
+
+      <form [formGroup]="form" (ngSubmit)="submit()" class="auth-form">
+        <div class="form-group">
+          <label class="auth-label">Tu nombre</label>
+          <input formControlName="displayName" type="text" class="form-control"
+            placeholder="Juan Pérez" autocomplete="name"
+            [class.form-control--error]="invalid('displayName')" />
+          <div class="auth-field-error" *ngIf="invalid('displayName')">Ingresá tu nombre.</div>
+        </div>
+
+        <div class="form-group">
+          <label class="auth-label">Contraseña</label>
+          <input formControlName="password" [type]="showPassword() ? 'text' : 'password'"
+            class="form-control" placeholder="Mínimo 8 caracteres" autocomplete="new-password"
+            [class.form-control--error]="invalid('password')" />
+          <div class="auth-field-error" *ngIf="invalid('password')">La contraseña debe tener al menos 8 caracteres.</div>
+        </div>
+
+        <label class="auth-show">
+          <input type="checkbox" [checked]="showPassword()" (change)="showPassword.set(!showPassword())" />
+          Mostrar contraseña
+        </label>
+
+        <div *ngIf="error()" class="auth-error">{{ error() }}</div>
+
+        <button type="submit" class="btn btn--primary auth-btn" [disabled]="loading()">
+          <span *ngIf="!loading()">Unirme</span>
+          <span *ngIf="loading()">Creando cuenta…</span>
+        </button>
+      </form>
+    </div>
+  </div>
+</div>

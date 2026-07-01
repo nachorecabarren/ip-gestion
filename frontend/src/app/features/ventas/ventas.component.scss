@@ -1,0 +1,32 @@
+@use '../../shared/styles/shared';
+
+.ventas {
+  display: flex; flex-direction: column; gap: 18px;
+
+  &__kpis {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;
+  }
+
+  &__filters {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  }
+}
+
+.form-control--search {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  border-bottom: none;
+}
+
+.form-control--sub {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  margin-top: 0;
+}
+
+.stock-count {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  padding: 3px 6px;
+  text-align: right;
+}

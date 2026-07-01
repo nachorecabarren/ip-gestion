@@ -1,0 +1,112 @@
+<div class="agenda">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Agenda</h1>
+      <p class="page-sub">Eventos, retiros y recordatorios</p>
+    </div>
+    <button class="btn btn--primary" (click)="showModal.set(true); initForm()">+ Nuevo Evento</button>
+  </div>
+
+  <!-- Navegación de mes -->
+  <div class="calendar__nav">
+    <button class="btn btn--ghost" (click)="prevMonth()">← Anterior</button>
+    <h2 class="calendar__month">{{ monthNames[currentMonth() - 1] }} {{ currentYear() }}</h2>
+    <button class="btn btn--ghost" (click)="nextMonth()">Siguiente →</button>
+  </div>
+
+  <!-- Calendario -->
+  <div class="card calendar">
+    <div class="calendar__header">
+      <span *ngFor="let d of ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb']">{{ d }}</span>
+    </div>
+    <div class="calendar__grid">
+      <div *ngFor="let day of calendarDays" class="calendar__cell"
+        [class.calendar__cell--empty]="!day"
+        [class.calendar__cell--today]="day && isToday(day)">
+        <ng-container *ngIf="day">
+          <span class="calendar__day-number">{{ day }}</span>
+          <div class="calendar__events">
+            <div *ngFor="let e of eventsForDay(day)"
+              class="calendar__event" [ngClass]="getTypeClass(e.type)"
+              [title]="e.title">
+              {{ getTypeEmoji(e.type) }} {{ e.title | slice:0:20 }}{{ e.title.length > 20 ? '...' : '' }}
+            </div>
+          </div>
+        </ng-container>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lista de eventos del mes -->
+  <div class="card" *ngIf="events().length > 0">
+    <h3 style="font-size:14px;font-weight:600;margin-bottom:14px">Eventos del mes</h3>
+    <div class="event-list">
+      <div *ngFor="let e of events()" class="event-item">
+        <div class="event-item__type" [ngClass]="getTypeClass(e.type)">
+          {{ getTypeEmoji(e.type) }}
+        </div>
+        <div class="event-item__info">
+          <div class="event-item__title">{{ e.title }}</div>
+          <div class="event-item__time">
+            {{ e.startTime | date:'dd/MM/yy HH:mm' }} → {{ e.endTime | date:'HH:mm' }}
+          </div>
+          <div class="event-item__desc" *ngIf="e.description">{{ e.description }}</div>
+        </div>
+        <button class="btn-icon-sm" (click)="deleteEvent(e.id)" title="Eliminar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card empty-state" *ngIf="!loading() && events().length === 0">
+    <div class="empty-state__icon">📅</div>
+    <div class="empty-state__title">Sin eventos este mes</div>
+    <div class="empty-state__sub">Creá un evento con el botón de arriba</div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" *ngIf="showModal()" (click)="showModal.set(false)">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal__header">
+      <div><h2 class="modal__title">Nuevo Evento</h2></div>
+      <button class="modal__close" (click)="showModal.set(false)">✕</button>
+    </div>
+    <div class="modal__body" [formGroup]="form">
+      <div class="form-group">
+        <label>Título *</label>
+        <input type="text" formControlName="title" class="form-control" placeholder="ej: Retiro reserva Diego" />
+      </div>
+      <div class="form-group">
+        <label>Tipo *</label>
+        <select formControlName="type" class="form-control">
+          <option *ngFor="let t of eventTypes" [value]="t.value">{{ t.label }}</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="form-group form-group--grow">
+          <label>Inicio *</label>
+          <input type="datetime-local" formControlName="startTime" class="form-control" />
+        </div>
+        <div class="form-group form-group--grow">
+          <label>Fin *</label>
+          <input type="datetime-local" formControlName="endTime" class="form-control" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Descripción</label>
+        <textarea formControlName="description" class="form-control" rows="2"
+          placeholder="Detalles del evento..."></textarea>
+      </div>
+    </div>
+    <div class="modal__footer">
+      <button class="btn btn--ghost" (click)="showModal.set(false)">Cancelar</button>
+      <button class="btn btn--primary" (click)="submit()" [disabled]="submitting()">
+        {{ submitting() ? 'Guardando...' : 'Crear Evento' }}
+      </button>
+    </div>
+  </div>
+</div>

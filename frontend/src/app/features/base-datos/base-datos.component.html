@@ -1,0 +1,75 @@
+<div class="base-datos">
+  <div class="page-header">
+    <div><h1 class="page-title">Base de Datos</h1><p class="page-sub">Reportes y exportaciones</p></div>
+    <button class="btn btn--ghost" (click)="exportExcel()">↓ Exportar Excel</button>
+  </div>
+
+  <div class="tabs">
+    <button class="tab" [class.active]="activeTab()==='caja'" (click)="activeTab.set('caja')">Caja</button>
+    <button class="tab" [class.active]="activeTab()==='minorista'" (click)="activeTab.set('minorista')">Minorista</button>
+    <button class="tab" [class.active]="activeTab()==='mayorista'" (click)="activeTab.set('mayorista')">Mayorista</button>
+    <button class="tab tab--disabled" disabled title="Próximamente">Servicio Técnico ✦</button>
+    <button class="tab tab--disabled" disabled title="Próximamente">Reservas ✦</button>
+  </div>
+
+  <!-- Caja -->
+  <div class="card" *ngIf="activeTab()==='caja'">
+    <div *ngIf="loading()" class="empty-state">Cargando...</div>
+    <table class="table" *ngIf="!loading() && movements().length > 0">
+      <thead><tr><th>FECHA</th><th>TIPO</th><th>MÉTODO</th><th>DETALLE</th><th>MONTO USD</th></tr></thead>
+      <tbody>
+        <tr *ngFor="let m of movements()">
+          <td>{{ m.createdAt | date:'dd/MM/yy HH:mm' }}</td>
+          <td>{{ m.type }}</td>
+          <td>{{ m.method }}</td>
+          <td>{{ m.detail ?? '—' }}</td>
+          <td [class.text-green]="['INCOME','SALE'].includes(m.type)" [class.text-red]="['EXPENSE','PURCHASE'].includes(m.type)">
+            u$d {{ m.amountUsd.toFixed(2) }}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Minorista -->
+  <div class="card" *ngIf="activeTab()==='minorista'">
+    <div class="report-summary">
+      <div class="stat-card"><div class="stat-card__label">TOTAL VENTAS MIN</div><div class="stat-card__value">u$d {{ totalRetail.toFixed(0) }}</div></div>
+      <div class="stat-card"><div class="stat-card__label">CANTIDAD</div><div class="stat-card__value">{{ retailSales.length }}</div></div>
+    </div>
+    <table class="table">
+      <thead><tr><th>FECHA</th><th>CLIENTE</th><th>MONTO</th><th>MARGEN</th></tr></thead>
+      <tbody>
+        <tr *ngFor="let s of retailSales">
+          <td>{{ s.saleDate | date:'dd/MM/yy' }}</td>
+          <td>{{ s.clientName ?? 'CF' }}</td>
+          <td>u$d {{ s.totalUsd }}</td>
+          <td class="text-green">u$d {{ s.marginUsd.toFixed(0) }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Mayorista -->
+  <div class="card" *ngIf="activeTab()==='mayorista'">
+    <div class="report-summary">
+      <div class="stat-card"><div class="stat-card__label">TOTAL VENTAS MAY</div><div class="stat-card__value">u$d {{ totalWholesale.toFixed(0) }}</div></div>
+      <div class="stat-card"><div class="stat-card__label">CANTIDAD</div><div class="stat-card__value">{{ wholesaleSales.length }}</div></div>
+    </div>
+    <table class="table">
+      <thead><tr><th>FECHA</th><th>CLIENTE</th><th>MONTO</th><th>MARGEN</th></tr></thead>
+      <tbody>
+        <tr *ngFor="let s of wholesaleSales">
+          <td>{{ s.saleDate | date:'dd/MM/yy' }}</td>
+          <td>{{ s.clientName ?? '—' }}</td>
+          <td>u$d {{ s.totalUsd }}</td>
+          <td class="text-green">u$d {{ s.marginUsd.toFixed(0) }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card" *ngIf="activeTab()==='sv' || activeTab()==='reservas'">
+    <div class="empty-state"><div class="empty-state__title">Reporte en construcción</div></div>
+  </div>
+</div>

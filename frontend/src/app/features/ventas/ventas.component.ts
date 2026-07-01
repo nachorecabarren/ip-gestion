@@ -1,0 +1,328 @@
+import { Component, OnInit, inject, signal, computed } from "@angular/core";
+import { ConfirmService } from "../../shared/services/confirm.service";
+import { AuthService } from "../../core/services/auth.service";
+import { CommonModule } from "@angular/common";
+import { RouterModule } from "@angular/router";
+import {
+  FormBuilder,
+  FormGroup,
+  FormArray,
+  Validators,
+  ReactiveFormsModule,
+} from "@angular/forms";
+import { ApiService } from "../../core/services/api.service";
+import {
+  Sale,
+  StockItem,
+  Entity,
+  CatalogModel,
+  PaymentMethod,
+  SaleCategory,
+} from "../../shared/models/models";
+
+@Component({
+  selector: "app-ventas",
+  standalone: true,
+  imports: [CommonModule, RouterModule, ReactiveFormsModule],
+  templateUrl: "./ventas.component.html",
+  styleUrls: ["./ventas.component.scss"],
+})
+export class VentasComponent implements OnInit {
+  private api = inject(ApiService);
+  private fb = inject(FormBuilder);
+  private confirm = inject(ConfirmService);
+  auth = inject(AuthService);
+
+  sales = signal<Sale[]>([]);
+  total = signal(0);
+  loading = signal(true);
+  showModal = signal(false);
+  wizardStep = signal(1);
+  submitting = signal(false);
+
+  // Catalog data
+  entities = signal<Entity[]>([]);
+  availableStock = signal<StockItem[]>([]);
+  tcBlue = signal(1520);
+
+  // Search/filter
+  search = signal("");
+  filterOrigin = signal("");
+  filterStatus = signal("");
+
+  // Summary panel
+  totalItems = signal(0);
+  totalPago = signal(0);
+
+  // IMEI search per item row
+  itemFilters = signal<string[]>([]);
+
+  dateFrom = signal(new Date().toISOString().split("T")[0]); // hoy por defecto
+  dateTo = signal(new Date().toISOString().split("T")[0]);
+  filterByDate = signal(false);
+
+  filteredSales = computed(() => {
+    const status = this.filterStatus();
+    return status
+      ? this.sales().filter((s) => s.status === status)
+      : this.sales();
+  });
+
+  saleForm!: FormGroup;
+
+  readonly paymentMethods: { value: PaymentMethod; label: string }[] = [
+    { value: "USD_CASH", label: "Efectivo USD" },
+    { value: "USDT", label: "USDT" },
+    { value: "ARS_CASH", label: "Efectivo ARS" },
+    { value: "ARS_TR", label: "Transferencia ARS" },
+    { value: "MERCADOPAGO", label: "MercadoPago" },
+  ];
+
+  ngOnInit() {
+    this.initForm();
+    this.loadSales();
+    this.api.getTcBlue().subscribe((r) => this.tcBlue.set(r.rate));
+    this.api.getEntities("CLIENT").subscribe((r) => this.entities.set(r.items));
+    this.api
+      .getStockItems("AVAILABLE")
+      .subscribe((r) => this.availableStock.set(r.items));
+  }
+
+  initForm() {
+    this.saleForm = this.fb.group({
+      saleDate: [new Date().toISOString().split("T")[0], Validators.required],
+      saleCategory: ["RETAIL"],
+      entityId: [null],
+      retailClientName: [""],
+      retailClientPhone: [""],
+      retailClientInstagram: [""],
+      isConsumerFinal: [true],
+      warrantyDays: [90, [Validators.required, Validators.min(0)]],
+      notes: [""],
+      items: this.fb.array([]),
+      payments: this.fb.array([]),
+      tradeInEnabled: [false],
+      tradeInModel: [""],
+      tradeInStorage: [null],
+      tradeInBattery: [null],
+      tradeInValue: [0],
+    });
+  }
+
+  get items() {
+    return this.saleForm.get("items") as FormArray;
+  }
+  get payments() {
+    return this.saleForm.get("payments") as FormArray;
+  }
+
+  loadSales() {
+    this.loading.set(true);
+    this.api
+      .getSales(
+        undefined,
+        undefined,
+        this.search() || undefined,
+        this.filterByDate() ? this.dateFrom() : undefined,
+        this.filterByDate() ? this.dateTo() : undefined,
+      )
+      .subscribe({
+        next: (r) => {
+          this.sales.set(r.items);
+          this.total.set(r.total);
+          this.loading.set(false);
+        },
+        error: () => this.loading.set(false),
+      });
+  }
+
+  get completedSales() { return this.filteredSales().filter(s => s.status === 'COMPLETED'); }
+  get ventasHoy() { return this.sales().filter(s => s.status === 'COMPLETED' && s.saleDate.startsWith(new Date().toISOString().split('T')[0])); }
+  get totalHoy() { return this.ventasHoy.reduce((sum, s) => sum + s.totalUsd, 0); }
+  get totalVentas() { return this.completedSales.reduce((sum, s) => sum + s.totalUsd, 0); }
+  get retailCount() { return this.completedSales.filter(s => s.category === 'RETAIL').length; }
+  get wholesaleCount() { return this.completedSales.filter(s => s.category === 'WHOLESALE').length; }
+  get ticketPromedio() { return this.completedSales.length > 0 ? this.totalVentas / this.completedSales.length : 0; }
+  get margenBruto() { return this.completedSales.reduce((sum, s) => sum + s.marginUsd, 0); }
+
+  openNewSale() {
+    this.initForm();
+    this.itemFilters.set([]);
+    this.wizardStep.set(1);
+    this.showModal.set(true);
+    this.addItem();
+    this.addPayment();
+  }
+
+  closeModal() {
+    this.showModal.set(false);
+  }
+
+  nextStep() {
+    if (this.wizardStep() < 4) this.wizardStep.update((s) => s + 1);
+  }
+  prevStep() {
+    if (this.wizardStep() > 1) this.wizardStep.update((s) => s - 1);
+  }
+
+  filteredStockFor(i: number): StockItem[] {
+    const q = (this.itemFilters()[i] ?? '').toLowerCase().trim();
+    if (!q) return this.availableStock();
+    return this.availableStock().filter(s =>
+      s.modelName.toLowerCase().includes(q) ||
+      (s.imeiSerial ?? '').toLowerCase().includes(q) ||
+      (s.internalCode ?? '').toLowerCase().includes(q) ||
+      (s.color ?? '').toLowerCase().includes(q)
+    );
+  }
+
+  setItemFilter(i: number, val: string) {
+    const arr = [...this.itemFilters()];
+    while (arr.length <= i) arr.push('');
+    arr[i] = val;
+    this.itemFilters.set(arr);
+  }
+
+  addItem() {
+    this.itemFilters.update(arr => [...arr, '']);
+    this.items.push(
+      this.fb.group({
+        type: ["EQUIPMENT"],
+        stockItemId: [null, Validators.required],
+        stockBulkId: [null],
+        quantity: [1, [Validators.min(1)]],
+        priceUsd: [0, [Validators.required, Validators.min(0.01)]],
+      }),
+    );
+  }
+
+  removeItem(i: number) {
+    this.items.removeAt(i);
+    this.itemFilters.update(arr => arr.filter((_, idx) => idx !== i));
+  }
+
+  addPayment() {
+    this.payments.push(
+      this.fb.group({
+        method: ["USD_CASH", Validators.required],
+        currency: ["USD"],
+        amount: [0, [Validators.required, Validators.min(0.01)]],
+        exchangeRateUsd: [1],
+      }),
+    );
+  }
+
+  removePayment(i: number) {
+    this.payments.removeAt(i);
+  }
+
+  onStockSelect(index: number, event: Event) {
+    const id = (event.target as HTMLSelectElement).value;
+    const item = this.availableStock().find((s) => s.id === id);
+    if (item) {
+      const isWholesale =
+        this.saleForm.get("saleCategory")?.value === "WHOLESALE";
+      const price =
+        isWholesale && item.wholesalePriceUsd
+          ? item.wholesalePriceUsd
+          : item.suggestedPriceUsd;
+      this.items.at(index).patchValue({ priceUsd: price });
+      this.updateTotals();
+    }
+  }
+
+  onMethodChange(index: number, event: Event) {
+    const method = (event.target as HTMLSelectElement).value;
+    const isArs =
+      method === "ARS_CASH" || method === "ARS_TR" || method === "MERCADOPAGO";
+    this.payments.at(index).patchValue({
+      currency: isArs ? "ARS" : "USD",
+      exchangeRateUsd: isArs ? this.tcBlue() : 1,
+    });
+  }
+
+  updateTotals() {
+    const total = this.items.controls.reduce(
+      (sum, ctrl) =>
+        sum +
+        (ctrl.get("priceUsd")?.value || 0) * (ctrl.get("quantity")?.value || 1),
+      0,
+    );
+    this.totalItems.set(total);
+    const tradeIn = this.saleForm.get("tradeInEnabled")?.value
+      ? this.saleForm.get("tradeInValue")?.value || 0
+      : 0;
+    this.totalPago.set(total - tradeIn);
+  }
+
+  submitSale() {
+    if (this.saleForm.invalid) {
+      this.saleForm.markAllAsTouched();
+      return;
+    }
+    this.submitting.set(true);
+    const v = this.saleForm.value;
+    const dto = {
+      saleDate: v.saleDate,
+      entityId: v.isConsumerFinal ? null : v.entityId,
+      retailClientName: v.isConsumerFinal ? v.retailClientName : null,
+      retailClientPhone: v.isConsumerFinal ? v.retailClientPhone : null,
+      retailClientInstagram: v.isConsumerFinal ? v.retailClientInstagram : null,
+      saleCategory: v.saleCategory,
+      origin: "DIRECT",
+      totalUsd: this.totalPago(),
+      warrantyDays: v.warrantyDays,
+      notes: v.notes,
+      items: v.items,
+      payments: v.payments,
+      closerIds: [],
+      tradeIn: v.tradeInEnabled
+        ? {
+            modelName: v.tradeInModel,
+            storageGb: v.tradeInStorage,
+            batteryPct: v.tradeInBattery,
+            valueUsd: v.tradeInValue,
+          }
+        : null,
+    };
+    this.api.createSale(dto).subscribe({
+      next: () => {
+        this.closeModal();
+        this.loadSales();
+        this.submitting.set(false);
+      },
+      error: () => this.submitting.set(false),
+    });
+  }
+
+  async voidSale(id: string) {
+    if (!await this.confirm.open('¿Anular esta venta? Esta acción no se puede deshacer.')) return;
+    this.api.voidSale(id).subscribe(() => this.loadSales());
+  }
+
+  formatUsd(v: number) {
+    return `u$d ${v.toLocaleString("es-AR", { minimumFractionDigits: 2 })}`;
+  }
+  getStatusLabel(s: string) {
+    return (
+      {
+        COMPLETED: "Completada",
+        VOIDED: "Anulada",
+        CANCELLED: "Cancelada",
+        PENDING: "Pendiente",
+      }[s] ?? s
+    );
+  }
+  getStatusClass(s: string) {
+    return (
+      {
+        COMPLETED: "badge--green",
+        VOIDED: "badge--red",
+        PENDING: "badge--amber",
+      }[s] ?? "badge--gray"
+    );
+  }
+  getCategoryLabel(c: string) {
+    return c === "RETAIL" ? "MIN" : "MAY";
+  }
+}

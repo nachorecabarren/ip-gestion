@@ -1,0 +1,79 @@
+.sidebar {
+  width: 220px; flex-shrink: 0; height: 100vh; background: #fff;
+  border-right: 1px solid var(--color-border); display: flex; flex-direction: column;
+  overflow-y: auto; position: sticky; top: 0;
+
+  &__logo {
+    display: flex; align-items: center; gap: 10px; padding: 18px 16px 14px;
+    border-bottom: 1px solid var(--color-border);
+  }
+  &__logo-icon {
+    width: 34px; height: 34px; background: #1e293b; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    svg { width: 18px; height: 18px; }
+  }
+  &__logo-brand { font-size: 14px; font-weight: 700; color: var(--color-text-primary); }
+  &__logo-plan { font-size: 10px; background: #dbeafe; color: #1d4ed8; padding: 1px 3px; border-radius: 4px; font-weight: 600; }
+  &__logo-text { display: flex; flex-direction: column; gap: 2px; }
+
+  &__tc {
+    padding: 10px 16px; border-bottom: 1px solid var(--color-border);
+    background: #f0fdf4;
+  }
+  &__tc-label { font-size: 10px; font-weight: 600; color: #15803d; letter-spacing: .3px; }
+  &__tc-value { font-size: 15px; font-weight: 700; color: #15803d; }
+
+  &__nav { padding: 10px 8px; flex: 1; }
+
+  &__group-label {
+    font-size: 10px; font-weight: 600; color: var(--color-text-faint); letter-spacing: .5px;
+    padding: 10px 8px 4px; text-transform: uppercase;
+    &:first-child { padding-top: 4px; }
+  }
+
+  &__item {
+    display: flex; align-items: center; gap: 9px; padding: 7px 10px; border-radius: 8px;
+    text-decoration: none; color: var(--color-text-secondary); font-size: 13px;
+    font-weight: 450; transition: background 0.1s, color 0.1s; cursor: pointer;
+    &:hover { background: var(--color-border-soft); color: var(--color-text-primary); }
+    &--active {
+      background: var(--color-blue-light); color: var(--color-blue); font-weight: 600;
+      .sidebar__item-icon svg { stroke: var(--color-blue); }
+    }
+  }
+
+  &__item-icon {
+    width: 18px; height: 18px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+    svg { width: 15px; height: 15px; stroke: var(--color-text-faint); }
+  }
+  &__item-label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  &__user {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 12px; border-top: 1px solid var(--color-border);
+    margin-top: auto; flex-shrink: 0;
+  }
+  &__user-info { display: flex; align-items: center; gap: 8px; overflow: hidden; }
+  &__user-avatar {
+    width: 28px; height: 28px; border-radius: 50%; background: var(--color-blue);
+    color: #fff; font-size: 12px; font-weight: 700; display: flex; align-items: center;
+    justify-content: center; flex-shrink: 0;
+  }
+  &__user-text { display: flex; flex-direction: column; gap: 1px; overflow: hidden; }
+  &__user-name {
+    font-size: 12px; font-weight: 600; color: var(--color-text-secondary);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  &__user-role {
+    font-size: 10px; font-weight: 600; color: var(--color-text-faint);
+    text-transform: uppercase; letter-spacing: .3px;
+    &--owner { color: var(--color-blue); }
+  }
+  &__logout {
+    width: 28px; height: 28px; border-radius: 6px; border: 1px solid var(--color-border);
+    background: transparent; cursor: pointer; display: flex; align-items: center;
+    justify-content: center; flex-shrink: 0; color: var(--color-text-faint);
+    svg { width: 14px; height: 14px; }
+    &:hover { background: #fef2f2; border-color: #fecaca; color: #dc2626; }
+  }
+}

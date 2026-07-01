@@ -1,0 +1,145 @@
+<div class="sv">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Servicio Técnico</h1>
+      <p class="page-sub">Órdenes de reparación de clientes y stock propio</p>
+    </div>
+    <button class="btn btn--primary" (click)="showModal.set(true); initForm()">+ Nuevo SV</button>
+  </div>
+
+  <!-- KPIs -->
+  <div class="sv__kpis">
+    <div class="stat-card"><div class="stat-card__label">ÓRDENES ACTIVAS</div><div class="stat-card__value">{{ total() }}</div></div>
+    <div class="stat-card"><div class="stat-card__label">GANANCIA ENTREGADAS</div><div class="stat-card__value">u$d {{ gananciaTotal.toFixed(0) }}</div></div>
+  </div>
+
+  <!-- Filters -->
+  <div class="sv__filters">
+    <div class="search-input">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" placeholder="SV-001, cliente, IMEI..." (input)="search.set($any($event.target).value); load()" />
+    </div>
+    <select class="filter-select" (change)="statusFilter.set($any($event.target).value); load()">
+      <option value="">Todos los estados</option>
+      <option *ngFor="let s of statusFlow" [value]="s.value">{{ s.label }}</option>
+    </select>
+  </div>
+
+  <div class="card">
+    <div *ngIf="loading()" class="empty-state">Cargando...</div>
+    <div *ngIf="!loading() && jobs().length === 0" class="empty-state">
+      <div class="empty-state__icon">🔧</div>
+      <div class="empty-state__title">Sin órdenes de servicio</div>
+    </div>
+    <table class="table" *ngIf="!loading() && jobs().length > 0">
+      <thead>
+        <tr><th>CÓDIGO</th><th>CLIENTE</th><th>DISPOSITIVO</th><th>FALLA</th><th>TÉCNICO</th><th>PRECIO</th><th>VENCE</th><th>ESTADO</th><th></th></tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let j of jobs()" [class.overdue]="isOverdue(j)">
+          <td class="code">{{ j.svCode }}</td>
+          <td>
+            <div>{{ j.clientName }}</div>
+            <div class="text-small">{{ j.clientPhone }}</div>
+          </td>
+          <td>
+            <div>{{ j.deviceModel ?? '—' }}</div>
+            <div class="text-small">{{ j.imeiSerial }}</div>
+          </td>
+          <td class="issue-cell">{{ j.issueDescription }}</td>
+          <td>{{ j.technicianName ?? '—' }}</td>
+          <td>
+            <div><strong>u$d {{ j.priceToClientUsd }}</strong></div>
+            <div class="text-small">Técnico: u$d {{ j.technicianCostUsd }}</div>
+          </td>
+          <td [class.text-red]="isOverdue(j)">{{ j.limitDate ? (j.limitDate | date:'dd/MM') : '—' }}</td>
+          <td>
+            <span class="badge" [ngClass]="getStatusObj(j.status)?.class">{{ getStatusObj(j.status)?.label }}</span>
+          </td>
+          <td>
+            <button class="btn btn--ghost btn--sm" *ngIf="nextStatus(j.status)"
+              (click)="updateStatus(j.id, nextStatus(j.status)!)">
+              → {{ getStatusObj(nextStatus(j.status)!)?.label }}
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal nuevo SV -->
+<div class="modal-overlay" *ngIf="showModal()" (click)="showModal.set(false)">
+  <div class="modal modal--wide" (click)="$event.stopPropagation()">
+    <div class="modal__header">
+      <div><h2 class="modal__title">Nueva Orden de Servicio</h2></div>
+      <button class="modal__close" (click)="showModal.set(false)">✕</button>
+    </div>
+    <div class="modal__body" [formGroup]="form">
+      <div class="form-row">
+        <div class="form-group form-group--grow">
+          <label>Nombre del cliente *</label>
+          <input type="text" formControlName="retailClientName" class="form-control" />
+        </div>
+        <div class="form-group form-group--grow">
+          <label>WhatsApp</label>
+          <input type="text" formControlName="retailClientPhone" class="form-control" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group form-group--grow">
+          <label>Modelo del dispositivo</label>
+          <input type="text" formControlName="deviceModel" class="form-control" placeholder="ej: iPhone 14 Pro" />
+        </div>
+        <div class="form-group form-group--grow">
+          <label>IMEI / Serie</label>
+          <input type="text" formControlName="imeiSerial" class="form-control" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Descripción de la falla *</label>
+        <textarea formControlName="issueDescription" class="form-control" rows="2" placeholder="Pantalla rota, táctil sin respuesta..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>Técnico asignado</label>
+        <select formControlName="technicianId" class="form-control">
+          <option value="">Sin asignar</option>
+          <option *ngFor="let t of technicians()" [value]="t.id">{{ t.name }}</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="form-group form-group--grow">
+          <label>Precio al cliente u$d *</label>
+          <input type="number" formControlName="priceToClientUsd" class="form-control" />
+        </div>
+        <div class="form-group form-group--grow">
+          <label>Costo técnico u$d</label>
+          <input type="number" formControlName="technicianCostUsd" class="form-control" />
+        </div>
+        <div class="form-group form-group--grow">
+          <label>Seña</label>
+          <input type="number" formControlName="depositAmount" class="form-control" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group form-group--grow">
+          <label>Método seña</label>
+          <select formControlName="depositMethod" class="form-control">
+            <option value="">Sin seña</option>
+            <option value="USD_CASH">USD Cash</option>
+            <option value="ARS_CASH">ARS Cash</option>
+            <option value="ARS_TR">Transferencia</option>
+          </select>
+        </div>
+        <div class="form-group form-group--grow">
+          <label>Fecha límite</label>
+          <input type="date" formControlName="limitDate" class="form-control" />
+        </div>
+      </div>
+    </div>
+    <div class="modal__footer">
+      <button class="btn btn--ghost" (click)="showModal.set(false)">Cancelar</button>
+      <button class="btn btn--primary" (click)="submit()" [disabled]="submitting()">Crear SV</button>
+    </div>
+  </div>
+</div>

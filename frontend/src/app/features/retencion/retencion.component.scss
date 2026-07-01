@@ -1,0 +1,49 @@
+@use '../../shared/styles/shared';
+
+.retencion { display: flex; flex-direction: column; gap: 16px; }
+
+.ret__kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+
+.ret__filters { display: flex; gap: 6px; flex-wrap: wrap; }
+
+.filter-btn {
+  padding: 6px 14px; border-radius: 20px; border: 1px solid var(--color-border);
+  background: #fff; font-size: 12px; font-weight: 500; cursor: pointer;
+  color: var(--color-text-muted); transition: all 0.1s; font-family: var(--font-sans);
+  &.active { background: var(--color-blue); color: #fff; border-color: var(--color-blue); }
+  &:hover:not(.active) { background: var(--color-border-soft); }
+}
+
+.action-btns { display: flex; gap: 6px; align-items: center; }
+
+.stat-card--amber { border-color: #fde68a; background: #fffbeb; }
+.stat-card--red { border-color: #fecaca; background: #fff5f5; }
+
+.text-small { font-size: 11px; color: var(--color-text-faint); margin-top: 2px; }
+
+.message-cell {
+  font-size: 12px; color: var(--color-text-muted);
+  max-width: 200px;
+}
+
+.rules-header { margin-bottom: 16px; }
+.rules-info {
+  font-size: 13px; color: var(--color-text-muted);
+  background: var(--color-blue-light); border: 1px solid var(--color-blue-border);
+  border-radius: 8px; padding: 10px 14px;
+}
+
+.btn-action {
+  width: 30px; height: 30px; border-radius: 6px; border: 1px solid var(--color-border);
+  background: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  svg { width: 15px; height: 15px; }
+
+  &--whatsapp {
+    color: #25d366;
+    &:hover { background: #dcfce7; border-color: #86efac; }
+  }
+  &--copy {
+    color: var(--color-text-muted);
+    &:hover { background: var(--color-blue-light); border-color: var(--color-blue-border); }
+  }
+}

@@ -1,0 +1,150 @@
+{
+  "format": 1,
+  "restore": {
+    "/Users/ignaciorecabarren/Documents/ip-gestion/backend/src/IpGestion.Application/IpGestion.Application.csproj": {}
+  },
+  "projects": {
+    "/Users/ignaciorecabarren/Documents/ip-gestion/backend/src/IpGestion.Application/IpGestion.Application.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "/Users/ignaciorecabarren/Documents/ip-gestion/backend/src/IpGestion.Application/IpGestion.Application.csproj",
+        "projectName": "IpGestion.Application",
+        "projectPath": "/Users/ignaciorecabarren/Documents/ip-gestion/backend/src/IpGestion.Application/IpGestion.Application.csproj",
+        "packagesPath": "/Users/ignaciorecabarren/.nuget/packages/",
+        "outputPath": "/Users/ignaciorecabarren/Documents/ip-gestion/backend/src/IpGestion.Application/obj/",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "/Users/ignaciorecabarren/.nuget/NuGet/NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net9.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net9.0": {
+            "targetAlias": "net9.0",
+            "projectReferences": {
+              "/Users/ignaciorecabarren/Documents/ip-gestion/backend/src/IpGestion.Domain/IpGestion.Domain.csproj": {
+                "projectPath": "/Users/ignaciorecabarren/Documents/ip-gestion/backend/src/IpGestion.Domain/IpGestion.Domain.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "10.0.200"
+      },
+      "frameworks": {
+        "net9.0": {
+          "targetAlias": "net9.0",
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "downloadDependencies": [
+            {
+              "name": "Microsoft.AspNetCore.App.Ref",
+              "version": "[9.0.15, 9.0.15]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Ref",
+              "version": "[9.0.15, 9.0.15]"
+            }
+          ],
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/10.0.203/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "/Users/ignaciorecabarren/Documents/ip-gestion/backend/src/IpGestion.Domain/IpGestion.Domain.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "/Users/ignaciorecabarren/Documents/ip-gestion/backend/src/IpGestion.Domain/IpGestion.Domain.csproj",
+        "projectName": "IpGestion.Domain",
+        "projectPath": "/Users/ignaciorecabarren/Documents/ip-gestion/backend/src/IpGestion.Domain/IpGestion.Domain.csproj",
+        "packagesPath": "/Users/ignaciorecabarren/.nuget/packages/",
+        "outputPath": "/Users/ignaciorecabarren/Documents/ip-gestion/backend/src/IpGestion.Domain/obj/",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "/Users/ignaciorecabarren/.nuget/NuGet/NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net9.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net9.0": {
+            "targetAlias": "net9.0",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "10.0.200"
+      },
+      "frameworks": {
+        "net9.0": {
+          "targetAlias": "net9.0",
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "downloadDependencies": [
+            {
+              "name": "Microsoft.AspNetCore.App.Ref",
+              "version": "[9.0.15, 9.0.15]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Ref",
+              "version": "[9.0.15, 9.0.15]"
+            }
+          ],
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/10.0.203/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    }
+  }
+}

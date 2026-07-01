@@ -1,0 +1,96 @@
+.dashboard {
+  display: flex; flex-direction: column; gap: 20px;
+
+  &__banner {
+    display: flex; align-items: center; gap: 16px;
+    background: #0f172a; color: #fff; border-radius: 12px; padding: 20px 24px;
+    &-icon { font-size: 28px; flex-shrink: 0; }
+    &-title { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+    &-sub { font-size: 13px; color: #94a3b8; }
+    .btn--primary { margin-left: auto; white-space: nowrap; flex-shrink: 0; }
+  }
+
+  &__header { display: flex; align-items: center; justify-content: space-between; }
+
+  &__period { display: flex; align-items: center; gap: 10px;
+    &-label { font-size: 13px; color: var(--color-text-muted); }
+    select { border: 1px solid var(--color-border); border-radius: 8px; padding: 6px 10px; font-size: 13px; background: #fff; cursor: pointer; }
+  }
+
+  &__tabs { display: flex; gap: 4px; }
+  &__tab {
+    display: flex; align-items: center; gap: 6px; padding: 6px 14px;
+    border-radius: 8px; font-size: 13px; font-weight: 500; border: 1px solid transparent;
+    background: transparent; cursor: pointer; color: var(--color-text-muted);
+    svg { width: 14px; height: 14px; }
+    &--active { background: var(--color-blue-light); color: var(--color-blue); border-color: var(--color-blue-border); }
+  }
+
+  &__alerts {
+    background: #fff; border: 1px solid var(--color-border); border-radius: 10px; padding: 14px 18px;
+    &-header { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--color-text-secondary);
+      svg { width: 15px; height: 15px; stroke: var(--color-amber); }
+    }
+  }
+
+  &__quick-actions {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+  }
+
+  &__kpis {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;
+  }
+
+  &__recent {
+    &-header h3 { font-size: 15px; font-weight: 600; margin-bottom: 16px; }
+  }
+}
+
+// Quick action
+.quick-action {
+  display: flex; align-items: center; gap: 12px;
+  background: #fff; border: 1px solid var(--color-border); border-radius: 10px;
+  padding: 14px 16px; text-decoration: none; transition: all 0.12s ease; cursor: pointer;
+  &:hover { border-color: #93c5fd; box-shadow: 0 2px 8px rgba(37,99,235,0.08); }
+  &__icon {
+    width: 36px; height: 36px; background: var(--color-blue-light); border-radius: 8px;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    svg { width: 18px; height: 18px; stroke: var(--color-blue); }
+  }
+  &__text { display: flex; flex-direction: column; }
+  &__label { font-size: 13px; font-weight: 600; color: var(--color-text-primary); }
+  &__sublabel { font-size: 11px; color: var(--color-text-muted); margin-top: 2px; }
+}
+
+// KPI cards
+.kpi-card {
+  background: #fff; border: 1px solid var(--color-border); border-radius: 12px; padding: 18px 20px;
+  &--highlight { border-color: var(--color-border); }
+  &--blue { border-color: var(--color-blue-border); background: var(--color-blue-light); }
+
+  &__label {
+    display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 600;
+    color: var(--color-text-muted); letter-spacing: 0.3px; text-transform: uppercase; margin-bottom: 10px;
+    svg { width: 14px; height: 14px; }
+    &--orange svg { stroke: #f97316; }
+    &--green svg { stroke: #16a34a; }
+    &--amber svg { stroke: #d97706; }
+    &--red svg { stroke: #dc2626; }
+    &--purple svg { stroke: #7c3aed; }
+  }
+
+  &__info { font-size: 11px; color: var(--color-text-faint); cursor: help; }
+
+  &__value {
+    font-size: 26px; font-weight: 700; color: var(--color-text-primary); margin-bottom: 4px;
+    &.negative { color: #dc2626; }
+  }
+
+  &__sub { font-size: 11px; color: var(--color-text-faint); }
+}
+
+.margin-cell { color: #16a34a; font-weight: 500; }
+.text-red { color: #dc2626; }
+.text-amber { color: #d97706; }
+.row--overdue td { background: #fff5f5; }
+.row--near td { background: #fffbeb; }

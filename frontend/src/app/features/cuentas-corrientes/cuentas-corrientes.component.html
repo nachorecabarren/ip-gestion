@@ -1,0 +1,70 @@
+<div class="cc">
+  <div class="page-header">
+    <div><h1 class="page-title">Cuentas Corrientes</h1><p class="page-sub">Saldos pendientes con clientes y proveedores</p></div>
+  </div>
+
+  <div class="cc__filters">
+    <button class="filter-btn" [class.active]="filterMode()===''" (click)="filterMode.set(''); load()">Todos</button>
+    <button class="filter-btn" [class.active]="filterMode()==='cobrar'" (click)="filterMode.set('cobrar'); load()">A cobrar</button>
+    <button class="filter-btn" [class.active]="filterMode()==='pagar'" (click)="filterMode.set('pagar'); load()">A pagar</button>
+    <button class="filter-btn" [class.active]="filterMode()==='cero'" (click)="filterMode.set('cero'); load()">Al día</button>
+    <span class="filter-count">{{ total() }} entidades</span>
+  </div>
+
+  <div class="card">
+    <div *ngIf="loading()" class="empty-state">Cargando...</div>
+    <table class="table" *ngIf="!loading() && balances().length > 0">
+      <thead><tr><th>NOMBRE</th><th>TIPO</th><th>TELÉFONO</th><th>SALDO</th><th>ESTADO</th><th></th></tr></thead>
+      <tbody>
+        <tr *ngFor="let b of balances()">
+          <td><strong>{{ b.entityName }}</strong></td>
+          <td><span class="badge badge--blue">{{ getEntityTypeLabel(b.type) }}</span></td>
+          <td>{{ b.phone ?? '—' }}</td>
+          <td [ngClass]="getBalanceClass(b.balanceUsd)"><strong>u$d {{ b.balanceUsd.toFixed(2) }}</strong></td>
+          <td><span class="balance-label" [ngClass]="getBalanceClass(b.balanceUsd)">{{ getBalanceLabel(b.balanceUsd) }}</span></td>
+          <td>
+            <button class="btn btn--ghost btn--sm" (click)="openPayment(b)" *ngIf="b.balanceUsd !== 0">
+              {{ b.balanceUsd > 0 ? 'Registrar cobro' : 'Registrar pago' }}
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <div *ngIf="!loading() && balances().length === 0" class="empty-state"><div class="empty-state__title">Sin saldos</div></div>
+  </div>
+</div>
+
+<div class="modal-overlay" *ngIf="showModal()" (click)="showModal.set(false)">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal__header">
+      <div><h2 class="modal__title">Registrar {{ selectedEntity()?.balanceUsd ?? 0 > 0 ? 'Cobro' : 'Pago' }}</h2>
+      <p class="modal__sub">{{ selectedEntity()?.entityName }}</p></div>
+      <button class="modal__close" (click)="showModal.set(false)">✕</button>
+    </div>
+    <div class="modal__body" [formGroup]="form">
+      <div class="form-row">
+        <div class="form-group form-group--grow">
+          <label>Monto u$d *</label>
+          <input type="number" formControlName="amountUsd" class="form-control" />
+        </div>
+        <div class="form-group form-group--grow">
+          <label>Método *</label>
+          <select formControlName="method" class="form-control">
+            <option value="USD_CASH">USD Cash</option>
+            <option value="USDT">USDT</option>
+            <option value="ARS_CASH">ARS Cash</option>
+            <option value="ARS_TR">Transferencia</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Notas</label>
+        <input type="text" formControlName="notes" class="form-control" />
+      </div>
+    </div>
+    <div class="modal__footer">
+      <button class="btn btn--ghost" (click)="showModal.set(false)">Cancelar</button>
+      <button class="btn btn--primary" (click)="submit()">Confirmar</button>
+    </div>
+  </div>
+</div>

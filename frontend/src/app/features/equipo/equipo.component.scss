@@ -1,0 +1,28 @@
+@use '../../shared/styles/shared';
+
+.equipo { display: flex; flex-direction: column; gap: 16px; }
+
+.section-title { font-size: 14px; font-weight: 600; margin: 0 0 14px; color: var(--color-text-primary); }
+
+.invite-form {
+  display: flex; gap: 10px; align-items: center;
+  .form-control { max-width: 320px; }
+}
+.invite-error { margin-top: 10px; font-size: 13px; color: #dc2626; }
+
+.invite-result {
+  margin-top: 16px; padding: 14px; border-radius: 10px;
+  background: var(--color-blue-light); border: 1px solid var(--color-blue-border);
+
+  &__label { font-size: 13px; color: var(--color-text-secondary); margin-bottom: 10px; }
+  &__row { display: flex; gap: 8px; align-items: center;
+    .form-control { flex: 1; font-size: 12px; color: var(--color-text-muted); }
+  }
+}
+
+.text-right { text-align: right; }
+
+.btn--sm { padding: 4px 10px; font-size: 12px; }
+.btn--danger-text { color: #dc2626; &:hover { background: #fef2f2; } }
+
+.badge--blue { background: var(--color-blue-light); color: var(--color-blue); }

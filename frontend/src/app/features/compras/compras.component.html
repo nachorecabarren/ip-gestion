@@ -1,0 +1,184 @@
+<div class="compras">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Compras</h1>
+      <p class="page-sub">Ingreso de equipos y accesorios al stock</p>
+    </div>
+    <button class="btn btn--primary" (click)="openModal()">+ Nueva Compra</button>
+  </div>
+
+  <div class="card">
+    <div *ngIf="loading()" class="empty-state">Cargando...</div>
+    <div *ngIf="!loading() && purchases().length === 0" class="empty-state">
+      <div class="empty-state__icon">📦</div>
+      <div class="empty-state__title">Sin compras registradas</div>
+    </div>
+    <table class="table" *ngIf="!loading() && purchases().length > 0">
+      <thead>
+        <tr><th>FECHA</th><th>PROVEEDOR</th><th>TIPO</th><th>EQUIPOS</th><th>TOTAL</th><th>ESTADO</th><th></th></tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let p of purchases()">
+          <td>{{ p.purchaseDate | date:'dd/MM/yy' }}</td>
+          <td>{{ p.providerName ?? '—' }}</td>
+          <td><span class="badge badge--blue">{{ p.type === 'DEVICE' ? 'Equipos' : 'Accesorios' }}</span></td>
+          <td>{{ p.stockItems.length }}</td>
+          <td><strong>u$d {{ p.totalUsd.toFixed(2) }}</strong></td>
+          <td><span class="badge" [ngClass]="getStatusClass(p.status)">{{ getStatusLabel(p.status) }}</span></td>
+          <td>
+            <button class="btn-icon-sm" (click)="voidPurchase(p.id)" title="Anular" *ngIf="p.status === 'ACTIVE' && auth.isOwner()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal Nueva Compra -->
+<div class="modal-overlay" *ngIf="showModal()" (click)="showModal.set(false)">
+  <div class="modal modal--wide" (click)="$event.stopPropagation()">
+    <div class="modal__header">
+      <div><h2 class="modal__title">Nueva Compra</h2></div>
+      <button class="modal__close" (click)="showModal.set(false)">✕</button>
+    </div>
+
+    <div class="modal__body" [formGroup]="form">
+      <div class="form-row">
+        <div class="form-group form-group--grow">
+          <label>Proveedor</label>
+          <select formControlName="providerId" class="form-control">
+            <option value="">Sin proveedor</option>
+            <option *ngFor="let p of providers()" [value]="p.id">{{ p.name }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Fecha *</label>
+          <input type="date" formControlName="purchaseDate" class="form-control" />
+        </div>
+      </div>
+
+      <!-- Subtabs equipos / accesorios -->
+      <div class="tabs" style="margin-bottom:16px">
+        <button type="button" class="tab" [class.active]="activeTab() === 'device'" (click)="activeTab.set('device')">Equipos</button>
+        <button type="button" class="tab" [class.active]="activeTab() === 'bulk'" (click)="activeTab.set('bulk')">Accesorios (Bulk)</button>
+      </div>
+
+      <!-- Equipos -->
+      <ng-container *ngIf="activeTab() === 'device'" formArrayName="deviceItems">
+        <div *ngFor="let item of deviceItems.controls; let i = index" [formGroupName]="i" class="item-row">
+          <div class="item-row__header">
+            <span>Equipo {{ i + 1 }}</span>
+            <button type="button" class="btn-remove" (click)="removeDevice(i)" *ngIf="deviceItems.length > 1">✕</button>
+          </div>
+          <div class="form-row">
+            <div class="form-group form-group--grow">
+              <label>Modelo *</label>
+              <select formControlName="modelId" class="form-control">
+                <option value="">Seleccionar modelo...</option>
+                <option *ngFor="let m of models()" [value]="m.id">{{ m.name }}</option>
+              </select>
+            </div>
+            <div class="form-group form-group--sm">
+              <label>Condición *</label>
+              <select formControlName="condition" class="form-control">
+                <option value="NEW">Nuevo</option>
+                <option value="USED">Usado</option>
+                <option value="REFURBISHED">Reacondiciona.</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group form-group--grow">
+              <label>IMEI / Serie</label>
+              <input type="text" formControlName="imeiSerial" class="form-control" placeholder="15 dígitos" />
+            </div>
+            <div class="form-group form-group--sm">
+              <label>Color</label>
+              <input type="text" formControlName="color" class="form-control" />
+            </div>
+            <div class="form-group form-group--sm">
+              <label>GB</label>
+              <input type="number" formControlName="storageGb" class="form-control" />
+            </div>
+            <div class="form-group form-group--sm">
+              <label>Batería %</label>
+              <input type="number" formControlName="batteryPct" class="form-control" min="0" max="100" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group form-group--grow">
+              <label>Costo u$d *</label>
+              <input type="number" formControlName="costUsd" class="form-control" />
+            </div>
+            <div class="form-group form-group--grow">
+              <label>Precio sugerido u$d *</label>
+              <input type="number" formControlName="suggestedPriceUsd" class="form-control" />
+            </div>
+            <div class="form-group form-group--grow">
+              <label>Precio mayorista u$d</label>
+              <input type="number" formControlName="wholesalePriceUsd" class="form-control" />
+            </div>
+          </div>
+        </div>
+        <button type="button" class="btn btn--ghost btn--sm" (click)="addDevice()">+ Agregar equipo</button>
+      </ng-container>
+
+      <!-- Bulk -->
+      <ng-container *ngIf="activeTab() === 'bulk'" formArrayName="bulkItems">
+        <div *ngFor="let item of bulkItems.controls; let i = index" [formGroupName]="i" class="item-row">
+          <div class="item-row__header">
+            <span>Accesorio {{ i + 1 }}</span>
+            <button type="button" class="btn-remove" (click)="removeBulk(i)">✕</button>
+          </div>
+          <div class="form-row">
+            <div class="form-group form-group--grow">
+              <label>Accesorio *</label>
+              <select formControlName="accessoryId" class="form-control">
+                <option value="">Seleccionar...</option>
+                <option *ngFor="let a of accessories()" [value]="a.id">{{ a.name }}</option>
+              </select>
+            </div>
+            <div class="form-group form-group--sm">
+              <label>Color</label>
+              <input type="text" formControlName="color" class="form-control" />
+            </div>
+            <div class="form-group form-group--sm">
+              <label>Cantidad *</label>
+              <input type="number" formControlName="quantity" class="form-control" min="1" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group form-group--grow">
+              <label>Costo u$d c/u *</label>
+              <input type="number" formControlName="costUsd" class="form-control" />
+            </div>
+            <div class="form-group form-group--grow">
+              <label>Precio sugerido u$d *</label>
+              <input type="number" formControlName="suggestedPriceUsd" class="form-control" />
+            </div>
+          </div>
+        </div>
+        <button type="button" class="btn btn--ghost btn--sm" (click)="addBulk()">+ Agregar accesorio</button>
+      </ng-container>
+
+      <div class="cost-summary">
+        <span>Total costo estimado:</span>
+        <strong>u$d {{ totalCosto.toFixed(2) }}</strong>
+      </div>
+
+      <div class="form-group" style="margin-top:12px">
+        <label>Notas</label>
+        <textarea formControlName="notes" class="form-control" rows="2"></textarea>
+      </div>
+    </div>
+
+    <div class="modal__footer">
+      <button class="btn btn--ghost" (click)="showModal.set(false)">Cancelar</button>
+      <button class="btn btn--primary" (click)="submit()" [disabled]="submitting()">
+        {{ submitting() ? 'Guardando...' : 'Registrar Compra' }}
+      </button>
+    </div>
+  </div>
+</div>

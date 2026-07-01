@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(lsof -ti:5000)",
+      "Bash(xargs kill -9)",
+      "Bash(pkill -f \"IpGestion.API\")",
+      "Bash(dotnet build *)",
+      "Bash(curl -s -o /dev/null -w \"login=%{http_code}\\\\n\" -X POST http://localhost:5000/api/auth/login -H \"Content-Type: application/json\" -d '{\"email\":\"admin@ipgestion.com\",\"password\":\"Admin123!\"}' -c /tmp/ck.txt)",
+      "Bash(curl -s -i -X POST http://localhost:5000/api/invitations -H \"Content-Type: application/json\" -H \"Origin: http://localhost:4200\" -d '{\"email\":\"nuevo@test.com\"}' -b /tmp/ck.txt)",
+      "Bash(grep -v \"^$\\\\|NuGet\\\\|Restore\\\\|up-to-date\\\\|Question\")",
+      "Bash(curl -s -X POST http://localhost:5000/api/auth/login -H 'Content-Type: application/json' -d '{\"email\":\"admin@ipgestion.com\",\"password\":\"Admin123!\"}' -c /tmp/cookies.txt -o /dev/null -w '%{http_code}')",
+      "Bash(curl -s -X POST http://localhost:5000/api/stock/items -H 'Content-Type: application/json' -b /tmp/cookies.txt -d '{ *)",
+      "Bash(rm /Users/ignaciorecabarren/Documents/ip-gestion/backend/src/IpGestion.Infrastructure/Migrations/*.cs)",
+      "Bash(rm /Users/ignaciorecabarren/Documents/ip-gestion/backend/src/IpGestion.Infrastructure/Migrations/*.Designer.cs)"
+    ]
+  }
+}

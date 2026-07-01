@@ -1,0 +1,29 @@
+@use '../../shared/styles/shared';
+.cajas { display:flex; flex-direction:column; gap:16px;
+  &__grid { display:grid; grid-template-columns:180px 1fr; gap:16px; }
+  &__selector { display:flex; flex-direction:column; gap:6px; }
+  &__balances { display:grid; grid-template-columns:repeat(5,1fr); gap:10px; }
+}
+.caja-btn {
+  display:flex; align-items:center; gap:8px; padding:10px 12px; border:1px solid var(--color-border);
+  border-radius:8px; background:#fff; cursor:pointer; font-size:13px; font-weight:500;
+  svg { width:16px; height:16px; stroke:var(--color-text-muted); flex-shrink:0; }
+  &.active { border-color:var(--color-blue); background:var(--color-blue-light); color:var(--color-blue); svg { stroke:var(--color-blue); } }
+  &__default { font-size:10px; background:#e0f2fe; color:#0284c7; padding:2px 6px; border-radius:4px; margin-left:auto; }
+}
+.balance-card {
+  border-radius:10px; padding:14px 16px; border:1px solid var(--color-border);
+  &--usd { background:#f0fdf4; border-color:#bbf7d0; }
+  &--usdt { background:#f0f9ff; border-color:#bae6fd; }
+  &--ars { background:#fffbeb; border-color:#fde68a; }
+  &--tr { background:#fdf4ff; border-color:#e9d5ff; }
+  &--total { background:#1e293b; border-color:#1e293b; }
+  &__label { font-size:10px; font-weight:600; letter-spacing:.4px; text-transform:uppercase; color:var(--color-text-muted); margin-bottom:8px; }
+  &__value { font-size:18px; font-weight:700; color:var(--color-text-primary);
+    &--big { font-size:22px; color:#fff; }
+  }
+  &--total &__label { color:#94a3b8; }
+}
+.card-header-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; h3 { font-size:14px; font-weight:600; } }
+.text-green { color:#16a34a; }
+.text-red { color:#dc2626; }

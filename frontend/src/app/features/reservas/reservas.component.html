@@ -1,0 +1,145 @@
+<div class="reservas">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Reservas</h1>
+      <p class="page-sub">Equipos apartados con seña para clientes</p>
+    </div>
+    <button class="btn btn--primary" (click)="showModal.set(true); initForm()">+ Nueva Reserva</button>
+  </div>
+
+  <div class="reservas__filters">
+    <button class="filter-btn" [class.active]="statusFilter() === 'ACTIVE'" (click)="statusFilter.set('ACTIVE'); load()">Activas</button>
+    <button class="filter-btn" [class.active]="statusFilter() === 'SOLD'" (click)="statusFilter.set('SOLD'); load()">Concretadas</button>
+    <button class="filter-btn" [class.active]="statusFilter() === 'CANCELLED'" (click)="statusFilter.set('CANCELLED'); load()">Canceladas</button>
+    <button class="filter-btn" [class.active]="statusFilter() === ''" (click)="statusFilter.set(''); load()">Todas</button>
+    <span class="filter-count">{{ total() }} reservas</span>
+  </div>
+
+  <div class="card">
+    <div *ngIf="loading()" class="empty-state">Cargando...</div>
+    <div *ngIf="!loading() && reservations().length === 0" class="empty-state">
+      <div class="empty-state__icon">🔖</div>
+      <div class="empty-state__title">Sin reservas</div>
+    </div>
+    <table class="table" *ngIf="!loading() && reservations().length > 0">
+      <thead>
+        <tr><th>CLIENTE</th><th>EQUIPO</th><th>FECHA RETIRO</th><th>SEÑA</th><th>PRECIO PACTADO</th><th>ESTADO</th><th></th></tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let r of reservations()" [class.overdue]="r.status === 'ACTIVE' && isPastPickup(r.pickupDate)">
+          <td>
+            <div>{{ r.clientName ?? 'Consumidor Final' }}</div>
+            <div class="text-small">{{ r.clientPhone }}</div>
+          </td>
+          <td>{{ r.itemName ?? '—' }}</td>
+          <td>
+            <span [class.text-red]="r.status === 'ACTIVE' && isPastPickup(r.pickupDate)">
+              {{ r.pickupDate | date:'dd/MM/yy' }}
+            </span>
+          </td>
+          <td>u$d {{ r.depositAmountUsd }}</td>
+          <td><strong>u$d {{ r.agreedPriceUsd }}</strong></td>
+          <td><span class="badge" [ngClass]="getStatusClass(r.status)">{{ getStatusLabel(r.status) }}</span></td>
+          <td>
+            <button class="btn btn--ghost btn--sm" (click)="cancel(r.id)" *ngIf="r.status === 'ACTIVE' && auth.isOwner()">Cancelar</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" *ngIf="showModal()" (click)="showModal.set(false)">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal__header">
+      <div><h2 class="modal__title">Nueva Reserva</h2></div>
+      <button class="modal__close" (click)="showModal.set(false)">✕</button>
+    </div>
+    <div class="modal__body" [formGroup]="form">
+      <div class="form-group">
+        <label>Tipo de cliente</label>
+        <div class="radio-group">
+          <label class="radio-option"><input type="radio" formControlName="isConsumerFinal" [value]="true" /> Consumidor Final</label>
+          <label class="radio-option"><input type="radio" formControlName="isConsumerFinal" [value]="false" /> Registrado</label>
+        </div>
+      </div>
+
+      <ng-container *ngIf="form.get('isConsumerFinal')?.value">
+        <div class="form-row">
+          <div class="form-group form-group--grow">
+            <label>Nombre del cliente</label>
+            <input type="text" formControlName="retailClientName" class="form-control" placeholder="Nombre completo" />
+          </div>
+          <div class="form-group form-group--grow">
+            <label>WhatsApp</label>
+            <input type="text" formControlName="retailClientPhone" class="form-control" placeholder="+54 9..." />
+          </div>
+        </div>
+      </ng-container>
+
+      <ng-container *ngIf="!form.get('isConsumerFinal')?.value">
+        <div class="form-group">
+          <label>Cliente</label>
+          <select formControlName="entityId" class="form-control">
+            <option value="">Seleccionar cliente...</option>
+            <option *ngFor="let c of clients()" [value]="c.id">{{ c.name }}</option>
+          </select>
+        </div>
+      </ng-container>
+
+      <div class="form-group">
+        <label>Equipo a apartar</label>
+        <select formControlName="stockItemId" class="form-control">
+          <option value="">Sin equipo específico</option>
+          <option *ngFor="let s of availableStock()" [value]="s.id">{{ s.modelName }} {{ s.storageGb }}GB {{ s.color }}</option>
+        </select>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group form-group--grow">
+          <label>Categoría</label>
+          <div class="category-toggle">
+            <button type="button" [class.active]="form.get('saleCategory')?.value === 'RETAIL'" (click)="form.patchValue({saleCategory:'RETAIL'})">Minorista</button>
+            <button type="button" [class.active]="form.get('saleCategory')?.value === 'WHOLESALE'" (click)="form.patchValue({saleCategory:'WHOLESALE'})">Mayorista</button>
+          </div>
+        </div>
+        <div class="form-group form-group--grow">
+          <label>Fecha de Retiro *</label>
+          <input type="date" formControlName="pickupDate" class="form-control" />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group form-group--grow">
+          <label>Precio pactado u$d *</label>
+          <input type="number" formControlName="agreedPriceUsd" class="form-control" />
+        </div>
+        <div class="form-group form-group--grow">
+          <label>Seña u$d *</label>
+          <input type="number" formControlName="depositAmountUsd" class="form-control" />
+        </div>
+        <div class="form-group form-group--grow">
+          <label>Método seña</label>
+          <select formControlName="depositMethod" class="form-control">
+            <option value="USD_CASH">Efectivo USD</option>
+            <option value="USDT">USDT</option>
+            <option value="ARS_CASH">Efectivo ARS</option>
+            <option value="ARS_TR">Transferencia ARS</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Notas (fecha pactada, condiciones, etc.)</label>
+        <textarea formControlName="notes" class="form-control" rows="3" placeholder="Retira el jueves tarde, modelo negro..."></textarea>
+      </div>
+    </div>
+    <div class="modal__footer">
+      <button class="btn btn--ghost" (click)="showModal.set(false)">Cancelar</button>
+      <button class="btn btn--primary" (click)="submit()" [disabled]="submitting()">
+        {{ submitting() ? 'Guardando...' : 'Crear Reserva' }}
+      </button>
+    </div>
+  </div>
+</div>
