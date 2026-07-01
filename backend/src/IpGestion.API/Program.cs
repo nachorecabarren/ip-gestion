@@ -106,8 +106,19 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.Migrate();   // applies EF migrations (creates schema on a fresh DB)
-    await SeedData.SeedAsync(db);
+    db.Database.Migrate();
+    try
+    {
+        await SeedData.SeedAsync(db);
+    }
+    catch (Exception ex)
+    {
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "SeedData failed: {Message}", ex.Message);
+        if (ex.InnerException != null)
+            logger.LogError("Inner: {Inner}", ex.InnerException.Message);
+        // No relanzar — la app debe arrancar igual aunque el seed falle
+    }
 }
 
 if (app.Environment.IsDevelopment())
