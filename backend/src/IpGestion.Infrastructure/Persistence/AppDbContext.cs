@@ -47,8 +47,21 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         b.Entity<EntityBalance>().HasKey(e => e.EntityId);
 
         // JSON columns for list properties
-        b.Entity<TenantUser>().Property(e => e.AllowedModules).HasColumnType("TEXT");
-        b.Entity<Sale>().Property(e => e.CloserIds).HasColumnType("TEXT");
+        b.Entity<TenantUser>()
+            .Property(e => e.AllowedModules)
+            .HasConversion(
+                v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
+                v => System.Text.Json.JsonSerializer.Deserialize<List<string>>(v, (System.Text.Json.JsonSerializerOptions?)null) ?? new()
+            )
+            .HasColumnType("jsonb");
+
+        b.Entity<Sale>()
+            .Property(e => e.CloserIds)
+            .HasConversion(
+                v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
+                v => System.Text.Json.JsonSerializer.Deserialize<List<Guid>>(v, (System.Text.Json.JsonSerializerOptions?)null) ?? new()
+            )
+            .HasColumnType("jsonb");
         b.Entity<Competitor>().Ignore(e => e.Prices); // loaded via CompetitorPrice
 
         // Soft precision for decimals

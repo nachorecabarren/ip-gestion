@@ -13,3 +13,4 @@
 /Users/ignaciorecabarren/Documents/ip-gestion/backend/src/IpGestion.Application/obj/Debug/net9.0/refint/IpGestion.Application.dll
 /Users/ignaciorecabarren/Documents/ip-gestion/backend/src/IpGestion.Application/obj/Debug/net9.0/IpGestion.Application.pdb
 /Users/ignaciorecabarren/Documents/ip-gestion/backend/src/IpGestion.Application/obj/Debug/net9.0/ref/IpGestion.Application.dll
+/Users/ignaciorecabarren/Documents/ip-gestion/backend/src/IpGestion.Application/obj/Debug/net9.0/IpGestion.Application.sourcelink.json

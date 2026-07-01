@@ -16,14 +16,24 @@ builder.Services.AddControllers()
     .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter()));
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c => {
+builder.Services.AddSwaggerGen(c =>
+{
     c.SwaggerDoc("v1", new() { Title = "iP Gestión API", Version = "v1" });
 });
 
 // EF Core + SQLite
-builder.Services.AddDbContext<AppDbContext>(o =>
-    o.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")
-        ?? "Data Source=ipgestion.db"));
+// EF Core + PostgreSQL (local) o DATABASE_URL (Fly.io)
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
+if (!string.IsNullOrEmpty(databaseUrl))
+{
+    var uri = new Uri(databaseUrl);
+    var userInfo = uri.UserInfo.Split(':');
+    connectionString = $"Host={uri.Host};Port={uri.Port};Database={uri.AbsolutePath.TrimStart('/')};Username={userInfo[0]};Password={userInfo[1]};SSL Mode=Require;Trust Server Certificate=true";
+}
+
+builder.Services.AddDbContext<AppDbContext>(o => o.UseNpgsql(connectionString));
 
 // Infrastructure
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -81,13 +91,15 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-// CORS: AllowCredentials() requires SetIsOriginAllowed instead of AllowAnyOrigin
+// CORS dinámico — localhost en dev, dominio real en prod (via variable AllowedOrigins)
+var allowedOrigins = builder.Configuration["AllowedOrigins"]?.Split(',')
+    ?? ["http://localhost:4200"];
+
 builder.Services.AddCors(o => o.AddPolicy("Angular", p =>
-    p.SetIsOriginAllowed(origin => Uri.TryCreate(origin, UriKind.Absolute, out var u) && u.Host == "localhost")
+    p.WithOrigins(allowedOrigins)
      .AllowAnyMethod()
      .AllowAnyHeader()
      .AllowCredentials()));
-
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
