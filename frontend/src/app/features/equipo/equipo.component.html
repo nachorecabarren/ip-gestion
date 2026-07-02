@@ -21,15 +21,6 @@
     <!-- Invitación recién enviada -->
     <div *ngIf="lastLink() as link" class="invite-result">
       <div class="invite-result__sent">✅ Invitación enviada a <strong>{{ link.email }}</strong></div>
-      <button type="button" class="invite-result__toggle" (click)="showLastLink.set(!showLastLink())">
-        {{ showLastLink() ? 'Ocultar link de invitación' : 'Ver link de invitación' }}
-      </button>
-      <div class="invite-result__row" *ngIf="showLastLink()">
-        <input class="form-control" [value]="link.acceptUrl" readonly />
-        <button class="btn btn--ghost" (click)="copyLink(link.acceptUrl, link.id)">
-          {{ copiedId() === link.id ? '¡Copiado!' : 'Copiar link' }}
-        </button>
-      </div>
     </div>
   </div>
 
@@ -83,10 +74,12 @@
           <td>{{ i.email }}</td>
           <td>{{ i.expiresAt | date:'dd/MM/yyyy' }}</td>
           <td class="text-right">
-            <button class="btn btn--ghost btn--sm" (click)="copyLink(buildLink(i), i.id)">
-              {{ copiedId() === i.id ? '¡Copiado!' : 'Copiar link' }}
-            </button>
-            <button class="btn btn--ghost btn--sm btn--danger-text" (click)="cancelInvite(i)">Cancelar</button>
+            <div class="row-actions">
+              <button class="btn btn--ghost btn--sm" (click)="copyLink(buildLink(i), i.id)">
+                {{ copiedId() === i.id ? '¡Copiado!' : 'Copiar link' }}
+              </button>
+              <button class="btn btn--ghost btn--sm btn--danger-text" (click)="cancelInvite(i)">Cancelar</button>
+            </div>
           </td>
         </tr>
       </tbody>

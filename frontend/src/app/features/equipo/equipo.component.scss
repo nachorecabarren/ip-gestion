@@ -15,16 +15,11 @@
   background: var(--color-green-bg); border: 1px solid var(--color-green-border);
 
   &__sent { font-size: 13px; color: var(--color-green-text); font-weight: 500; }
-  &__toggle {
-    display: inline-block; margin-top: 8px; background: none; border: none; padding: 0;
-    font-size: 12px; color: var(--color-blue); cursor: pointer; text-decoration: underline;
-  }
-  &__row { display: flex; gap: 8px; align-items: center; margin-top: 10px;
-    .form-control { flex: 1; font-size: 12px; color: var(--color-text-muted); }
-  }
 }
 
 .text-right { text-align: right; }
+
+.row-actions { display: flex; gap: 5px; justify-content: flex-end; }
 
 .btn--sm { padding: 4px 10px; font-size: 12px; }
 .btn--danger-text { color: var(--color-red-text); &:hover { background: var(--color-red-bg); } }
