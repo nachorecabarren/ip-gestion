@@ -24,7 +24,8 @@
       <a *ngFor="let item of items"
          [routerLink]="item.route"
          routerLinkActive="sidebar__item--active"
-         class="sidebar__item">
+         class="sidebar__item"
+         (click)="itemClicked.emit()">
         <!-- Icons -->
         <span class="sidebar__item-icon">
           <svg *ngIf="item.icon==='grid'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
@@ -59,7 +60,7 @@
         <span class="sidebar__user-role" [class.sidebar__user-role--owner]="auth.isOwner()">{{ roleLabel() }}</span>
       </div>
     </div>
-    <button class="sidebar__logout" (click)="auth.logout()" title="Cerrar sesión">
+    <button class="sidebar__logout" (click)="itemClicked.emit(); auth.logout()" title="Cerrar sesión">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
         <polyline points="16 17 21 12 16 7"/>

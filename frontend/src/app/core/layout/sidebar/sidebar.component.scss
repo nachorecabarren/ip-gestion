@@ -77,3 +77,26 @@
     &:hover { background: #fef2f2; border-color: #fecaca; color: #dc2626; }
   }
 }
+
+@media (max-width: 900px) {
+  .sidebar {
+    width: 280px;
+    border-right: none;
+  }
+
+  .sidebar__logo {
+    padding: 18px 18px 14px;
+  }
+
+  .sidebar__nav {
+    padding: 10px 10px 16px;
+  }
+
+  .sidebar__item {
+    padding: 10px 12px;
+  }
+
+  .sidebar__user {
+    padding: 12px 14px 16px;
+  }
+}

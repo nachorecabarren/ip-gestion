@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, EventEmitter, Output, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, RouterLinkActive } from '@angular/router';
 import { ApiService } from '../../services/api.service';
@@ -18,6 +18,7 @@ export class SidebarComponent {
   private api = inject(ApiService);
   auth = inject(AuthService);
   tcBlue = signal(1520);
+  @Output() itemClicked = new EventEmitter<void>();
 
   constructor() {
     this.api.getTcBlue().subscribe(r => this.tcBlue.set(r.rate));
