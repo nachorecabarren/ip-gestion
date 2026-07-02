@@ -207,6 +207,10 @@ export class StockComponent implements OnInit {
     });
   }
 
+  onNewImeiScanned(value: string) {
+    this.newForm.patchValue({ imeiSerial: value });
+  }
+
   toggleSelect(id: string) {
     const s = new Set(this.selected());
     s.has(id) ? s.delete(id) : s.add(id);
