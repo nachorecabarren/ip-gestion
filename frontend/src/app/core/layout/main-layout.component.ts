@@ -1,7 +1,8 @@
-import { Component, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
 import { SidebarComponent } from './sidebar/sidebar.component';
+import { ThemeService } from '../services/theme.service';
 
 @Component({
   selector: 'app-main-layout',
@@ -25,6 +26,10 @@ import { SidebarComponent } from './sidebar/sidebar.component';
             </svg>
           </button>
           <div class="layout__topbar-title">iP Gestión</div>
+          <button class="layout__theme-toggle" type="button" (click)="toggleTheme()" [attr.aria-label]="theme.isDark() ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'" [attr.aria-pressed]="theme.isDark()">
+            <svg *ngIf="!theme.isDark()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"/></svg>
+            <svg *ngIf="theme.isDark()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="4.5"/><path d="M12 2.75v2.5M12 18.75v2.5M4.75 12H2.25M21.75 12h-2.5M5.64 5.64l-1.77-1.77M20.13 20.13l-1.77-1.77M5.64 18.36l-1.77 1.77M20.13 3.87l-1.77 1.77"/></svg>
+          </button>
           <div class="layout__topbar-spacer"></div>
         </header>
 
@@ -57,14 +62,15 @@ import { SidebarComponent } from './sidebar/sidebar.component';
       .layout__main { min-height: 100vh; }
       .layout__topbar {
         display: flex; align-items: center; gap: 12px; padding: 14px 16px;
-        position: sticky; top: 0; z-index: 12; background: rgba(248, 250, 252, 0.95);
+        position: sticky; top: 0; z-index: 12; background: var(--color-surface-elevated);
         backdrop-filter: blur(8px); border-bottom: 1px solid var(--color-border);
       }
-      .layout__menu-btn {
+      .layout__menu-btn, .layout__theme-toggle {
         display: flex; align-items: center; justify-content: center; width: 40px; height: 40px;
-        border: 1px solid var(--color-border); border-radius: 10px; background: #fff; color: var(--color-text-primary);
+        border: 1px solid var(--color-border); border-radius: 10px; background: var(--color-surface-elevated); color: var(--color-text-primary);
         cursor: pointer; flex-shrink: 0;
       }
+      .layout__theme-toggle:hover, .layout__menu-btn:hover { background: var(--color-border-soft); }
       .layout__menu-btn svg { width: 18px; height: 18px; }
       .layout__topbar-title { font-weight: 700; font-size: 15px; }
       .layout__topbar-spacer { flex: 1; }
@@ -73,6 +79,7 @@ import { SidebarComponent } from './sidebar/sidebar.component';
   `]
 })
 export class MainLayoutComponent implements OnInit, OnDestroy {
+  readonly theme = inject(ThemeService);
   isMobileMenuOpen = signal(false);
   isMobile = signal(false);
 
@@ -95,4 +102,5 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
 
   toggleMobileMenu() { this.isMobileMenuOpen.set(!this.isMobileMenuOpen()); }
   closeMobileMenu() { this.isMobileMenuOpen.set(false); }
+  toggleTheme() { this.theme.toggleTheme(); }
 }

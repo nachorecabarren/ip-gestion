@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, RouterLinkActive } from '@angular/router';
 import { ApiService } from '../../services/api.service';
 import { AuthService } from '../../services/auth.service';
+import { ThemeService } from '../../services/theme.service';
 
 interface NavItem { label: string; route: string; icon: string; ownerOnly?: boolean; }
 interface NavGroup { group: string; items: NavItem[]; }
@@ -17,6 +18,7 @@ interface NavGroup { group: string; items: NavItem[]; }
 export class SidebarComponent {
   private api = inject(ApiService);
   auth = inject(AuthService);
+  theme = inject(ThemeService);
   tcBlue = signal(1520);
   @Output() itemClicked = new EventEmitter<void>();
 
