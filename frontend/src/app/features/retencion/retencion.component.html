@@ -119,7 +119,7 @@
                 {{ r.isActive ? 'Activa' : 'Inactiva' }}
               </span>
             </td>
-            <td class="message-cell">{{ r.messageTemplate }}</td>
+            <td class="message-cell" [title]="r.messageTemplate">{{ r.messageTemplate }}</td>
           </tr>
         </tbody>
       </table>

@@ -24,6 +24,13 @@
 .message-cell {
   font-size: 12px; color: var(--color-text-muted);
   max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+  .message-cell { max-width: 140px; }
 }
 
 .rules-header { margin-bottom: 16px; }
