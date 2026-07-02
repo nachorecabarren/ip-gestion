@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, OnDestroy, Output, signal, inject } from '@angular/core';
+import { Component, EventEmitter, Input, OnDestroy, Output, signal } from '@angular/core';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
+import { Html5QrcodeScanner } from 'html5-qrcode';
 
 @Component({
   selector: 'app-imei-scanner',
@@ -78,7 +78,7 @@ import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
   ]
 })
 export class ImeiScannerComponent implements OnDestroy {
-  private html5QrCode: Html5Qrcode | null = null;
+  private html5QrCode: Html5QrcodeScanner | null = null;
   private isStopping = false;
   readonly readerId = `imei-scanner-reader-${Math.random().toString(36).slice(2, 10)}`;
 
@@ -97,7 +97,9 @@ export class ImeiScannerComponent implements OnDestroy {
     this.feedback.set('');
     this.cameraError.set('');
     this.isOpen.set(true);
-    setTimeout(() => this.startScanner(), 150);
+    requestAnimationFrame(() => {
+      setTimeout(() => void this.startScanner(), 250);
+    });
   }
 
   async startScanner() {
@@ -109,28 +111,28 @@ export class ImeiScannerComponent implements OnDestroy {
     if (!element) return;
 
     try {
-      const html5QrCode = new Html5Qrcode(elementId, {
-        verbose: false,
-        formatsToSupport: [
-          Html5QrcodeSupportedFormats.CODE_128,
-          Html5QrcodeSupportedFormats.EAN_13,
-          Html5QrcodeSupportedFormats.CODE_39,
-          Html5QrcodeSupportedFormats.QR_CODE,
-          Html5QrcodeSupportedFormats.DATA_MATRIX,
-          Html5QrcodeSupportedFormats.AZTEC,
-        ]
-      });
-      this.html5QrCode = html5QrCode;
+      await this.stopScanner();
+      element.innerHTML = '';
+      const scanner = new Html5QrcodeScanner(
+        elementId,
+        {
+          fps: 10,
+          qrbox: { width: 220, height: 220 },
+          aspectRatio: 1.0,
+          rememberLastUsedCamera: true,
+          supportedScanTypes: [],
+        },
+        false,
+      );
 
-      await html5QrCode.start(
-        { facingMode: 'environment' },
-        { fps: 10, qrbox: { width: 220, height: 220 }, aspectRatio: 1.0 },
+      this.html5QrCode = scanner;
+      scanner.render(
         (decodedText) => this.handleScan(decodedText),
-        () => undefined
+        () => undefined,
       );
     } catch (error) {
       this.cameraError.set('No se pudo acceder a la cámara. Podés continuar con el ingreso manual.');
-      this.stopScanner();
+      await this.stopScanner();
     }
   }
 
@@ -187,15 +189,10 @@ export class ImeiScannerComponent implements OnDestroy {
 
     this.isStopping = true;
     try {
-      await qrCode.stop();
+      await qrCode.clear();
     } catch {
       // Safari/quirks can throw when the scanner is already stopped or unavailable.
     } finally {
-      try {
-        await qrCode.clear();
-      } catch {
-        // ignore
-      }
       if (this.html5QrCode === qrCode) {
         this.html5QrCode = null;
       }
