@@ -41,7 +41,7 @@ import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 
           <div class="modal__body">
             <div class="imei-scanner__camera-frame" *ngIf="!cameraError()">
-              <div id="imei-scanner-reader" class="imei-scanner__reader"></div>
+              <div [id]="readerId" class="imei-scanner__reader"></div>
               <div class="imei-scanner__guide"></div>
             </div>
 
@@ -80,6 +80,7 @@ import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 export class ImeiScannerComponent implements OnDestroy {
   private html5QrCode: Html5Qrcode | null = null;
   private isStopping = false;
+  readonly readerId = `imei-scanner-reader-${Math.random().toString(36).slice(2, 10)}`;
 
   @Input() label = 'IMEI / Serie';
   @Input() placeholder = 'Escanear o ingresar manualmente...';
@@ -103,20 +104,27 @@ export class ImeiScannerComponent implements OnDestroy {
     if (!this.isOpen()) return;
     if (this.html5QrCode) return;
 
-    const elementId = 'imei-scanner-reader';
+    const elementId = this.readerId;
     const element = document.getElementById(elementId);
     if (!element) return;
 
     try {
       const html5QrCode = new Html5Qrcode(elementId, {
         verbose: false,
-        formatsToSupport: [Html5QrcodeSupportedFormats.CODE_128, Html5QrcodeSupportedFormats.EAN_13, Html5QrcodeSupportedFormats.CODE_39]
+        formatsToSupport: [
+          Html5QrcodeSupportedFormats.CODE_128,
+          Html5QrcodeSupportedFormats.EAN_13,
+          Html5QrcodeSupportedFormats.CODE_39,
+          Html5QrcodeSupportedFormats.QR_CODE,
+          Html5QrcodeSupportedFormats.DATA_MATRIX,
+          Html5QrcodeSupportedFormats.AZTEC,
+        ]
       });
       this.html5QrCode = html5QrCode;
 
       await html5QrCode.start(
         { facingMode: 'environment' },
-        { fps: 10, qrbox: { width: 220, height: 220 } },
+        { fps: 10, qrbox: { width: 220, height: 220 }, aspectRatio: 1.0 },
         (decodedText) => this.handleScan(decodedText),
         () => undefined
       );
@@ -128,17 +136,19 @@ export class ImeiScannerComponent implements OnDestroy {
 
   private handleScan(decodedText: string) {
     const normalized = decodedText.replace(/\s+/g, '').trim();
-    if (!/^\d{15}$/.test(normalized)) {
+    const cleaned = normalized.replace(/[^\d]/g, '').slice(0, 15);
+
+    if (!/^\d{15}$/.test(cleaned)) {
       this.feedback.set('El código escaneado no parece un IMEI válido. Intentá nuevamente.');
       this.feedbackType.set('error');
       return;
     }
 
-    this.value.set(normalized);
-    this.manualControl.setValue(normalized, { emitEvent: false });
+    this.value.set(cleaned);
+    this.manualControl.setValue(cleaned, { emitEvent: false });
     this.feedback.set('IMEI capturado correctamente.');
     this.feedbackType.set('success');
-    this.imeiScanned.emit(normalized);
+    this.imeiScanned.emit(cleaned);
     this.closeModal();
   }
 
@@ -162,20 +172,33 @@ export class ImeiScannerComponent implements OnDestroy {
     this.stopScanner();
   }
 
+  reset() {
+    this.value.set('');
+    this.feedback.set('');
+    this.feedbackType.set('success');
+    this.cameraError.set('');
+    this.manualControl.setValue('', { emitEvent: false });
+  }
+
   private async stopScanner() {
-    if (this.isStopping || !this.html5QrCode) return;
+    if (this.isStopping) return;
+    const qrCode = this.html5QrCode;
+    if (!qrCode) return;
+
     this.isStopping = true;
     try {
-      await this.html5QrCode.stop();
+      await qrCode.stop();
     } catch {
       // Safari/quirks can throw when the scanner is already stopped or unavailable.
     } finally {
       try {
-        await this.html5QrCode?.clear();
+        await qrCode.clear();
       } catch {
         // ignore
       }
-      this.html5QrCode = null;
+      if (this.html5QrCode === qrCode) {
+        this.html5QrCode = null;
+      }
       this.isStopping = false;
     }
   }
