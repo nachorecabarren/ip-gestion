@@ -19,11 +19,12 @@ import {
   PaymentMethod,
   SaleCategory,
 } from "../../shared/models/models";
+import { ImeiScannerComponent } from "../../shared/components/imei-scanner/imei-scanner.component";
 
 @Component({
   selector: "app-ventas",
   standalone: true,
-  imports: [CommonModule, RouterModule, ReactiveFormsModule],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, ImeiScannerComponent],
   templateUrl: "./ventas.component.html",
   styleUrls: ["./ventas.component.scss"],
 })
@@ -181,6 +182,21 @@ export class VentasComponent implements OnInit {
     while (arr.length <= i) arr.push('');
     arr[i] = val;
     this.itemFilters.set(arr);
+  }
+
+  onImeiScanned(index: number, value: string) {
+    this.setItemFilter(index, value);
+    const matches = this.filteredStockFor(index);
+    if (matches.length === 1) {
+      const match = matches[0];
+      this.items.at(index).patchValue({ stockItemId: match.id });
+      const isWholesale = this.saleForm.get("saleCategory")?.value === "WHOLESALE";
+      const price = isWholesale && match.wholesalePriceUsd
+        ? match.wholesalePriceUsd
+        : match.suggestedPriceUsd;
+      this.items.at(index).patchValue({ priceUsd: price });
+      this.updateTotals();
+    }
   }
 
   addItem() {

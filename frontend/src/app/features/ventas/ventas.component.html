@@ -345,7 +345,7 @@
                     type="text"
                     class="form-control form-control--search"
                     placeholder="Buscar por IMEI, modelo, color..."
-                    [value]="itemFilters()[i] ?? ''"
+                    [value]="itemFilters()[i] || ''"
                     (input)="setItemFilter(i, $any($event.target).value)"
                   />
                   <select
@@ -365,6 +365,11 @@
                   <div class="stock-count" *ngIf="itemFilters()[i]">
                     {{ filteredStockFor(i).length }} resultado{{ filteredStockFor(i).length === 1 ? '' : 's' }}
                   </div>
+                  <app-imei-scanner
+                    [label]="'Escanear IMEI'"
+                    [placeholder]="'Escanear o ingresar IMEI'"
+                    (imeiScanned)="onImeiScanned(i, $event)"
+                  ></app-imei-scanner>
                 </div>
                 <div class="form-group form-group--sm">
                   <label>Precio u$d *</label>
