@@ -136,6 +136,11 @@ if (app.Environment.IsDevelopment())
 // 6. MapControllers — route to actions
 app.UseRouting();
 app.UseCors("Angular");
+app.UseCookiePolicy(new CookiePolicyOptions
+{
+    MinimumSameSitePolicy = SameSiteMode.None,
+    Secure = CookieSecurePolicy.Always
+});
 app.UseAuthentication();
 app.UseAuthorization();
 
