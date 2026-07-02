@@ -13,6 +13,7 @@ import {
 import { ApiService } from "../../core/services/api.service";
 import {
   Sale,
+  SaleItem,
   StockItem,
   Entity,
   CatalogModel,
@@ -367,6 +368,10 @@ export class VentasComponent implements OnInit {
   async voidSale(id: string) {
     if (!await this.confirm.open('¿Anular esta venta? Esta acción no se puede deshacer.')) return;
     this.api.voidSale(id).subscribe(() => this.loadSales());
+  }
+
+  getSaleItemImeiList(items: SaleItem[]) {
+    return items.filter(item => item.imeiSerial).map(item => item.imeiSerial!);
   }
 
   formatUsd(v: number) {

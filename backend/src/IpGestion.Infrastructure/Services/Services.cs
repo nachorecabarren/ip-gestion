@@ -506,7 +506,7 @@ public class SaleService(AppDbContext db) : ISaleService
             s.Entity?.Name ?? s.RetailClientName, s.Entity?.Phone ?? s.RetailClientPhone,
             s.SaleCategory, s.Origin, s.TotalUsd, s.TotalUsd - costo, s.WarrantyDays, s.Status, s.Notes, s.SaleDate,
             s.Items.Select(i => new SaleItemDto(i.Id, i.Type,
-                i.StockItem?.Model?.Name ?? "Accesorio", i.Quantity, i.PriceUsd)).ToList(),
+                i.StockItem?.Model?.Name ?? "Accesorio", i.Quantity, i.PriceUsd, i.StockItem?.ImeiSerial)).ToList(),
             s.Payments.Select(p => new PaymentDto(p.Method, p.Currency, p.Amount, p.ExchangeRateUsd)).ToList(),
             soldBy
         );

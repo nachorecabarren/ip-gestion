@@ -155,7 +155,8 @@ public record SaleItemDto(
     ItemKind Type,
     string ItemName,
     int Quantity,
-    decimal PriceUsd
+    decimal PriceUsd,
+    string? ImeiSerial
 );
 
 public record CreateSaleDto(

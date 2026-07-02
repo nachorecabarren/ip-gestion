@@ -138,6 +138,9 @@
           <td>
             <div class="item-cell">
               <strong>{{ s.items.length ? s.items[0].itemName : "—" }}</strong>
+              <div *ngIf="getSaleItemImeiList(s.items).length > 0" style="font-size: 11px; color: var(--color-text-muted); margin-top: 2px;">
+                IMEI: {{ getSaleItemImeiList(s.items).join(" · ") }}
+              </div>
               <span
                 class="badge"
                 [ngClass]="

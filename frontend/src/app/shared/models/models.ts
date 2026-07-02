@@ -50,7 +50,7 @@ export interface StockBulk {
   costUsd: number; suggestedPriceUsd: number; locationName?: string;
 }
 
-export interface SaleItem { id: string; type: ItemKind; itemName: string; quantity: number; priceUsd: number; }
+export interface SaleItem { id: string; type: ItemKind; itemName: string; quantity: number; priceUsd: number; imeiSerial?: string; }
 
 export interface Sale {
   id: string; clientName?: string; clientPhone?: string; category: SaleCategory; origin: SaleOrigin;
