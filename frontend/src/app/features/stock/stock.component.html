@@ -41,7 +41,7 @@
       <option value="A">A</option>
     </select>
     <button class="btn btn--primary btn--sm" (click)="loadItems()">🔍 Buscar</button>
-    <app-imei-scanner [label]="'Buscar por IMEI'" [placeholder]="'Escanear o ingresar IMEI'" (imeiScanned)="onImeiScanned($event)"></app-imei-scanner>
+    <app-imei-scanner [label]="''" [placeholder]="'Buscar por IMEI'" (imeiScanned)="onImeiScanned($event)"></app-imei-scanner>
   </div>
 
   <div class="stock__scanner-feedback" *ngIf="scannerMessage()">

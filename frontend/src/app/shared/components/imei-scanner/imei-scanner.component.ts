@@ -1,12 +1,13 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, OnDestroy, Output, signal } from '@angular/core';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Html5QrcodeScanner } from 'html5-qrcode';
+import { Html5Qrcode } from 'html5-qrcode';
 
 @Component({
   selector: 'app-imei-scanner',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
+  styleUrl: './imei-scanner.component.scss',
   template: `
     <div class="imei-scanner">
       <label class="imei-scanner__label" *ngIf="label">{{ label }}</label>
@@ -42,12 +43,20 @@ import { Html5QrcodeScanner } from 'html5-qrcode';
           <div class="modal__body">
             <div class="imei-scanner__camera-frame" *ngIf="!cameraError()">
               <div [id]="readerId" class="imei-scanner__reader"></div>
-              <div class="imei-scanner__guide"></div>
+              <div class="imei-scanner__guide">
+                <span class="imei-scanner__corner imei-scanner__corner--tl"></span>
+                <span class="imei-scanner__corner imei-scanner__corner--tr"></span>
+                <span class="imei-scanner__corner imei-scanner__corner--bl"></span>
+                <span class="imei-scanner__corner imei-scanner__corner--br"></span>
+              </div>
+              <div class="imei-scanner__scan-status">
+                <span class="imei-scanner__dot"></span> Buscando código...
+              </div>
             </div>
 
             <div class="imei-scanner__manual" *ngIf="cameraError()">
               <div class="imei-scanner__manual-title">No se pudo iniciar la cámara</div>
-              <p class="imei-scanner__manual-text">Podés completar el IMEI manualmente.</p>
+              <p class="imei-scanner__manual-text">{{ cameraError() }}</p>
               <input type="text" class="form-control" [formControl]="manualControl" placeholder="Ingresá los 15 dígitos" />
               <button type="button" class="btn btn--primary" style="margin-top: 10px" (click)="submitManual()">Confirmar IMEI</button>
             </div>
@@ -56,29 +65,17 @@ import { Html5QrcodeScanner } from 'html5-qrcode';
               Si el navegador no permite usar la cámara, podés ingresar el IMEI manualmente.
             </div>
           </div>
+
+          <div class="modal__footer">
+            <button type="button" class="btn btn--ghost" (click)="closeModal()">Cancelar</button>
+          </div>
         </div>
       </div>
     </div>
   `,
-  styles: [
-    `.imei-scanner { display: flex; flex-direction: column; gap: 8px; }`,
-    `.imei-scanner__label { font-size: 12px; font-weight: 500; color: var(--color-text-secondary); }`,
-    `.imei-scanner__input-row { display: flex; gap: 8px; align-items: center; }`,
-    `.imei-scanner__input-row .form-control { flex: 1; }`,
-    `.imei-scanner__feedback { display: flex; }`,
-    `.imei-scanner__confirmation { display: flex; }`,
-    `.imei-scanner__camera-frame { position: relative; min-height: 320px; background: #0f172a; border-radius: 12px; overflow: hidden; display: flex; align-items: center; justify-content: center; }`,
-    `.imei-scanner__reader { width: 100%; min-height: 320px; }`,
-    `.imei-scanner__guide { position: absolute; inset: 16px; border: 2px solid rgba(255,255,255,0.9); border-radius: 14px; box-shadow: inset 0 0 0 2px rgba(255,255,255,0.2); pointer-events: none; }`,
-    `.imei-scanner__manual { display: flex; flex-direction: column; gap: 8px; padding: 8px 0; }`,
-    `.imei-scanner__manual-title { font-weight: 600; color: var(--color-text-primary); }`,
-    `.imei-scanner__manual-text { font-size: 13px; color: var(--color-text-muted); }`,
-    `.imei-scanner__hint { font-size: 12px; color: var(--color-text-muted); }`,
-    `@media (max-width: 640px) { .imei-scanner__input-row { flex-direction: column; align-items: stretch; } .imei-scanner__camera-frame { min-height: 260px; } .imei-scanner__reader { min-height: 260px; } }`
-  ]
 })
 export class ImeiScannerComponent implements OnDestroy {
-  private html5QrCode: Html5QrcodeScanner | null = null;
+  private html5QrCode: Html5Qrcode | null = null;
   private isStopping = false;
   readonly readerId = `imei-scanner-reader-${Math.random().toString(36).slice(2, 10)}`;
 
@@ -113,20 +110,12 @@ export class ImeiScannerComponent implements OnDestroy {
     try {
       await this.stopScanner();
       element.innerHTML = '';
-      const scanner = new Html5QrcodeScanner(
-        elementId,
-        {
-          fps: 10,
-          qrbox: { width: 220, height: 220 },
-          aspectRatio: 1.0,
-          rememberLastUsedCamera: true,
-          supportedScanTypes: [],
-        },
-        false,
-      );
-
+      const scanner = new Html5Qrcode(elementId, { verbose: false });
       this.html5QrCode = scanner;
-      scanner.render(
+
+      await scanner.start(
+        { facingMode: 'environment' },
+        { fps: 10, qrbox: { width: 220, height: 220 }, aspectRatio: 1.0 },
         (decodedText) => this.handleScan(decodedText),
         () => undefined,
       );
@@ -189,7 +178,10 @@ export class ImeiScannerComponent implements OnDestroy {
 
     this.isStopping = true;
     try {
-      await qrCode.clear();
+      if (qrCode.isScanning) {
+        await qrCode.stop();
+      }
+      qrCode.clear();
     } catch {
       // Safari/quirks can throw when the scanner is already stopped or unavailable.
     } finally {

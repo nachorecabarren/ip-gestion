@@ -11,7 +11,7 @@
   background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 8px; padding: 7px 12px;
   flex: 1; max-width: 320px;
   svg { width: 15px; height: 15px; stroke: var(--color-text-faint); flex-shrink: 0; }
-  input { border: none; outline: none; font-size: 13px; width: 100%; font-family: var(--font-sans); &::placeholder { color: var(--color-text-faint); } }
+  input { border: none; outline: none; font-size: 13px; width: 100%; font-family: var(--font-sans); background: transparent; color: var(--color-text-primary); &::placeholder { color: var(--color-text-faint);} }
 }
 
 .filter-select {
