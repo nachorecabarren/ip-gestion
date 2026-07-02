@@ -4,7 +4,7 @@
 }
 .filter-btn {
   padding: 6px 14px; border-radius: 20px; border: 1px solid var(--color-border);
-  background: #fff; font-size: 12px; font-weight: 500; cursor: pointer;
+  background: var(--color-surface); font-size: 12px; font-weight: 500; cursor: pointer;
   color: var(--color-text-muted); transition: all 0.1s; font-family: var(--font-sans);
   &.active { background: var(--color-blue); color: #fff; border-color: var(--color-blue); }
   &:hover:not(.active) { background: var(--color-border-soft); }

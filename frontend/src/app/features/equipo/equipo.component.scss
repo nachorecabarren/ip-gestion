@@ -23,6 +23,6 @@
 .text-right { text-align: right; }
 
 .btn--sm { padding: 4px 10px; font-size: 12px; }
-.btn--danger-text { color: #dc2626; &:hover { background: #fef2f2; } }
+.btn--danger-text { color: var(--color-red-text); &:hover { background: var(--color-red-bg); } }
 
 .badge--blue { background: var(--color-blue-light); color: var(--color-blue); }

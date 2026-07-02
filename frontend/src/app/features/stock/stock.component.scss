@@ -34,7 +34,7 @@
   font-size: 12px; color: var(--color-text-muted);
 }
 
-tr.selected td { background: #eff6ff; }
+tr.selected td { background: var(--color-blue-light); }
 
 .cotizador-result {
   margin-top: 16px; border: 1px solid var(--color-border); border-radius: 8px; overflow: hidden;
@@ -43,11 +43,11 @@ tr.selected td { background: #eff6ff; }
     display: flex; justify-content: space-between; align-items: center;
     padding: 10px 14px; font-size: 14px; border-bottom: 1px solid var(--color-border);
     &:last-child { border-bottom: none; }
-    &--highlight { background: #eff6ff; strong { color: var(--color-blue); font-size: 18px; } }
+    &--highlight { background: var(--color-blue-light); strong { color: var(--color-blue); font-size: 18px; } }
   }
 
   &__note {
     padding: 8px 14px; font-size: 12px; color: var(--color-text-muted);
-    background: #fefce8; border-top: 1px solid #fef08a;
+    background: var(--color-amber-bg); border-top: 1px solid var(--color-amber-border);
   }
 }

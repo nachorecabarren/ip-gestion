@@ -24,7 +24,7 @@
   &__cell {
     min-height: 90px; padding: 6px 8px; border-right: 1px solid var(--color-border-soft);
     border-bottom: 1px solid var(--color-border-soft); vertical-align: top;
-    &--empty { background: #fafafa; }
+    &--empty { background: var(--color-surface-muted); }
     &--today { background: var(--color-blue-light);
       .calendar__day-number { background: var(--color-blue); color: #fff;
         width: 22px; height: 22px; border-radius: 50%; display: flex;
@@ -45,10 +45,10 @@
   }
 }
 
-.event--amber { background: #fef3c7; color: #d97706; }
-.event--blue  { background: #dbeafe; color: #1d4ed8; }
-.event--green { background: #dcfce7; color: #15803d; }
-.event--gray  { background: #f1f5f9; color: #64748b; }
+.event--amber { background: var(--color-amber-bg); color: var(--color-amber-text); }
+.event--blue  { background: var(--color-blue-bg); color: var(--color-blue-text); }
+.event--green { background: var(--color-green-bg); color: var(--color-green-text); }
+.event--gray  { background: var(--color-gray-bg); color: var(--color-gray-text); }
 
 .event-list { display: flex; flex-direction: column; gap: 10px; }
 .event-item {

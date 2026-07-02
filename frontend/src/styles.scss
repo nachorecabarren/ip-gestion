@@ -19,6 +19,14 @@
   --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
   --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
   --shadow-lg: 0 20px 60px rgba(0,0,0,0.15);
+
+  --color-green-bg: #dcfce7; --color-green-text: #15803d; --color-green-border: #bbf7d0;
+  --color-red-bg: #fee2e2; --color-red-text: #dc2626; --color-red-border: #fecaca;
+  --color-amber-bg: #fef3c7; --color-amber-text: #d97706; --color-amber-border: #fde68a;
+  --color-blue-bg: #dbeafe; --color-blue-text: #1d4ed8; --color-blue-border-soft: #bfdbfe;
+  --color-gray-bg: #f1f5f9; --color-gray-text: #64748b;
+  --color-purple-bg: #ede9fe; --color-purple-text: #7c3aed; --color-purple-border: #e9d5ff;
+  --color-cyan-bg: #e0f2fe; --color-cyan-text: #0369a1; --color-cyan-border: #bae6fd;
 }
 
 :root[data-theme='dark'] {
@@ -39,6 +47,14 @@
   --shadow-sm: 0 1px 3px rgba(2, 6, 23, 0.35), 0 1px 2px rgba(2, 6, 23, 0.25);
   --shadow-md: 0 8px 20px rgba(2, 6, 23, 0.3);
   --shadow-lg: 0 24px 70px rgba(2, 6, 23, 0.45);
+
+  --color-green-bg: rgba(34, 197, 94, 0.16); --color-green-text: #4ade80; --color-green-border: rgba(34, 197, 94, 0.35);
+  --color-red-bg: rgba(239, 68, 68, 0.16); --color-red-text: #f87171; --color-red-border: rgba(239, 68, 68, 0.35);
+  --color-amber-bg: rgba(245, 158, 11, 0.16); --color-amber-text: #fbbf24; --color-amber-border: rgba(245, 158, 11, 0.35);
+  --color-blue-bg: rgba(59, 130, 246, 0.18); --color-blue-text: #60a5fa; --color-blue-border-soft: rgba(59, 130, 246, 0.35);
+  --color-gray-bg: rgba(148, 163, 184, 0.16); --color-gray-text: #94a3b8;
+  --color-purple-bg: rgba(168, 85, 247, 0.18); --color-purple-text: #c084fc; --color-purple-border: rgba(168, 85, 247, 0.35);
+  --color-cyan-bg: rgba(56, 189, 248, 0.18); --color-cyan-text: #38bdf8; --color-cyan-border: rgba(56, 189, 248, 0.35);
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -75,12 +91,12 @@ html, body {
 .badge {
   display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 5px;
   font-size: 11px; font-weight: 600; white-space: nowrap;
-  &--green  { background: #dcfce7; color: #15803d; }
-  &--red    { background: #fee2e2; color: #dc2626; }
-  &--amber  { background: #fef3c7; color: #d97706; }
-  &--blue   { background: #dbeafe; color: #1d4ed8; }
-  &--gray   { background: #f1f5f9; color: #64748b; }
-  &--purple { background: #ede9fe; color: #7c3aed; }
+  &--green  { background: var(--color-green-bg); color: var(--color-green-text); }
+  &--red    { background: var(--color-red-bg); color: var(--color-red-text); }
+  &--amber  { background: var(--color-amber-bg); color: var(--color-amber-text); }
+  &--blue   { background: var(--color-blue-bg); color: var(--color-blue-text); }
+  &--gray   { background: var(--color-gray-bg); color: var(--color-gray-text); }
+  &--purple { background: var(--color-purple-bg); color: var(--color-purple-text); }
 }
 
 // ─── BUTTONS ────────────────────────────────────────────────
@@ -161,12 +177,12 @@ html, body {
 .auth-hint { font-size: 11px; color: var(--color-text-faint); margin-top: 4px; }
 .auth-field-error { font-size: 11px; color: #dc2626; margin-top: 4px; }
 .auth-error {
-  background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px;
-  padding: 10px 14px; font-size: 13px; color: #dc2626;
+  background: var(--color-red-bg); border: 1px solid var(--color-red-border); border-radius: 8px;
+  padding: 10px 14px; font-size: 13px; color: var(--color-red-text);
 }
 .auth-success {
-  background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px;
-  padding: 10px 14px; font-size: 13px; color: #15803d;
+  background: var(--color-green-bg); border: 1px solid var(--color-green-border); border-radius: 8px;
+  padding: 10px 14px; font-size: 13px; color: var(--color-green-text);
 }
 .auth-btn { width: 100%; justify-content: center; margin-top: 6px; padding: 10px; font-size: 14px; }
 .auth-foot {

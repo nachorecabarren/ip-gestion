@@ -7,4 +7,4 @@
 .text-small { font-size:11px; color:var(--color-text-faint); }
 .text-red { color:#dc2626; }
 .code { font-family:monospace; font-weight:600; font-size:12px; }
-tr.overdue td { background:#fff5f5; }
+tr.overdue td { background:var(--color-red-bg); }

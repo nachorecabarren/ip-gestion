@@ -6,17 +6,17 @@
 }
 .caja-btn {
   display:flex; align-items:center; gap:8px; padding:10px 12px; border:1px solid var(--color-border);
-  border-radius:8px; background:#fff; cursor:pointer; font-size:13px; font-weight:500;
+  border-radius:8px; background:var(--color-surface); cursor:pointer; font-size:13px; font-weight:500; color:var(--color-text-primary);
   svg { width:16px; height:16px; stroke:var(--color-text-muted); flex-shrink:0; }
   &.active { border-color:var(--color-blue); background:var(--color-blue-light); color:var(--color-blue); svg { stroke:var(--color-blue); } }
-  &__default { font-size:10px; background:#e0f2fe; color:#0284c7; padding:2px 6px; border-radius:4px; margin-left:auto; }
+  &__default { font-size:10px; background:var(--color-cyan-bg); color:var(--color-cyan-text); padding:2px 6px; border-radius:4px; margin-left:auto; }
 }
 .balance-card {
   border-radius:10px; padding:14px 16px; border:1px solid var(--color-border);
-  &--usd { background:#f0fdf4; border-color:#bbf7d0; }
-  &--usdt { background:#f0f9ff; border-color:#bae6fd; }
-  &--ars { background:#fffbeb; border-color:#fde68a; }
-  &--tr { background:#fdf4ff; border-color:#e9d5ff; }
+  &--usd { background:var(--color-green-bg); border-color:var(--color-green-border); }
+  &--usdt { background:var(--color-cyan-bg); border-color:var(--color-cyan-border); }
+  &--ars { background:var(--color-amber-bg); border-color:var(--color-amber-border); }
+  &--tr { background:var(--color-purple-bg); border-color:var(--color-purple-border); }
   &--total { background:#1e293b; border-color:#1e293b; }
   &__label { font-size:10px; font-weight:600; letter-spacing:.4px; text-transform:uppercase; color:var(--color-text-muted); margin-bottom:8px; }
   &__value { font-size:18px; font-weight:700; color:var(--color-text-primary);

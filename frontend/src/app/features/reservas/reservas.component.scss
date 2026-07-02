@@ -2,9 +2,9 @@
 .reservas { display:flex; flex-direction:column; gap:16px;
   &__filters { display:flex; align-items:center; gap:6px; }
 }
-.filter-btn { padding:6px 14px; border:1px solid var(--color-border); border-radius:8px; background:#fff; font-size:12px; font-weight:500; cursor:pointer; color:var(--color-text-muted);
+.filter-btn { padding:6px 14px; border:1px solid var(--color-border); border-radius:8px; background:var(--color-surface); font-size:12px; font-weight:500; cursor:pointer; color:var(--color-text-muted);
   &.active { background:var(--color-blue); color:#fff; border-color:var(--color-blue); }
 }
 .text-small { font-size:11px; color:var(--color-text-faint); margin-top:2px; }
 .text-red { color:#dc2626; }
-tr.overdue td { background:#fff5f5; }
+tr.overdue td { background:var(--color-red-bg); }

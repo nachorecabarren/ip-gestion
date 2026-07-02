@@ -14,7 +14,7 @@
 
   &__period { display: flex; align-items: center; gap: 10px;
     &-label { font-size: 13px; color: var(--color-text-muted); }
-    select { border: 1px solid var(--color-border); border-radius: 8px; padding: 6px 10px; font-size: 13px; background: #fff; cursor: pointer; }
+    select { border: 1px solid var(--color-border); border-radius: 8px; padding: 6px 10px; font-size: 13px; background: var(--color-surface); color: var(--color-text-primary); cursor: pointer; }
   }
 
   &__tabs { display: flex; gap: 4px; }
@@ -27,7 +27,7 @@
   }
 
   &__alerts {
-    background: #fff; border: 1px solid var(--color-border); border-radius: 10px; padding: 14px 18px;
+    background: var(--color-surface-elevated); border: 1px solid var(--color-border); border-radius: 10px; padding: 14px 18px;
     &-header { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--color-text-secondary);
       svg { width: 15px; height: 15px; stroke: var(--color-amber); }
     }
@@ -49,7 +49,7 @@
 // Quick action
 .quick-action {
   display: flex; align-items: center; gap: 12px;
-  background: #fff; border: 1px solid var(--color-border); border-radius: 10px;
+  background: var(--color-surface-elevated); border: 1px solid var(--color-border); border-radius: 10px;
   padding: 14px 16px; text-decoration: none; transition: all 0.12s ease; cursor: pointer;
   &:hover { border-color: #93c5fd; box-shadow: 0 2px 8px rgba(37,99,235,0.08); }
   &__icon {
@@ -64,7 +64,7 @@
 
 // KPI cards
 .kpi-card {
-  background: #fff; border: 1px solid var(--color-border); border-radius: 12px; padding: 18px 20px;
+  background: var(--color-surface-elevated); border: 1px solid var(--color-border); border-radius: 12px; padding: 18px 20px;
   &--highlight { border-color: var(--color-border); }
   &--blue { border-color: var(--color-blue-border); background: var(--color-blue-light); }
 
@@ -92,5 +92,5 @@
 .margin-cell { color: #16a34a; font-weight: 500; }
 .text-red { color: #dc2626; }
 .text-amber { color: #d97706; }
-.row--overdue td { background: #fff5f5; }
-.row--near td { background: #fffbeb; }
+.row--overdue td { background: var(--color-red-bg); }
+.row--near td { background: var(--color-amber-bg); }
