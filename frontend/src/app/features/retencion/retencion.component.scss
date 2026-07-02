@@ -29,8 +29,25 @@
   white-space: nowrap;
 }
 
+// The shared `.table { display: block }` mobile rule breaks header/body column
+// alignment on tables with mixed-width content (badges, multi-line cells, icons).
+// Scroll the wrapper instead and keep the table itself as a real <table>.
+.table-scroll { width: 100%; }
+
 @media (max-width: 900px) {
   .message-cell { max-width: 140px; }
+
+  .table-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .table-scroll .table {
+    display: table;
+  }
+  .table-scroll .table th,
+  .table-scroll .table td {
+    white-space: nowrap;
+  }
 }
 
 .rules-header { margin-bottom: 16px; }
