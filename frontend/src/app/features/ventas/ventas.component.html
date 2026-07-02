@@ -564,6 +564,9 @@
     </div>
 
     <div class="modal__footer">
+      <div class="form-group" *ngIf="submitError()" style="margin-right: auto;">
+        <span class="badge badge--red">{{ submitError() }}</span>
+      </div>
       <button
         class="btn btn--ghost"
         (click)="prevStep()"

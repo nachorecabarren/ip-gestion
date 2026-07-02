@@ -40,6 +40,7 @@ export class VentasComponent implements OnInit {
   showModal = signal(false);
   wizardStep = signal(1);
   submitting = signal(false);
+  submitError = signal('');
 
   // Catalog data
   entities = signal<Entity[]>([]);
@@ -150,12 +151,14 @@ export class VentasComponent implements OnInit {
     this.initForm();
     this.itemFilters.set([]);
     this.wizardStep.set(1);
+    this.submitError.set('');
     this.showModal.set(true);
     this.addItem();
     this.addPayment();
   }
 
   closeModal() {
+    this.submitError.set('');
     this.showModal.set(false);
   }
 
@@ -272,32 +275,78 @@ export class VentasComponent implements OnInit {
   }
 
   submitSale() {
-    if (this.saleForm.invalid) {
+    const raw = this.saleForm.getRawValue();
+    const hasItems = (raw.items || []).some((item: any) => item?.stockItemId || item?.stockBulkId);
+    const total = Math.max(this.totalPago(), 0);
+
+    if (!hasItems) {
+      this.submitError.set('Seleccioná al menos un equipo para la venta.');
       this.saleForm.markAllAsTouched();
       return;
     }
+
+    const normalizedPayments = (raw.payments || []).map((p: any) => ({
+      method: p?.method || 'USD_CASH',
+      currency: p?.currency || 'USD',
+      amount: Number(p?.amount) > 0 ? Number(p.amount) : total,
+      exchangeRateUsd: Number(p?.exchangeRateUsd) > 0 ? Number(p.exchangeRateUsd) : 1,
+    }));
+
+    if (normalizedPayments.length === 0) {
+      normalizedPayments.push({ method: 'USD_CASH', currency: 'USD', amount: total, exchangeRateUsd: 1 });
+    }
+
+    this.payments.controls.forEach((control, index) => {
+      const payment = normalizedPayments[index] || normalizedPayments[0];
+      control.patchValue({
+        method: payment.method,
+        currency: payment.currency,
+        amount: payment.amount,
+        exchangeRateUsd: payment.exchangeRateUsd,
+      });
+    });
+
+    this.saleForm.updateValueAndValidity();
+
+    if (this.saleForm.invalid) {
+      this.saleForm.markAllAsTouched();
+      this.submitError.set('Completá los datos obligatorios antes de finalizar la venta.');
+      return;
+    }
+
     this.submitting.set(true);
-    const v = this.saleForm.value;
+    this.submitError.set('');
+
+    const saleDateUtc = raw.saleDate
+      ? new Date(`${raw.saleDate}T00:00:00Z`).toISOString()
+      : new Date().toISOString();
+
     const dto = {
-      saleDate: v.saleDate,
-      entityId: v.isConsumerFinal ? null : v.entityId,
-      retailClientName: v.isConsumerFinal ? v.retailClientName : null,
-      retailClientPhone: v.isConsumerFinal ? v.retailClientPhone : null,
-      retailClientInstagram: v.isConsumerFinal ? v.retailClientInstagram : null,
-      saleCategory: v.saleCategory,
-      origin: "DIRECT",
-      totalUsd: this.totalPago(),
-      warrantyDays: v.warrantyDays,
-      notes: v.notes,
-      items: v.items,
-      payments: v.payments,
+      saleDate: saleDateUtc,
+      entityId: raw.isConsumerFinal ? null : raw.entityId || null,
+      retailClientName: raw.isConsumerFinal ? raw.retailClientName || null : null,
+      retailClientPhone: raw.isConsumerFinal ? raw.retailClientPhone || null : null,
+      retailClientInstagram: raw.isConsumerFinal ? raw.retailClientInstagram || null : null,
+      saleCategory: raw.saleCategory,
+      origin: 'DIRECT',
+      totalUsd: total,
+      warrantyDays: raw.warrantyDays,
+      notes: raw.notes || null,
+      items: (raw.items || []).map((item: any) => ({
+        type: item.type,
+        stockItemId: item.stockItemId || null,
+        stockBulkId: item.stockBulkId || null,
+        quantity: Number(item.quantity) || 1,
+        priceUsd: Number(item.priceUsd) || 0,
+      })),
+      payments: normalizedPayments,
       closerIds: [],
-      tradeIn: v.tradeInEnabled
+      tradeIn: raw.tradeInEnabled
         ? {
-            modelName: v.tradeInModel,
-            storageGb: v.tradeInStorage,
-            batteryPct: v.tradeInBattery,
-            valueUsd: v.tradeInValue,
+            modelName: raw.tradeInModel || '',
+            storageGb: raw.tradeInStorage,
+            batteryPct: raw.tradeInBattery,
+            valueUsd: raw.tradeInValue || 0,
           }
         : null,
     };
@@ -307,7 +356,11 @@ export class VentasComponent implements OnInit {
         this.loadSales();
         this.submitting.set(false);
       },
-      error: () => this.submitting.set(false),
+      error: (e) => {
+        this.submitting.set(false);
+        const message = e?.error?.error || e?.error?.title || (e?.status === 0 ? 'No se puede conectar con el servidor.' : 'No se pudo finalizar la venta.');
+        this.submitError.set(message);
+      },
     });
   }
 

@@ -328,6 +328,14 @@ public class SaleService(AppDbContext db) : ISaleService
             .ToDictionaryAsync(u => u.Id, u => u.DisplayName, ct);
     }
 
+    private static DateTime NormalizeToUtc(DateTime value)
+        => value.Kind switch
+        {
+            DateTimeKind.Utc => value,
+            DateTimeKind.Local => value.ToUniversalTime(),
+            _ => DateTime.SpecifyKind(value, DateTimeKind.Utc)
+        };
+
     public async Task<SaleDto> CreateAsync(Guid tenantId, CreateSaleDto dto, CancellationToken ct = default)
     {
         var sale = new Domain.Entities.Sale
@@ -343,7 +351,7 @@ public class SaleService(AppDbContext db) : ISaleService
             WarrantyDays = dto.WarrantyDays,
             Notes = dto.Notes,
             CloserIds = dto.CloserIds,
-            SaleDate = dto.SaleDate,
+            SaleDate = NormalizeToUtc(dto.SaleDate),
             Status = SaleStatus.COMPLETED
         };
 
