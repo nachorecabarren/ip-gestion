@@ -4,6 +4,7 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { ApiService } from '../../core/services/api.service';
 import { TeamService } from '../../core/services/team.service';
 import { ServiceClientJob, ServiceJobStatus } from '../../shared/models/models';
+import { ImeiScannerComponent } from '../../shared/components/imei-scanner/imei-scanner.component';
 
 interface TechnicianOption {
   id: string;
@@ -13,7 +14,7 @@ interface TechnicianOption {
 @Component({
   selector: 'app-servicio-tecnico',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, ImeiScannerComponent],
   templateUrl: './servicio-tecnico.component.html',
   styleUrls: ['./servicio-tecnico.component.scss']
 })
@@ -111,6 +112,10 @@ export class ServicioTecnicoComponent implements OnInit {
   isOverdue(job: ServiceClientJob) {
     if (!job.limitDate || ['DELIVERED', 'CANCELLED', 'CLOSED'].includes(job.status)) return false;
     return new Date(job.limitDate) < new Date();
+  }
+
+  onImeiScanned(value: string) {
+    this.form.patchValue({ imeiSerial: value });
   }
 
   get gananciaTotal() {

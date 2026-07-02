@@ -5,11 +5,12 @@ import { ApiService } from '../../core/services/api.service';
 import { ConfirmService } from '../../shared/services/confirm.service';
 import { AuthService } from '../../core/services/auth.service';
 import { StockItem, StockBulk, CatalogLocation, CatalogModel, TradeInQuote } from '../../shared/models/models';
+import { ImeiScannerComponent } from '../../shared/components/imei-scanner/imei-scanner.component';
 
 @Component({
   selector: 'app-stock',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, ImeiScannerComponent],
   templateUrl: './stock.component.html',
   styleUrls: ['./stock.component.scss']
 })
@@ -51,6 +52,8 @@ export class StockComponent implements OnInit {
 
   // Selected for bulk actions
   selected = signal<Set<string>>(new Set());
+  scannerMessage = signal('');
+  scannerMessageType = signal<'success' | 'error'>('success');
 
   ngOnInit() {
     this.loadItems();
@@ -179,6 +182,29 @@ export class StockComponent implements OnInit {
   async voidItem(id: string) {
     if (!await this.confirm.open('¿Anular este ítem del stock? El equipo quedará como no disponible.')) return;
     this.api.voidStockItem(id).subscribe(() => this.loadItems());
+  }
+
+  onImeiScanned(value: string) {
+    this.scannerMessage.set('Buscando IMEI...');
+    this.scannerMessageType.set('success');
+    this.api.getStockItems(undefined, undefined, value).subscribe({
+      next: r => {
+        if (r.items.length === 1) {
+          this.items.set(r.items);
+          this.total.set(r.total);
+          this.search.set(value);
+          this.scannerMessage.set('Se encontró un equipo con ese IMEI.');
+          this.scannerMessageType.set('success');
+        } else {
+          this.scannerMessage.set('No se encontró ningún equipo con ese IMEI.');
+          this.scannerMessageType.set('error');
+        }
+      },
+      error: () => {
+        this.scannerMessage.set('No se pudo buscar por IMEI en este momento.');
+        this.scannerMessageType.set('error');
+      }
+    });
   }
 
   toggleSelect(id: string) {

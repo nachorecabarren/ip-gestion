@@ -5,11 +5,12 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ApiService } from '../../core/services/api.service';
 import { Purchase, Entity, CatalogModel, CatalogAccessory, CatalogLocation } from '../../shared/models/models';
+import { ImeiScannerComponent } from '../../shared/components/imei-scanner/imei-scanner.component';
 
 @Component({
   selector: 'app-compras',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, ImeiScannerComponent],
   templateUrl: './compras.component.html',
   styleUrls: ['./compras.component.scss']
 })
@@ -128,6 +129,10 @@ export class ComprasComponent implements OnInit {
   }
   getStatusLabel(s: string) {
     return ({ ACTIVE: 'Activa', PENDING: 'Pendiente', CANCELLED: 'Anulada', DELIVERED: 'Entregada' } as Record<string,string>)[s] ?? s;
+  }
+
+  onImeiScanned(index: number, value: string) {
+    this.deviceItems.at(index).patchValue({ imeiSerial: value });
   }
 
   get totalCosto() {
