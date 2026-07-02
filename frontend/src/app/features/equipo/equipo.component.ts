@@ -23,6 +23,7 @@ export class EquipoComponent implements OnInit {
   inviting = signal(false);
   inviteError = signal<string | null>(null);
   lastLink = signal<InvitationLink | null>(null);
+  showLastLink = signal(false);
   copiedId = signal<string | null>(null);
 
   form = this.fb.group({
@@ -48,6 +49,7 @@ export class EquipoComponent implements OnInit {
     this.inviting.set(true);
     this.inviteError.set(null);
     this.lastLink.set(null);
+    this.showLastLink.set(false);
 
     const email = this.form.value.email!;
     this.team.createInvitation(email).subscribe({

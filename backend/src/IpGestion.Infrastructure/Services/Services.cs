@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using IpGestion.Application.Common.DTOs;
 using IpGestion.Application.Common.Exceptions;
@@ -1148,7 +1149,7 @@ public class AuthService(AppDbContext db, IConfiguration config) : IAuthService
 }
 
 // ─── INVITATION SERVICE ────────────────────────────────────
-public class InvitationService(AppDbContext db) : IInvitationService
+public class InvitationService(AppDbContext db, IEmailService emailService, IConfiguration config, ILogger<InvitationService> logger) : IInvitationService
 {
     public async Task<InvitationLinkDto> CreateAsync(Guid tenantId, Guid invitedByUserId, string email, string baseUrl, CancellationToken ct = default)
     {
@@ -1176,6 +1177,20 @@ public class InvitationService(AppDbContext db) : IInvitationService
         await db.SaveChangesAsync(ct);
 
         var acceptUrl = $"{baseUrl}/aceptar-invitacion?token={inv.Token}";
+
+        // Best-effort notification email — never blocks or breaks invitation creation.
+        try
+        {
+            var tenant = await db.Tenants.FindAsync([tenantId], ct);
+            var emailBaseUrl = config["Frontend:BaseUrl"] ?? baseUrl;
+            var invitationLink = $"{emailBaseUrl}/aceptar-invitacion?token={inv.Token}";
+            await emailService.SendInvitationAsync(inv.Email, tenant?.Name ?? "iP Gestión", invitationLink, ct);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "No se pudo enviar el email de invitación a {Email}.", inv.Email);
+        }
+
         return new InvitationLinkDto(inv.Id, inv.Email, inv.Token.ToString(), acceptUrl, inv.ExpiresAt);
     }
 

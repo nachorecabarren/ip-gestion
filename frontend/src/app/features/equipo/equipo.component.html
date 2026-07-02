@@ -18,12 +18,13 @@
     </form>
     <div *ngIf="inviteError()" class="invite-error">{{ inviteError() }}</div>
 
-    <!-- Link recién generado -->
+    <!-- Invitación recién enviada -->
     <div *ngIf="lastLink() as link" class="invite-result">
-      <div class="invite-result__label">
-        Invitación creada para <strong>{{ link.email }}</strong>. Compartí este link:
-      </div>
-      <div class="invite-result__row">
+      <div class="invite-result__sent">✅ Invitación enviada a <strong>{{ link.email }}</strong></div>
+      <button type="button" class="invite-result__toggle" (click)="showLastLink.set(!showLastLink())">
+        {{ showLastLink() ? 'Ocultar link de invitación' : 'Ver link de invitación' }}
+      </button>
+      <div class="invite-result__row" *ngIf="showLastLink()">
         <input class="form-control" [value]="link.acceptUrl" readonly />
         <button class="btn btn--ghost" (click)="copyLink(link.acceptUrl, link.id)">
           {{ copiedId() === link.id ? '¡Copiado!' : 'Copiar link' }}
