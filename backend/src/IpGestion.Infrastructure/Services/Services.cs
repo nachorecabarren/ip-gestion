@@ -1155,8 +1155,10 @@ public class InvitationService(AppDbContext db, IEmailService emailService, ICon
     {
         var normalized = email.Trim().ToLowerInvariant();
 
-        if (await db.TenantUsers.AnyAsync(u => u.Email == normalized && u.IsActive, ct))
-            throw new ConflictException("Ya existe un usuario activo con ese email.");
+        // Email has a global unique index across tenants (active or not), so any
+        // existing row — even an inactive one from another business — blocks this.
+        if (await db.TenantUsers.AnyAsync(u => u.Email == normalized, ct))
+            throw new ConflictException("Ese email ya está registrado y asociado a otro negocio en iP Gestión.");
 
         // Drop any previous pending invite for the same email in this tenant
         var stale = await db.TenantInvitations
@@ -1225,8 +1227,10 @@ public class InvitationService(AppDbContext db, IEmailService emailService, ICon
             throw new ConflictException("La invitación expiró.");
         }
 
-        if (await db.TenantUsers.AnyAsync(u => u.Email == inv.Email && u.IsActive, ct))
-            throw new ConflictException("Ya existe un usuario activo con ese email.");
+        // Email has a global unique index across tenants (active or not), so any
+        // existing row — even an inactive one from another business — blocks this.
+        if (await db.TenantUsers.AnyAsync(u => u.Email == inv.Email, ct))
+            throw new ConflictException("Ese email ya está registrado y asociado a otro negocio en iP Gestión.");
 
         var user = new Domain.Entities.TenantUser
         {
