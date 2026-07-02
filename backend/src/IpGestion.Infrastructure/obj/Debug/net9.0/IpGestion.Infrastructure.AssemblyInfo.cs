@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("IpGestion.Infrastructure")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d97046a384bc998bfde1583a26eb4b0627b7d097")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+383977fa7e2c2ad605fd8767f05166599731da28")]
 [assembly: System.Reflection.AssemblyProductAttribute("IpGestion.Infrastructure")]
 [assembly: System.Reflection.AssemblyTitleAttribute("IpGestion.Infrastructure")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -78,10 +78,7 @@ public class UsersController(IUserService svc) : TenantBaseController
 {
     [HttpGet]
     public async Task<IActionResult> GetAll(CancellationToken ct)
-    {
-        if (!IsOwner) return Forbid();
-        return Ok(await svc.GetUsersAsync(TenantId, ct));
-    }
+        => Ok(await svc.GetUsersAsync(TenantId, ct));
 
     [HttpPut("{id}/desactivar")]
     public async Task<IActionResult> Deactivate(Guid id, CancellationToken ct)

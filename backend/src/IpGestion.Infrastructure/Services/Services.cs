@@ -783,6 +783,34 @@ public class ServiceTechService(AppDbContext db) : IServiceTechService
 
     public async Task<ServiceClientJobDto> CreateClientJobAsync(Guid tenantId, CreateServiceClientJobDto dto, CancellationToken ct = default)
     {
+        Guid? technicianId = dto.TechnicianId;
+        if (dto.TechnicianId.HasValue)
+        {
+            var existingEntity = await db.Entities.FirstOrDefaultAsync(e => e.TenantId == tenantId && e.Id == dto.TechnicianId.Value, ct);
+            if (existingEntity is not null)
+            {
+                technicianId = existingEntity.Id;
+            }
+            else
+            {
+                var teamUser = await db.TenantUsers.FirstOrDefaultAsync(u => u.TenantId == tenantId && u.Id == dto.TechnicianId.Value && u.IsActive, ct);
+                if (teamUser is not null)
+                {
+                    var technicianEntity = new Domain.Entities.Entity
+                    {
+                        TenantId = tenantId,
+                        Type = EntityType.TECHNICIAN,
+                        Name = teamUser.DisplayName,
+                        Email = teamUser.Email,
+                        IsActive = true,
+                    };
+                    db.Entities.Add(technicianEntity);
+                    await db.SaveChangesAsync(ct);
+                    technicianId = technicianEntity.Id;
+                }
+            }
+        }
+
         var job = new Domain.Entities.ServiceClientJob
         {
             TenantId = tenantId,
@@ -792,7 +820,7 @@ public class ServiceTechService(AppDbContext db) : IServiceTechService
             DeviceModel = dto.DeviceModel,
             ImeiSerial = dto.ImeiSerial,
             IssueDescription = dto.IssueDescription,
-            TechnicianId = dto.TechnicianId,
+            TechnicianId = technicianId,
             PriceToClientUsd = dto.PriceToClientUsd,
             TechnicianCostUsd = dto.TechnicianCostUsd,
             DepositMethod = dto.DepositMethod,

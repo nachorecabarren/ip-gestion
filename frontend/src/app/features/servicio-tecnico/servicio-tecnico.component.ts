@@ -2,7 +2,13 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ApiService } from '../../core/services/api.service';
-import { ServiceClientJob, Entity, ServiceJobStatus } from '../../shared/models/models';
+import { TeamService } from '../../core/services/team.service';
+import { ServiceClientJob, ServiceJobStatus } from '../../shared/models/models';
+
+interface TechnicianOption {
+  id: string;
+  name: string;
+}
 
 @Component({
   selector: 'app-servicio-tecnico',
@@ -14,6 +20,7 @@ import { ServiceClientJob, Entity, ServiceJobStatus } from '../../shared/models/
 export class ServicioTecnicoComponent implements OnInit {
   private api = inject(ApiService);
   private fb = inject(FormBuilder);
+  private team = inject(TeamService);
 
   jobs = signal<ServiceClientJob[]>([]);
   total = signal(0);
@@ -23,7 +30,7 @@ export class ServicioTecnicoComponent implements OnInit {
   statusFilter = signal('');
   search = signal('');
 
-  technicians = signal<Entity[]>([]);
+  technicians = signal<TechnicianOption[]>([]);
   form!: FormGroup;
 
   readonly statusFlow: { value: ServiceJobStatus; label: string; class: string }[] = [
@@ -37,7 +44,20 @@ export class ServicioTecnicoComponent implements OnInit {
   ngOnInit() {
     this.initForm();
     this.load();
-    this.api.getEntities('TECHNICIAN').subscribe(r => this.technicians.set(r.items));
+    this.loadTechnicians();
+  }
+
+  private loadTechnicians() {
+    this.team.getUsers().subscribe({
+      next: users => {
+        this.technicians.set(users.filter(u => u.isActive).map(u => ({ id: u.id, name: u.displayName })));
+      },
+      error: () => {
+        this.api.getEntities('TECHNICIAN').subscribe(r => {
+          this.technicians.set(r.items.filter(e => e.isActive).map(e => ({ id: e.id, name: e.name })));
+        });
+      }
+    });
   }
 
   initForm() {
@@ -66,7 +86,11 @@ export class ServicioTecnicoComponent implements OnInit {
   submit() {
     if (this.form.invalid) { this.form.markAllAsTouched(); return; }
     this.submitting.set(true);
-    this.api.createServiceJob(this.form.value).subscribe({
+    const payload = {
+      ...this.form.value,
+      technicianId: this.form.value.technicianId ? this.form.value.technicianId : null,
+    };
+    this.api.createServiceJob(payload).subscribe({
       next: () => { this.showModal.set(false); this.load(); this.submitting.set(false); },
       error: () => this.submitting.set(false)
     });
