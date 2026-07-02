@@ -29,7 +29,7 @@ public class EmailService(IConfiguration config, ILogger<EmailService> logger) :
 
             var payload = new
             {
-                from = "iP Gestión <noreply@notification.ipgestion>",
+                from = "iP Gestión <onboarding@resend.dev>",
                 to = new[] { toEmail },
                 subject = $"Te invitaron a unirte a {businessName} en iP Gestión",
                 html = BuildInvitationHtml(businessName, invitationLink),
