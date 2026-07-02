@@ -1,7 +1,7 @@
 .sidebar {
-  width: 220px; flex-shrink: 0; height: 100vh; background: #fff;
+  width: 220px; flex-shrink: 0; height: 100vh; background: var(--color-surface-elevated);
   border-right: 1px solid var(--color-border); display: flex; flex-direction: column;
-  overflow-y: auto; position: sticky; top: 0;
+  overflow-y: auto; position: sticky; top: 0; transition: background-color 0.2s ease, border-color 0.2s ease;
 
   &__logo {
     display: flex; align-items: center; gap: 10px; padding: 18px 16px 14px;
@@ -18,9 +18,9 @@
 
   &__tc {
     padding: 10px 16px; border-bottom: 1px solid var(--color-border);
-    background: #f0fdf4;
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.12), rgba(74, 222, 128, 0.18));
   }
-  &__tc-label { font-size: 10px; font-weight: 600; color: #15803d; letter-spacing: .3px; }
+  &__tc-label { font-size: 10px; font-weight: 600; color: #16a34a; letter-spacing: .3px; }
   &__tc-value { font-size: 15px; font-weight: 700; color: #15803d; }
 
   &__nav { padding: 10px 8px; flex: 1; }
@@ -48,12 +48,25 @@
   }
   &__item-label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-  &__theme-toggle {
-    display: flex; align-items: center; justify-content: center; gap: 8px; margin: 8px 12px 12px;
-    padding: 8px 10px; border: 1px solid var(--color-border); border-radius: 10px; background: var(--color-surface-elevated);
-    color: var(--color-text-secondary); cursor: pointer; font-size: 12px; font-weight: 600;
-    svg { width: 14px; height: 14px; }
-    &:hover { background: var(--color-border-soft); color: var(--color-text-primary); }
+  &__theme-switch {
+    display: inline-flex; align-items: center; margin: 10px 12px 12px; cursor: pointer;
+    input { position: absolute; opacity: 0; pointer-events: none; }
+  }
+
+  &__theme-switch-track {
+    position: relative; width: 48px; height: 28px; border-radius: 999px; background: var(--color-border);
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.08); transition: background 0.2s ease;
+    flex-shrink: 0;
+  }
+
+  &__theme-switch-thumb {
+    position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: var(--color-surface-elevated);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.18); transition: transform 0.2s ease;
+  }
+
+  &__theme-switch--active {
+    .sidebar__theme-switch-track { background: linear-gradient(90deg, #60a5fa, #2563eb); }
+    .sidebar__theme-switch-thumb { transform: translateX(20px); }
   }
 
   &__user {

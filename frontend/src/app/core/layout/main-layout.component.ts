@@ -26,10 +26,6 @@ import { ThemeService } from '../services/theme.service';
             </svg>
           </button>
           <div class="layout__topbar-title">iP Gestión</div>
-          <button class="layout__theme-toggle" type="button" (click)="toggleTheme()" [attr.aria-label]="theme.isDark() ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'" [attr.aria-pressed]="theme.isDark()">
-            <svg *ngIf="!theme.isDark()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"/></svg>
-            <svg *ngIf="theme.isDark()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="4.5"/><path d="M12 2.75v2.5M12 18.75v2.5M4.75 12H2.25M21.75 12h-2.5M5.64 5.64l-1.77-1.77M20.13 20.13l-1.77-1.77M5.64 18.36l-1.77 1.77M20.13 3.87l-1.77 1.77"/></svg>
-          </button>
           <div class="layout__topbar-spacer"></div>
         </header>
 
