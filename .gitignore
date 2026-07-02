@@ -9,13 +9,8 @@
 # Angular
 **/node_modules/
 **/dist/
+**/.angular/
 
 # Secrets
 **/appsettings.Production.json
 **/.env
-frontend/.angular/cache/17.3.17/ip-gestion-frontend/.tsbuildinfo
-frontend/dist/ip-gestion-frontend/3rdpartylicenses.txt
-frontend/dist/ip-gestion-frontend/browser/index.html
-frontend/dist/ip-gestion-frontend/browser/polyfills-FFHMD2TL.js
-frontend/dist/ip-gestion-frontend/browser/styles-4MUC2ZL6.css
-frontend/node_modules/.package-lock.json
