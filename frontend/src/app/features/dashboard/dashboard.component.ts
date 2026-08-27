@@ -33,6 +33,7 @@ export class DashboardComponent implements OnInit {
       label: "Nueva Venta",
       sublabel: "Facturar iPhone",
       route: "/ventas",
+      queryParams: { nueva: "1" },
       icon: "cart",
     },
     {

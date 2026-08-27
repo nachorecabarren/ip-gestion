@@ -193,10 +193,17 @@
 <div class="modal-overlay" *ngIf="showNewModal()" (click)="showNewModal.set(false)">
   <div class="modal" (click)="$event.stopPropagation()">
     <div class="modal__header">
-      <div><h2 class="modal__title">Agregar equipo</h2><p class="modal__sub">Alta manual de stock</p></div>
+      <div><h2 class="modal__title">Agregar equipo</h2><p class="modal__sub">Se registra como una compra de stock, igual que en Compras → Equipos</p></div>
       <button class="modal__close" (click)="showNewModal.set(false)">✕</button>
     </div>
     <div class="modal__body" [formGroup]="newForm">
+      <div class="form-group">
+        <label>Proveedor</label>
+        <select formControlName="providerId" class="form-control">
+          <option value="">Sin proveedor</option>
+          <option *ngFor="let p of providers()" [value]="p.id">{{ p.name }}</option>
+        </select>
+      </div>
       <div class="form-group">
         <label>Modelo *</label>
         <select formControlName="modelId" class="form-control"

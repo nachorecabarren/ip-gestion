@@ -4,7 +4,7 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { ApiService } from '../../core/services/api.service';
 import { ConfirmService } from '../../shared/services/confirm.service';
 import { AuthService } from '../../core/services/auth.service';
-import { StockItem, StockBulk, CatalogLocation, CatalogModel, TradeInQuote } from '../../shared/models/models';
+import { StockItem, StockBulk, CatalogLocation, CatalogModel, TradeInQuote, Entity } from '../../shared/models/models';
 import { ImeiScannerComponent } from '../../shared/components/imei-scanner/imei-scanner.component';
 
 @Component({
@@ -38,6 +38,7 @@ export class StockComponent implements OnInit {
   newForm!: FormGroup;
   models = signal<CatalogModel[]>([]);
   locations = signal<CatalogLocation[]>([]);
+  providers = signal<Entity[]>([]);
 
   // Edit modal
   showEditModal = signal(false);
@@ -59,7 +60,9 @@ export class StockComponent implements OnInit {
     this.loadItems();
     this.api.getCatalogLocations().subscribe(l => this.locations.set(l));
     this.api.getCatalogModels().subscribe(m => this.models.set(m));
+    this.api.getEntities('PROVIDER').subscribe(r => this.providers.set(r.items));
     this.newForm = this.fb.group({
+      providerId: [''],
       modelId: ['', Validators.required],
       imeiSerial: [''],
       color: [''],
@@ -103,7 +106,7 @@ export class StockComponent implements OnInit {
   }
 
   openNew() {
-    this.newForm.reset({ modelId: '', condition: 'USED', costUsd: 0, locationId: '' });
+    this.newForm.reset({ providerId: '', modelId: '', condition: 'USED', costUsd: 0, locationId: '' });
     this.newError.set('');
     this.showNewModal.set(true);
   }
@@ -117,20 +120,29 @@ export class StockComponent implements OnInit {
     this.submitting.set(true);
     this.newError.set('');
     const v = this.newForm.value;
+    // Se registra igual que "Nueva Compra > Equipos": una compra de un solo ítem,
+    // así el equipo queda con trazabilidad de proveedor como cualquier otra compra.
     const dto = {
-      modelId: v.modelId,
-      imeiSerial: v.imeiSerial || null,
-      color: v.color || null,
-      storageGb: v.storageGb ? Number(v.storageGb) : null,
-      condition: v.condition,
-      batteryPct: v.batteryPct ? Number(v.batteryPct) : null,
-      costUsd: Number(v.costUsd) || 0,
-      suggestedPriceUsd: Number(v.suggestedPriceUsd),
-      wholesalePriceUsd: v.wholesalePriceUsd ? Number(v.wholesalePriceUsd) : null,
-      locationId: v.locationId || null,
+      providerId: v.providerId || null,
+      purchaseDate: new Date().toISOString().split('T')[0],
+      type: 'DEVICE',
       notes: v.notes || null,
+      deviceItems: [{
+        modelId: v.modelId,
+        imeiSerial: v.imeiSerial || null,
+        color: v.color || null,
+        storageGb: v.storageGb ? Number(v.storageGb) : null,
+        condition: v.condition,
+        batteryPct: v.batteryPct ? Number(v.batteryPct) : null,
+        costUsd: Number(v.costUsd) || 0,
+        suggestedPriceUsd: Number(v.suggestedPriceUsd),
+        wholesalePriceUsd: v.wholesalePriceUsd ? Number(v.wholesalePriceUsd) : null,
+        locationId: v.locationId || null,
+        notes: v.notes || null,
+      }],
+      bulkItems: [],
     };
-    this.api.createStockItem(dto).subscribe({
+    this.api.createPurchase(dto).subscribe({
       next: () => { this.showNewModal.set(false); this.loadItems(); this.submitting.set(false); },
       error: (e) => {
         const msg = e?.error?.error

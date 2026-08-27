@@ -2,7 +2,7 @@ import { Component, OnInit, inject, signal, computed } from "@angular/core";
 import { ConfirmService } from "../../shared/services/confirm.service";
 import { AuthService } from "../../core/services/auth.service";
 import { CommonModule } from "@angular/common";
-import { RouterModule } from "@angular/router";
+import { ActivatedRoute, Router, RouterModule } from "@angular/router";
 import {
   FormBuilder,
   FormGroup,
@@ -33,6 +33,8 @@ export class VentasComponent implements OnInit {
   private api = inject(ApiService);
   private fb = inject(FormBuilder);
   private confirm = inject(ConfirmService);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
   auth = inject(AuthService);
 
   sales = signal<Sale[]>([]);
@@ -89,6 +91,11 @@ export class VentasComponent implements OnInit {
     this.api
       .getStockItems("AVAILABLE")
       .subscribe((r) => this.availableStock.set(r.items));
+
+    if (this.route.snapshot.queryParamMap.get("nueva")) {
+      this.openNewSale();
+      this.router.navigate([], { queryParams: {}, replaceUrl: true });
+    }
   }
 
   initForm() {
