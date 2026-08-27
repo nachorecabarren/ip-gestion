@@ -23,6 +23,8 @@ public record DashboardKpisDto(
     decimal GastosClosers,
     decimal GastosOperativos,
     decimal RegalosAccesorios,
+    int VentasConCanje,
+    decimal PorcentajeCanje,
     string Periodo
 );
 
@@ -147,7 +149,9 @@ public record SaleDto(
     DateTime SaleDate,
     List<SaleItemDto> Items,
     List<PaymentDto> Payments,
-    string? SoldBy
+    string? SoldBy,
+    bool HasTradeIn,
+    decimal? TradeInValueUsd
 );
 
 public record SaleItemDto(

@@ -147,6 +147,8 @@ export class VentasComponent implements OnInit {
   get wholesaleCount() { return this.completedSales.filter(s => s.category === 'WHOLESALE').length; }
   get ticketPromedio() { return this.completedSales.length > 0 ? this.totalVentas / this.completedSales.length : 0; }
   get margenBruto() { return this.completedSales.reduce((sum, s) => sum + s.marginUsd, 0); }
+  get canjesCount() { return this.completedSales.filter(s => s.hasTradeIn).length; }
+  get canjesPct() { return this.completedSales.length > 0 ? (this.canjesCount / this.completedSales.length) * 100 : 0; }
 
   openNewSale() {
     this.initForm();

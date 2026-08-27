@@ -24,7 +24,8 @@ export interface Payment { method: PaymentMethod; currency: Currency; amount: nu
 export interface DashboardKpis {
   facturacionPeriodo: number; margenBruto: number; gananciaNeta: number;
   cantidadVentas: number; stockDisponible: number; reservasActivas: number;
-  gastosClosers: number; gastosOperativos: number; regalosAccesorios: number; periodo: string;
+  gastosClosers: number; gastosOperativos: number; regalosAccesorios: number;
+  ventasConCanje: number; porcentajeCanje: number; periodo: string;
 }
 
 export interface QuickSale { date: string; item: string; client: string; amount: number; margin: number; }
@@ -56,6 +57,7 @@ export interface Sale {
   id: string; clientName?: string; clientPhone?: string; category: SaleCategory; origin: SaleOrigin;
   totalUsd: number; marginUsd: number; warrantyDays: number; status: SaleStatus;
   notes?: string; saleDate: string; items: SaleItem[]; payments: Payment[]; soldBy?: string;
+  hasTradeIn: boolean; tradeInValueUsd?: number;
 }
 
 export interface Purchase {

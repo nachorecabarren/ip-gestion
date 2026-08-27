@@ -170,6 +170,7 @@ public class Sale : TenantEntity
     public ICollection<SaleItem> Items { get; set; } = [];
     public ICollection<TransactionPayment> Payments { get; set; } = [];
     public ICollection<SaleCloserCommission> Commissions { get; set; } = [];
+    public TradeIn? TradeIn { get; set; }
 }
 
 // ─── SALE ITEM ─────────────────────────────────────────────
@@ -185,6 +186,18 @@ public class SaleItem : TenantEntity
     public Sale Sale { get; set; } = null!;
     public StockItem? StockItem { get; set; }
     public StockBulk? StockBulk { get; set; }
+}
+
+// ─── TRADE-IN (canje recibido en una venta) ────────────────
+public class TradeIn : TenantEntity
+{
+    public Guid SaleId { get; set; }
+    public string ModelName { get; set; } = string.Empty;
+    public int StorageGb { get; set; }
+    public int BatteryPct { get; set; }
+    public decimal ValueUsd { get; set; }
+
+    public Sale Sale { get; set; } = null!;
 }
 
 // ─── PURCHASE ──────────────────────────────────────────────

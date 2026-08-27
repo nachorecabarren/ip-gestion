@@ -37,6 +37,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Competitor> Competitors => Set<Competitor>();
     public DbSet<CompetitorPrice> CompetitorPrices => Set<CompetitorPrice>();
     public DbSet<TradeInBaseValuation> TradeInValuations => Set<TradeInBaseValuation>();
+    public DbSet<TradeIn> TradeIns => Set<TradeIn>();
     public DbSet<BarcodeMapping> BarcodeMappings => Set<BarcodeMapping>();
 
     protected override void OnModelCreating(ModelBuilder b)
@@ -63,6 +64,12 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             )
             .HasColumnType("jsonb");
         b.Entity<Competitor>().Ignore(e => e.Prices); // loaded via CompetitorPrice
+
+        // Sale <-> TradeIn: 1:1, at most one trade-in per sale
+        b.Entity<Sale>()
+            .HasOne(s => s.TradeIn)
+            .WithOne(t => t.Sale)
+            .HasForeignKey<TradeIn>(t => t.SaleId);
 
         // Soft precision for decimals
         foreach (var p in b.Model.GetEntityTypes()

@@ -32,6 +32,7 @@ public class DashboardService(AppDbContext db) : IDashboardService
         var sales = await db.Sales
             .Where(s => s.TenantId == tenantId && s.SaleDate >= from && s.Status == SaleStatus.COMPLETED)
             .Include(s => s.Items).ThenInclude(i => i.StockItem)
+            .Include(s => s.TradeIn)
             .ToListAsync(ct);
 
         var facturacion = sales.Sum(s => s.TotalUsd);
@@ -39,6 +40,9 @@ public class DashboardService(AppDbContext db) : IDashboardService
             .Where(i => i.StockItem != null)
             .Sum(i => i.StockItem!.CostUsd * i.Quantity);
         var margen = facturacion - costo;
+
+        var ventasConCanje = sales.Count(s => s.TradeIn != null);
+        var porcentajeCanje = sales.Count > 0 ? Math.Round(100m * ventasConCanje / sales.Count, 1) : 0m;
 
         var gastoClosers = await db.SaleCloserCommissions
             .Where(c => c.TenantId == tenantId && c.Sale.SaleDate >= from)
@@ -56,7 +60,8 @@ public class DashboardService(AppDbContext db) : IDashboardService
 
         return new DashboardKpisDto(
             facturacion, margen, margen - gastoClosers - gastoOp,
-            sales.Count, stock, reservas, gastoClosers, gastoOp, 0, periodo
+            sales.Count, stock, reservas, gastoClosers, gastoOp, 0,
+            ventasConCanje, porcentajeCanje, periodo
         );
     }
 
@@ -293,7 +298,7 @@ public class SaleService(AppDbContext db) : ISaleService
     public async Task<PagedResult<SaleDto>> GetPagedAsync(Guid tenantId, SaleCategory? category, SaleOrigin? origin, string? search, DateTime? from, DateTime? to, int page, int pageSize, CancellationToken ct = default)
     {
         var q = db.Sales.Include(s => s.Items).ThenInclude(i => i.StockItem).ThenInclude(si => si!.Model)
-            .Include(s => s.Payments).Include(s => s.Entity)
+            .Include(s => s.Payments).Include(s => s.Entity).Include(s => s.TradeIn)
             .Where(s => s.TenantId == tenantId);
         if (category.HasValue) q = q.Where(s => s.SaleCategory == category.Value);
         if (origin.HasValue) q = q.Where(s => s.Origin == origin.Value);
@@ -313,7 +318,7 @@ public class SaleService(AppDbContext db) : ISaleService
     public async Task<SaleDto?> GetByIdAsync(Guid tenantId, Guid id, CancellationToken ct = default)
     {
         var s = await db.Sales.Include(x => x.Items).ThenInclude(i => i.StockItem).ThenInclude(si => si!.Model)
-            .Include(x => x.Payments).Include(x => x.Entity)
+            .Include(x => x.Payments).Include(x => x.Entity).Include(x => x.TradeIn)
             .FirstOrDefaultAsync(x => x.TenantId == tenantId && x.Id == id, ct);
         if (s == null) return null;
         var userNames = await ResolveCloserNames(tenantId, [s], ct);
@@ -393,6 +398,20 @@ public class SaleService(AppDbContext db) : ISaleService
                 ExchangeRateUsd = p.ExchangeRateUsd,
                 AmountUsd = p.Currency == Currency.USD ? p.Amount : p.Amount / p.ExchangeRateUsd
             });
+
+        // Trade-in (canje)
+        if (dto.TradeIn != null)
+        {
+            sale.TradeIn = new Domain.Entities.TradeIn
+            {
+                TenantId = tenantId,
+                SaleId = sale.Id,
+                ModelName = dto.TradeIn.ModelName,
+                StorageGb = dto.TradeIn.StorageGb,
+                BatteryPct = dto.TradeIn.BatteryPct,
+                ValueUsd = dto.TradeIn.ValueUsd
+            };
+        }
 
         db.Sales.Add(sale);
         await db.SaveChangesAsync(ct);
@@ -509,7 +528,9 @@ public class SaleService(AppDbContext db) : ISaleService
             s.Items.Select(i => new SaleItemDto(i.Id, i.Type,
                 i.StockItem?.Model?.Name ?? "Accesorio", i.Quantity, i.PriceUsd, i.StockItem?.ImeiSerial)).ToList(),
             s.Payments.Select(p => new PaymentDto(p.Method, p.Currency, p.Amount, p.ExchangeRateUsd)).ToList(),
-            soldBy
+            soldBy,
+            s.TradeIn != null,
+            s.TradeIn?.ValueUsd
         );
     }
 }

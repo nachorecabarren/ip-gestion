@@ -41,6 +41,13 @@
       <div class="stat-card__label">MARGEN BRUTO</div>
       <div class="stat-card__value">{{ formatUsd(margenBruto) }}</div>
     </div>
+    <div class="stat-card">
+      <div class="stat-card__label">VENTAS CON CANJE</div>
+      <div class="stat-card__value">
+        {{ canjesCount }} <span class="stat-card__unit">ops</span>
+      </div>
+      <div class="stat-card__sub">{{ canjesPct.toFixed(0) }}% del total</div>
+    </div>
   </div>
 
   <!-- Filters -->
