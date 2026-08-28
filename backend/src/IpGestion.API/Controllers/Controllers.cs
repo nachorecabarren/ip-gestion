@@ -237,7 +237,12 @@ public class ReservasController(IReservationService svc) : TenantBaseController
 
     [HttpPost("{id}/convertir")]
     public async Task<IActionResult> ConvertToSale(Guid id, [FromBody] CreateSaleDto dto, CancellationToken ct = default)
-        => Ok(await svc.ConvertToSaleAsync(TenantId, id, dto, ct));
+    {
+        var closerIds = dto.CloserIds.Contains(CurrentUserId)
+            ? dto.CloserIds
+            : [.. dto.CloserIds, CurrentUserId];
+        return Ok(await svc.ConvertToSaleAsync(TenantId, id, dto with { CloserIds = closerIds }, ct));
+    }
 }
 
 // ─── CAJAS ─────────────────────────────────────────────────

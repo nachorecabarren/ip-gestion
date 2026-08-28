@@ -235,6 +235,8 @@ public record CreateBulkItemDto(
 // ─── RESERVAS ──────────────────────────────────────────────
 public record ReservationDto(
     Guid Id,
+    Guid? EntityId,
+    Guid? StockItemId,
     string? ClientName,
     string? ClientPhone,
     string? ItemName,

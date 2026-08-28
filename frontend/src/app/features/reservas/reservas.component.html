@@ -40,7 +40,8 @@
           <td>u$d {{ r.depositAmountUsd }}</td>
           <td><strong>u$d {{ r.agreedPriceUsd }}</strong></td>
           <td><span class="badge" [ngClass]="getStatusClass(r.status)">{{ getStatusLabel(r.status) }}</span></td>
-          <td>
+          <td class="reservas__actions">
+            <button class="btn btn--primary btn--sm" (click)="openConvert(r)" *ngIf="r.status === 'ACTIVE' && r.stockItemId">Convertir a venta</button>
             <button class="btn btn--ghost btn--sm" (click)="cancel(r.id)" *ngIf="r.status === 'ACTIVE' && auth.isOwner()">Cancelar</button>
           </td>
         </tr>
@@ -140,6 +141,67 @@
       <button class="btn btn--primary" (click)="submit()" [disabled]="submitting()">
         {{ submitting() ? 'Guardando...' : 'Crear Reserva' }}
       </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Convertir a venta -->
+<div class="modal-overlay" *ngIf="showConvertModal() && convertingReservation() as r" (click)="dismissConvertModal()" escapeClose (escapeClose)="dismissConvertModal()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal__header">
+      <div><h2 class="modal__title">Convertir a venta</h2><p class="modal__sub">{{ r.clientName ?? 'Consumidor Final' }} — {{ r.itemName }}</p></div>
+      <button class="modal__close" (click)="dismissConvertModal()">✕</button>
+    </div>
+    <div class="modal__body" [formGroup]="convertForm">
+      <div class="form-row">
+        <div class="form-group form-group--grow">
+          <label>Precio pactado</label>
+          <input type="text" class="form-control" [value]="formatUsd(r.agreedPriceUsd)" disabled />
+        </div>
+        <div class="form-group form-group--grow">
+          <label>Garantía (días)</label>
+          <input type="number" formControlName="warrantyDays" class="form-control" min="0" autoFocus />
+        </div>
+      </div>
+
+      <div class="page-sub" style="margin:12px 0 8px">Pago</div>
+      <div formArrayName="payments">
+        <div *ngFor="let p of convertPayments.controls; let i = index" [formGroupName]="i" class="payment-row">
+          <div class="form-row">
+            <div class="form-group form-group--grow">
+              <label>Método de pago *</label>
+              <select formControlName="method" class="form-control" (change)="onConvertMethodChange(i, $event)">
+                <option *ngFor="let m of paymentMethods" [value]="m.value">{{ m.label }}</option>
+              </select>
+            </div>
+            <div class="form-group form-group--sm">
+              <label>Monto</label>
+              <input type="number" formControlName="amount" class="form-control" />
+            </div>
+            <button type="button" class="btn-remove" (click)="removeConvertPayment(i)" *ngIf="convertPayments.length > 1">✕</button>
+          </div>
+          <div class="form-row" *ngIf="p.get('currency')?.value === 'ARS'">
+            <div class="form-group form-group--sm">
+              <label>TC (ARS/$)</label>
+              <input type="number" formControlName="exchangeRateUsd" class="form-control" />
+            </div>
+          </div>
+        </div>
+      </div>
+      <button type="button" class="btn btn--ghost btn--sm" (click)="addConvertPayment()">+ Añadir método de pago</button>
+
+      <div class="tradein-info" *ngIf="convertPaymentsTotal !== r.agreedPriceUsd">
+        Los pagos suman {{ formatUsd(convertPaymentsTotal) }}, el precio pactado es {{ formatUsd(r.agreedPriceUsd) }}.
+      </div>
+    </div>
+    <div class="modal__footer" style="flex-direction:column;align-items:stretch;gap:8px">
+      <div class="auth-error" *ngIf="convertError()" style="margin:0">{{ convertError() }}</div>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button class="btn btn--ghost" (click)="dismissConvertModal()">Cancelar</button>
+        <button class="btn btn--primary" (click)="submitConvert()" [disabled]="convertSubmitting()">
+          {{ convertSubmitting() ? 'Confirmando...' : 'Confirmar venta' }}
+        </button>
+      </div>
     </div>
   </div>
 </div>

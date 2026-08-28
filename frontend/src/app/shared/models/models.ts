@@ -73,7 +73,7 @@ export interface Purchase {
 }
 
 export interface Reservation {
-  id: string; clientName?: string; clientPhone?: string; itemName?: string; category: SaleCategory;
+  id: string; entityId?: string; stockItemId?: string; clientName?: string; clientPhone?: string; itemName?: string; category: SaleCategory;
   pickupDate: string; status: ReservationStatus; depositAmountUsd: number; agreedPriceUsd: number;
   notes?: string; createdAt: string;
 }

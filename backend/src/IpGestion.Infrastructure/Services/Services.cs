@@ -777,7 +777,7 @@ public class ReservationService(AppDbContext db) : IReservationService
     }
 
     private static ReservationDto Map(Domain.Entities.Reservation r) => new(
-        r.Id, r.Entity?.Name ?? r.RetailClientName, r.Entity?.Phone ?? r.RetailClientPhone,
+        r.Id, r.EntityId, r.StockItemId, r.Entity?.Name ?? r.RetailClientName, r.Entity?.Phone ?? r.RetailClientPhone,
         r.StockItem?.Model?.Name ?? "Accesorio", r.SaleCategory, r.PickupDate,
         r.Status, r.DepositAmountUsd, r.AgreedPriceUsd, r.Notes, r.CreatedAt
     );

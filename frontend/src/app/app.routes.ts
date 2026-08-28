@@ -39,6 +39,7 @@ export const routes: Routes = [
       { path: 'objeciones', loadComponent: () => import('./features/objeciones/objeciones.component').then(m => m.ObjecionesComponent) },
       { path: 'competencia', loadComponent: () => import('./features/competencia/competencia.component').then(m => m.CompetenciaComponent) },
       { path: 'agenda', loadComponent: () => import('./features/agenda/agenda.component').then(m => m.AgendaComponent) },
+      { path: 'ayuda', loadComponent: () => import('./features/ayuda/ayuda.component').then(m => m.AyudaComponent) },
       // OWNER-only:
       { path: 'equipo', canActivate: [ownerGuard], loadComponent: () => import('./features/equipo/equipo.component').then(m => m.EquipoComponent) },
       { path: 'configuracion', canActivate: [ownerGuard], loadComponent: () => import('./features/configuracion/configuracion.component').then(m => m.ConfiguracionComponent) },

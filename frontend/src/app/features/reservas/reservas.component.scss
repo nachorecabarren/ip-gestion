@@ -1,6 +1,7 @@
 @use '../../shared/styles/shared';
 .reservas { display:flex; flex-direction:column; gap:16px;
   &__filters { display:flex; align-items:center; gap:6px; }
+  &__actions { display:flex; gap:6px; justify-content:flex-end; }
 }
 .filter-btn { padding:6px 14px; border:1px solid var(--color-border); border-radius:8px; background:var(--color-surface); font-size:12px; font-weight:500; cursor:pointer; color:var(--color-text-muted);
   &.active { background:var(--color-blue); color:#fff; border-color:var(--color-blue); }

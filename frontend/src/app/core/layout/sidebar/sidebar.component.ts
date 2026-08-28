@@ -62,6 +62,7 @@ export class SidebarComponent {
       items: [
         { label: 'Mi Equipo', route: '/equipo', icon: 'users', ownerOnly: true },
         { label: 'Configuración', route: '/configuracion', icon: 'settings', ownerOnly: true },
+        { label: 'Ayuda', route: '/ayuda', icon: 'help' },
       ]
     }
   ];
