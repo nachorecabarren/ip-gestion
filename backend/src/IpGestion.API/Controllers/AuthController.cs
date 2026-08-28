@@ -8,7 +8,7 @@ namespace IpGestion.API.Controllers;
 
 [ApiController]
 [Route("api/auth")]
-public class AuthController(IAuthService auth, IConfiguration config) : ControllerBase
+public class AuthController(IAuthService auth, IConfiguration config, IWebHostEnvironment env) : ControllerBase
 {
     private void IssueCookie(AuthUserDto user)
     {
@@ -17,8 +17,12 @@ public class AuthController(IAuthService auth, IConfiguration config) : Controll
         Response.Cookies.Append("jwt", token, new CookieOptions
         {
             HttpOnly = true,
-            SameSite = SameSiteMode.None,
-            Secure = true,   // set to true when deploying behind HTTPS
+            // SameSite=None requiere Secure; en Development (http://localhost, sin TLS)
+            // eso hace que Safari/Firefox descarten la cookie silenciosamente, dejando
+            // el login en apariencia "OK" pero sin sesión guardada. Lax alcanza en local
+            // porque front y back comparten site (localhost, solo cambia el puerto).
+            SameSite = env.IsDevelopment() ? SameSiteMode.Lax : SameSiteMode.None,
+            Secure = !env.IsDevelopment(),
             Expires = DateTimeOffset.UtcNow.AddDays(expiryDays),
             Path = "/",
         });

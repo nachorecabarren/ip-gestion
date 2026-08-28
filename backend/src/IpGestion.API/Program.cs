@@ -140,8 +140,12 @@ app.UseRouting();
 app.UseCors("Angular");
 app.UseCookiePolicy(new CookiePolicyOptions
 {
-    MinimumSameSitePolicy = SameSiteMode.None,
-    Secure = CookieSecurePolicy.Always
+    // En Development corre sobre http://localhost sin TLS: SameSite=None exige
+    // Secure, y forzar Secure ahí hace que Safari/Firefox descarten la cookie de
+    // sesión silenciosamente. Lax + sin Secure funciona igual porque el front
+    // (localhost:4200) y el back (localhost:5000) son mismo "site".
+    MinimumSameSitePolicy = app.Environment.IsDevelopment() ? SameSiteMode.Lax : SameSiteMode.None,
+    Secure = app.Environment.IsDevelopment() ? CookieSecurePolicy.None : CookieSecurePolicy.Always
 });
 app.UseAuthentication();
 app.UseAuthorization();

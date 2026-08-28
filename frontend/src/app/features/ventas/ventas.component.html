@@ -279,7 +279,7 @@
 
           <ng-container *ngIf="saleForm.get('isConsumerFinal')?.value">
             <div class="form-group">
-              <label>Nombre del Cliente</label>
+              <label>Nombre del Cliente *</label>
               <input
                 type="text"
                 formControlName="retailClientName"
@@ -298,12 +298,12 @@
                 />
               </div>
               <div class="form-group">
-                <label>Instagram</label>
+                <label>Email {{ saleForm.get('sendInvoiceEmail')?.value ? '*' : '' }}</label>
                 <input
-                  type="text"
-                  formControlName="retailClientInstagram"
+                  type="email"
+                  formControlName="invoiceEmail"
                   class="form-control"
-                  placeholder="@usuario"
+                  placeholder="cliente@email.com"
                 />
               </div>
             </div>
@@ -312,14 +312,34 @@
           <ng-container *ngIf="!saleForm.get('isConsumerFinal')?.value">
             <div class="form-group">
               <label>Cliente *</label>
-              <select formControlName="entityId" class="form-control">
+              <select formControlName="entityId" class="form-control" (change)="onEntitySelect($event)">
                 <option value="">Seleccionar cliente...</option>
                 <option *ngFor="let e of entities()" [value]="e.id">
                   {{ e.name }} {{ e.phone ? "— " + e.phone : "" }}
                 </option>
               </select>
             </div>
+            <div class="form-group">
+              <label>Email {{ saleForm.get('sendInvoiceEmail')?.value ? '*' : '' }}</label>
+              <input
+                type="email"
+                formControlName="invoiceEmail"
+                class="form-control"
+                placeholder="cliente@email.com"
+              />
+            </div>
           </ng-container>
+
+          <div class="form-group">
+            <label class="toggle-label toggle-label--inline">
+              <span>¿Enviar factura o resumen de compra por email?</span>
+              <div
+                class="toggle"
+                [class.on]="saleForm.get('sendInvoiceEmail')?.value"
+                (click)="saleForm.patchValue({ sendInvoiceEmail: !saleForm.get('sendInvoiceEmail')?.value })"
+              ></div>
+            </label>
+          </div>
 
           <div class="form-group">
             <label>Días de Garantía</label>

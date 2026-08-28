@@ -179,7 +179,9 @@ public record CreateSaleDto(
     List<CreateSaleItemDto> Items,
     List<PaymentDto> Payments,
     List<Guid> CloserIds,
-    TradeInDto? TradeIn
+    TradeInDto? TradeIn,
+    string? InvoiceEmail = null,
+    bool SendInvoiceEmail = false
 );
 
 public record CreateSaleItemDto(

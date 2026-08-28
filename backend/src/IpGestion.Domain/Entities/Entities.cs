@@ -158,6 +158,7 @@ public class Sale : TenantEntity
     public string? RetailClientName { get; set; }
     public string? RetailClientPhone { get; set; }
     public string? RetailClientInstagram { get; set; }
+    public string? InvoiceEmail { get; set; }
     public SaleCategory SaleCategory { get; set; }
     public SaleOrigin Origin { get; set; }
     public decimal TotalUsd { get; set; }

@@ -329,7 +329,7 @@ public class StockService(AppDbContext db) : IStockService
 }
 
 // ─── SALE SERVICE ──────────────────────────────────────────
-public class SaleService(AppDbContext db) : ISaleService
+public class SaleService(AppDbContext db, IEmailService emailService) : ISaleService
 {
     public async Task<PagedResult<SaleDto>> GetPagedAsync(Guid tenantId, SaleCategory? category, SaleOrigin? origin, string? search, DateTime? from, DateTime? to, int page, int pageSize, CancellationToken ct = default)
     {
@@ -380,6 +380,7 @@ public class SaleService(AppDbContext db) : ISaleService
             RetailClientName = dto.RetailClientName,
             RetailClientPhone = dto.RetailClientPhone,
             RetailClientInstagram = dto.RetailClientInstagram,
+            InvoiceEmail = dto.SendInvoiceEmail ? dto.InvoiceEmail : null,
             SaleCategory = dto.SaleCategory,
             Origin = dto.Origin,
             TotalUsd = dto.TotalUsd,
@@ -466,7 +467,21 @@ public class SaleService(AppDbContext db) : ISaleService
 
         db.Sales.Add(sale);
         await db.SaveChangesAsync(ct);
-        return (await GetByIdAsync(tenantId, sale.Id, ct))!;
+        var created = (await GetByIdAsync(tenantId, sale.Id, ct))!;
+
+        if (dto.SendInvoiceEmail && !string.IsNullOrWhiteSpace(dto.InvoiceEmail))
+        {
+            var saleCode = sale.Id.ToString("N")[..8].ToUpperInvariant();
+            var itemLines = created.Items.Select(i =>
+                $"{i.ItemName}{(i.Quantity > 1 ? $" x{i.Quantity}" : "")} — u$d {i.PriceUsd:0.00}").ToList();
+            var paymentsSummary = string.Join(" · ", created.Payments.Select(p =>
+                $"{p.Method}: {(p.Currency == Currency.USD ? "u$d" : "$")} {p.Amount:0.00}"));
+            await emailService.SendSaleInvoiceAsync(
+                dto.InvoiceEmail, created.ClientName ?? "Cliente", saleCode, created.SaleDate,
+                itemLines, created.TotalUsd, paymentsSummary, created.WarrantyDays, ct);
+        }
+
+        return created;
     }
 
     public async Task VoidSaleAsync(Guid tenantId, Guid id, CancellationToken ct = default)
@@ -712,7 +727,7 @@ public class PurchaseService(AppDbContext db) : IPurchaseService
 }
 
 // ─── RESERVATION SERVICE ───────────────────────────────────
-public class ReservationService(AppDbContext db) : IReservationService
+public class ReservationService(AppDbContext db, IEmailService emailService) : IReservationService
 {
     public async Task<PagedResult<ReservationDto>> GetPagedAsync(Guid tenantId, ReservationStatus? status, int page, int pageSize, CancellationToken ct = default)
     {
@@ -775,7 +790,7 @@ public class ReservationService(AppDbContext db) : IReservationService
     {
         var r = await db.Reservations.FirstOrDefaultAsync(x => x.TenantId == tenantId && x.Id == reservationId, ct)
             ?? throw new NotFoundException(nameof(Domain.Entities.Reservation), reservationId);
-        var saleService = new SaleService(db);
+        var saleService = new SaleService(db, emailService);
         var sale = await saleService.CreateAsync(tenantId, dto with { Origin = SaleOrigin.RESERVATION }, ct);
         r.Status = ReservationStatus.SOLD;
         await db.SaveChangesAsync(ct);

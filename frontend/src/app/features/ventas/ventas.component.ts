@@ -112,7 +112,8 @@ export class VentasComponent implements OnInit {
       entityId: [null],
       retailClientName: [""],
       retailClientPhone: [""],
-      retailClientInstagram: [""],
+      invoiceEmail: [""],
+      sendInvoiceEmail: [true],
       isConsumerFinal: [true],
       warrantyDays: [90, [Validators.required, Validators.min(0)]],
       notes: [""],
@@ -189,10 +190,49 @@ export class VentasComponent implements OnInit {
   }
 
   nextStep() {
+    const error = this.validateStep(this.wizardStep());
+    if (error) {
+      this.submitError.set(error);
+      this.saleForm.markAllAsTouched();
+      return;
+    }
+    this.submitError.set('');
     if (this.wizardStep() < 4) this.wizardStep.update((s) => s + 1);
   }
   prevStep() {
+    this.submitError.set('');
     if (this.wizardStep() > 1) this.wizardStep.update((s) => s - 1);
+  }
+
+  isValidEmail(value: string) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+  }
+
+  /** Datos obligatorios por paso: cliente (1), equipo (2) y, si corresponde, email de factura. */
+  validateStep(step: number): string | null {
+    const v = this.saleForm.getRawValue();
+    if (step === 1) {
+      if (v.isConsumerFinal) {
+        if (!v.retailClientName?.trim()) return 'Ingresá el nombre del cliente.';
+      } else if (!v.entityId) {
+        return 'Seleccioná un cliente.';
+      }
+      if (v.sendInvoiceEmail && !this.isValidEmail(v.invoiceEmail || '')) {
+        return 'Ingresá un email válido para enviar la factura.';
+      }
+      return null;
+    }
+    if (step === 2) {
+      const hasValidItem = this.items.controls.some(
+        (c) => c.get('stockItemId')?.value && Number(c.get('priceUsd')?.value) > 0,
+      );
+      return hasValidItem ? null : 'Seleccioná al menos un equipo con precio válido.';
+    }
+    if (step === 3) {
+      if (v.tradeInEnabled && !v.tradeInModelId) return 'Seleccioná el modelo del equipo a canjear.';
+      return null;
+    }
+    return null;
   }
 
   filteredStockFor(i: number): StockItem[] {
@@ -226,6 +266,12 @@ export class VentasComponent implements OnInit {
       this.items.at(index).patchValue({ priceUsd: price });
       this.updateTotals();
     }
+  }
+
+  onEntitySelect(event: Event) {
+    const id = (event.target as HTMLSelectElement).value;
+    const entity = this.entities().find((e) => e.id === id);
+    if (entity?.email) this.saleForm.patchValue({ invoiceEmail: entity.email });
   }
 
   onTradeInImeiScanned(value: string) {
@@ -306,13 +352,16 @@ export class VentasComponent implements OnInit {
 
   submitSale() {
     const raw = this.saleForm.getRawValue();
-    const hasItems = (raw.items || []).some((item: any) => item?.stockItemId || item?.stockBulkId);
     const total = Math.max(this.totalPago(), 0);
 
-    if (!hasItems) {
-      this.submitError.set('Seleccioná al menos un equipo para la venta.');
-      this.saleForm.markAllAsTouched();
-      return;
+    for (const step of [1, 2, 3]) {
+      const error = this.validateStep(step);
+      if (error) {
+        this.submitError.set(error);
+        this.saleForm.markAllAsTouched();
+        this.wizardStep.set(step);
+        return;
+      }
     }
 
     const normalizedPayments = (raw.payments || []).map((p: any) => ({
@@ -356,7 +405,9 @@ export class VentasComponent implements OnInit {
       entityId: raw.isConsumerFinal ? null : raw.entityId || null,
       retailClientName: raw.isConsumerFinal ? raw.retailClientName || null : null,
       retailClientPhone: raw.isConsumerFinal ? raw.retailClientPhone || null : null,
-      retailClientInstagram: raw.isConsumerFinal ? raw.retailClientInstagram || null : null,
+      retailClientInstagram: null,
+      sendInvoiceEmail: !!raw.sendInvoiceEmail,
+      invoiceEmail: raw.sendInvoiceEmail ? raw.invoiceEmail || null : null,
       saleCategory: raw.saleCategory,
       origin: 'DIRECT',
       totalUsd: total,

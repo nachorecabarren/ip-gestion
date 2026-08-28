@@ -1,13 +1,13 @@
 import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss']
 })
@@ -16,9 +16,10 @@ export class LoginComponent {
   private auth = inject(AuthService);
   private router = inject(Router);
 
+  // TEMP DEV ONLY — credenciales precargadas para testear localmente. NO commitear este cambio.
   form = this.fb.group({
-    email: ['', [Validators.required, Validators.email]],
-    password: ['', Validators.required],
+    email: ['admin@ipgestion.com', [Validators.required, Validators.email]],
+    password: ['Admin123!', Validators.required],
   });
 
   loading = signal(false);

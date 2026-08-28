@@ -937,6 +937,9 @@ namespace IpGestion.Infrastructure.Migrations
                     b.Property<Guid?>("EntityId")
                         .HasColumnType("uuid");
 
+                    b.Property<string>("InvoiceEmail")
+                        .HasColumnType("text");
+
                     b.Property<string>("Notes")
                         .HasColumnType("text");
 
