@@ -935,23 +935,29 @@ public class CajaService(AppDbContext db) : ICajaService
             mov.AmountUsd, mov.Currency, mov.Detail, null, mov.CreatedAt);
     }
 
-    // El período de un cierre va desde el cierre anterior de esa caja (o su alta,
-    // si nunca se cerró) hasta ahora — así nunca se cuenta un movimiento dos veces
-    // ni se depende de que el cierre coincida con un día calendario.
+    // El período de un cierre va desde el cierre anterior de esa caja (o desde
+    // siempre, si nunca se cerró) hasta ahora — así nunca se cuenta un movimiento
+    // dos veces ni se depende de que el cierre coincida con un día calendario.
+    // Importante: el piso NO es caja.CreatedAt — un movimiento puede tener fecha
+    // anterior al alta de la fila (datos de ejemplo con fecha retroactiva, un
+    // ajuste manual cargado con fecha pasada, etc.) y no por eso hay que excluirlo.
     private async Task<(DateTime From, DateTime To, List<Domain.Entities.CashMovement> Movs)> PendingPeriodAsync(Guid tenantId, Guid cajaId, CancellationToken ct)
     {
-        var caja = await db.Cajas.FirstOrDefaultAsync(c => c.TenantId == tenantId && c.Id == cajaId, ct)
-            ?? throw new NotFoundException(nameof(Domain.Entities.Caja), cajaId);
+        var cajaExists = await db.Cajas.AnyAsync(c => c.TenantId == tenantId && c.Id == cajaId, ct);
+        if (!cajaExists) throw new NotFoundException(nameof(Domain.Entities.Caja), cajaId);
         var lastClosing = await db.CashClosings
             .Where(c => c.TenantId == tenantId && c.CajaId == cajaId)
             .OrderByDescending(c => c.PeriodTo)
             .FirstOrDefaultAsync(ct);
-        var from = lastClosing?.PeriodTo ?? caja.CreatedAt;
+        var from = lastClosing?.PeriodTo ?? DateTime.MinValue;
         var to = DateTime.UtcNow;
         var movs = await db.CashMovements
             .Where(m => m.TenantId == tenantId && m.CajaId == cajaId && m.CreatedAt > from && m.CreatedAt <= to)
             .ToListAsync(ct);
-        return (from, to, movs);
+        // "from" solo se muestra como etiqueta del período — si nunca hubo cierre,
+        // mostrar el movimiento más antiguo real en vez del sentinel DateTime.MinValue.
+        var displayFrom = lastClosing != null ? from : (movs.Count > 0 ? movs.Min(m => m.CreatedAt) : to);
+        return (displayFrom, to, movs);
     }
 
     public async Task<CashClosingPreviewDto> GetClosingPreviewAsync(Guid tenantId, Guid cajaId, CancellationToken ct = default)
