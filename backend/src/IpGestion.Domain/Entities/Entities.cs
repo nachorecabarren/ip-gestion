@@ -340,6 +340,7 @@ public class ServiceClientJob : TenantEntity
     public string SvCode { get; set; } = string.Empty;
     public string RetailClientName { get; set; } = string.Empty;
     public string? RetailClientPhone { get; set; }
+    public string? RetailClientEmail { get; set; }
     public string? DeviceModel { get; set; }
     public string? ImeiSerial { get; set; }
     public string IssueDescription { get; set; } = string.Empty;
@@ -470,4 +471,15 @@ public class BarcodeMapping : TenantEntity
     public int? StorageGb { get; set; }
     public string? Color { get; set; }
     public StockCondition? Condition { get; set; }
+}
+
+// ─── AUDIT LOG ───────────────────────────────────────────────
+public class AuditLog : TenantEntity
+{
+    public Guid UserId { get; set; }
+    public string UserName { get; set; } = string.Empty;
+    public string Action { get; set; } = string.Empty;
+    public string EntityType { get; set; } = string.Empty;
+    public Guid? EntityId { get; set; }
+    public string? Details { get; set; }
 }

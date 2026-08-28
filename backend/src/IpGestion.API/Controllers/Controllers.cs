@@ -17,6 +17,7 @@ public abstract class TenantBaseController : ControllerBase
     protected Guid CurrentUserId => Guid.Parse(User.FindFirstValue("userId")!);
     protected string UserRole => User.FindFirstValue("role") ?? string.Empty;
     protected bool IsOwner => UserRole == nameof(Domain.Enums.UserRole.OWNER);
+    protected string CurrentUserName => User.FindFirstValue(ClaimTypes.Name) ?? User.FindFirstValue("email") ?? "Usuario";
 }
 
 // ─── DASHBOARD ─────────────────────────────────────────────
@@ -74,7 +75,7 @@ public class EntidadesController(IEntityService svc) : TenantBaseController
 
 // ─── STOCK ─────────────────────────────────────────────────
 [Route("api/stock")]
-public class StockController(IStockService svc) : TenantBaseController
+public class StockController(IStockService svc, IAuditService audit) : TenantBaseController
 {
     [HttpGet("items")]
     public async Task<IActionResult> GetItems([FromQuery] StockStatus? status, [FromQuery] StockCondition? condition,
@@ -104,6 +105,7 @@ public class StockController(IStockService svc) : TenantBaseController
     {
         if (!IsOwner) return Forbid();
         await svc.VoidItemAsync(TenantId, id, ct);
+        await audit.LogAsync(TenantId, CurrentUserId, CurrentUserName, "VOID", "StockItem", id, null, ct);
         return NoContent();
     }
 
@@ -139,7 +141,7 @@ public record TransferRequest(List<Guid> ItemIds, Guid TargetLocationId);
 
 // ─── VENTAS ────────────────────────────────────────────────
 [Route("api/ventas")]
-public class VentasController(ISaleService svc) : TenantBaseController
+public class VentasController(ISaleService svc, IAuditService audit) : TenantBaseController
 {
     [HttpGet]
     public async Task<IActionResult> GetAll([FromQuery] SaleCategory? category, [FromQuery] SaleOrigin? origin,
@@ -161,6 +163,7 @@ public class VentasController(ISaleService svc) : TenantBaseController
             ? dto.CloserIds
             : [.. dto.CloserIds, CurrentUserId];
         var result = await svc.CreateAsync(TenantId, dto with { CloserIds = closerIds }, ct);
+        await audit.LogAsync(TenantId, CurrentUserId, CurrentUserName, "CREATE", "Sale", result.Id, $"Venta por u$d {result.TotalUsd}", ct);
         return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
     }
 
@@ -169,13 +172,14 @@ public class VentasController(ISaleService svc) : TenantBaseController
     {
         if (!IsOwner) return Forbid();
         await svc.VoidSaleAsync(TenantId, id, ct);
+        await audit.LogAsync(TenantId, CurrentUserId, CurrentUserName, "VOID", "Sale", id, null, ct);
         return NoContent();
     }
 }
 
 // ─── COMPRAS ───────────────────────────────────────────────
 [Route("api/compras")]
-public class ComprasController(IPurchaseService svc) : TenantBaseController
+public class ComprasController(IPurchaseService svc, IAuditService audit) : TenantBaseController
 {
     [HttpGet]
     public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken ct = default)
@@ -192,6 +196,7 @@ public class ComprasController(IPurchaseService svc) : TenantBaseController
     public async Task<IActionResult> Create([FromBody] CreatePurchaseDto dto, CancellationToken ct = default)
     {
         var result = await svc.CreateAsync(TenantId, dto, ct);
+        await audit.LogAsync(TenantId, CurrentUserId, CurrentUserName, "CREATE", "Purchase", result.Id, $"Compra por u$d {result.TotalUsd}", ct);
         return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
     }
 
@@ -200,13 +205,14 @@ public class ComprasController(IPurchaseService svc) : TenantBaseController
     {
         if (!IsOwner) return Forbid();
         await svc.VoidAsync(TenantId, id, ct);
+        await audit.LogAsync(TenantId, CurrentUserId, CurrentUserName, "VOID", "Purchase", id, null, ct);
         return NoContent();
     }
 }
 
 // ─── RESERVAS ──────────────────────────────────────────────
 [Route("api/reservas")]
-public class ReservasController(IReservationService svc) : TenantBaseController
+public class ReservasController(IReservationService svc, IAuditService audit) : TenantBaseController
 {
     [HttpGet]
     public async Task<IActionResult> GetAll([FromQuery] ReservationStatus? status,
@@ -224,6 +230,7 @@ public class ReservasController(IReservationService svc) : TenantBaseController
     public async Task<IActionResult> Create([FromBody] CreateReservationDto dto, CancellationToken ct = default)
     {
         var result = await svc.CreateAsync(TenantId, dto, ct);
+        await audit.LogAsync(TenantId, CurrentUserId, CurrentUserName, "CREATE", "Reservation", result.Id, null, ct);
         return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
     }
 
@@ -232,6 +239,7 @@ public class ReservasController(IReservationService svc) : TenantBaseController
     {
         if (!IsOwner) return Forbid();
         await svc.CancelAsync(TenantId, id, ct);
+        await audit.LogAsync(TenantId, CurrentUserId, CurrentUserName, "CANCEL", "Reservation", id, null, ct);
         return NoContent();
     }
 
@@ -241,13 +249,15 @@ public class ReservasController(IReservationService svc) : TenantBaseController
         var closerIds = dto.CloserIds.Contains(CurrentUserId)
             ? dto.CloserIds
             : [.. dto.CloserIds, CurrentUserId];
-        return Ok(await svc.ConvertToSaleAsync(TenantId, id, dto with { CloserIds = closerIds }, ct));
+        var result = await svc.ConvertToSaleAsync(TenantId, id, dto with { CloserIds = closerIds }, ct);
+        await audit.LogAsync(TenantId, CurrentUserId, CurrentUserName, "CONVERT", "Reservation", id, $"Convertida a venta {result.Id}", ct);
+        return Ok(result);
     }
 }
 
 // ─── CAJAS ─────────────────────────────────────────────────
 [Route("api/cajas")]
-public class CajasController(ICajaService svc) : TenantBaseController
+public class CajasController(ICajaService svc, IAuditService audit) : TenantBaseController
 {
     [HttpGet]
     public async Task<IActionResult> GetCajas(CancellationToken ct = default)
@@ -260,7 +270,11 @@ public class CajasController(ICajaService svc) : TenantBaseController
 
     [HttpPost("movimientos")]
     public async Task<IActionResult> RegisterMovement([FromBody] CreateCashMovementDto dto, CancellationToken ct = default)
-        => Ok(await svc.RegisterMovementAsync(TenantId, dto, ct));
+    {
+        var result = await svc.RegisterMovementAsync(TenantId, dto, ct);
+        await audit.LogAsync(TenantId, CurrentUserId, CurrentUserName, "CREATE", "CashMovement", result.Id, $"{dto.Type} u$d {dto.Amount}", ct);
+        return Ok(result);
+    }
 
     [HttpPost("cierre")]
     public async Task<IActionResult> CloseDay([FromBody] CloseDayRequest req, CancellationToken ct = default)
@@ -310,7 +324,7 @@ public class ServicioTecnicoController(IServiceTechService svc) : TenantBaseCont
 
 // ─── CUENTAS CORRIENTES ────────────────────────────────────
 [Route("api/cuentas-corrientes")]
-public class CuentasCorrientesController(ICuentasCorrientesService svc) : TenantBaseController
+public class CuentasCorrientesController(ICuentasCorrientesService svc, IAuditService audit) : TenantBaseController
 {
     [HttpGet]
     public async Task<IActionResult> GetAll([FromQuery] EntityType? type, [FromQuery] string? filter,
@@ -331,7 +345,20 @@ public class CuentasCorrientesController(ICuentasCorrientesService svc) : Tenant
     {
         if (!IsOwner) return Forbid();
         await svc.RecordPaymentAsync(TenantId, dto, ct);
+        await audit.LogAsync(TenantId, CurrentUserId, CurrentUserName, "CREATE", "DebtPayment", dto.EntityId, $"u$d {dto.AmountUsd}", ct);
         return Ok();
+    }
+}
+
+// ─── AUDITORÍA (solo dueño) ────────────────────────────────
+[Route("api/auditoria")]
+public class AuditoriaController(IAuditService svc) : TenantBaseController
+{
+    [HttpGet]
+    public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 30, CancellationToken ct = default)
+    {
+        if (!IsOwner) return Forbid();
+        return Ok(await svc.GetPagedAsync(TenantId, page, pageSize, ct));
     }
 }
 

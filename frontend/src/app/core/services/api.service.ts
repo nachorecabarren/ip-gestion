@@ -24,6 +24,7 @@ import {
   EntityBalance,
   RetentionRule,
   RetentionTouchpoint,
+  AuditLog,
   Competitor,
   EntityType,
   StockStatus,
@@ -333,6 +334,12 @@ export class ApiService {
       `${this.base}/retencion/touchpoints`,
       { params },
     );
+  }
+  // ─── AUDITORÍA ──────────────────────────────────────────
+  getAuditLog(page = 1, pageSize = 30): Observable<PagedResult<AuditLog>> {
+    return this.http.get<PagedResult<AuditLog>>(`${this.base}/auditoria`, {
+      params: { page, pageSize },
+    });
   }
   // ─── AGENDA ───────────────────────────────────────────
 

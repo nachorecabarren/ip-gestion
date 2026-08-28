@@ -112,6 +112,7 @@ export class ServicioTecnicoComponent implements OnInit {
     this.form = this.fb.group({
       retailClientName: ['', Validators.required],
       retailClientPhone: [''],
+      retailClientEmail: ['', Validators.email],
       deviceModel: [''],
       imeiSerial: [''],
       issueDescription: ['', Validators.required],

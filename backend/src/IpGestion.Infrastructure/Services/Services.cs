@@ -863,7 +863,7 @@ public class CajaService(AppDbContext db) : ICajaService
 }
 
 // ─── SERVICE TECH ──────────────────────────────────────────
-public class ServiceTechService(AppDbContext db) : IServiceTechService
+public class ServiceTechService(AppDbContext db, IEmailService emailService) : IServiceTechService
 {
     private async Task<string> NextSvCodeAsync(Guid tenantId, CancellationToken ct)
     {
@@ -926,6 +926,7 @@ public class ServiceTechService(AppDbContext db) : IServiceTechService
             SvCode = await NextSvCodeAsync(tenantId, ct),
             RetailClientName = dto.RetailClientName,
             RetailClientPhone = dto.RetailClientPhone,
+            RetailClientEmail = dto.RetailClientEmail,
             DeviceModel = dto.DeviceModel,
             ImeiSerial = dto.ImeiSerial,
             IssueDescription = dto.IssueDescription,
@@ -947,8 +948,15 @@ public class ServiceTechService(AppDbContext db) : IServiceTechService
         var job = await db.ServiceClientJobs.Include(j => j.Technician)
             .FirstOrDefaultAsync(j => j.TenantId == tenantId && j.Id == id, ct)
             ?? throw new NotFoundException(nameof(Domain.Entities.ServiceClientJob), id);
+        var wasReady = job.Status == ServiceJobStatus.READY_FOR_DELIVERY;
         job.Status = dto.Status;
         await db.SaveChangesAsync(ct);
+
+        if (!wasReady && dto.Status == ServiceJobStatus.READY_FOR_DELIVERY && !string.IsNullOrWhiteSpace(job.RetailClientEmail))
+        {
+            await emailService.SendServiceReadyAsync(job.RetailClientEmail, job.RetailClientName, job.SvCode, job.DeviceModel, ct);
+        }
+
         return Map(job);
     }
 
@@ -961,7 +969,7 @@ public class ServiceTechService(AppDbContext db) : IServiceTechService
     }
 
     private static ServiceClientJobDto Map(Domain.Entities.ServiceClientJob j) => new(
-        j.Id, j.SvCode, j.RetailClientName, j.RetailClientPhone, j.DeviceModel,
+        j.Id, j.SvCode, j.RetailClientName, j.RetailClientPhone, j.RetailClientEmail, j.DeviceModel,
         j.ImeiSerial, j.IssueDescription, j.Technician?.Name, j.PriceToClientUsd,
         j.TechnicianCostUsd, j.DepositAmount, j.Status, j.LimitDate, j.CreatedAt
     );
@@ -1127,6 +1135,35 @@ public class TcBlueService : ITcBlueService
         {
             return 1520m; // fallback si la API no responde
         }
+    }
+}
+
+// ─── AUDIT SERVICE ─────────────────────────────────────────
+public class AuditService(AppDbContext db) : IAuditService
+{
+    public async Task LogAsync(Guid tenantId, Guid userId, string userName, string action, string entityType, Guid? entityId, string? details, CancellationToken ct = default)
+    {
+        db.AuditLogs.Add(new Domain.Entities.AuditLog
+        {
+            TenantId = tenantId,
+            UserId = userId,
+            UserName = userName,
+            Action = action,
+            EntityType = entityType,
+            EntityId = entityId,
+            Details = details,
+        });
+        await db.SaveChangesAsync(ct);
+    }
+
+    public async Task<PagedResult<AuditLogDto>> GetPagedAsync(Guid tenantId, int page, int pageSize, CancellationToken ct = default)
+    {
+        var q = db.AuditLogs.Where(a => a.TenantId == tenantId).OrderByDescending(a => a.CreatedAt);
+        var total = await q.CountAsync(ct);
+        var items = await q.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync(ct);
+        return new PagedResult<AuditLogDto>(
+            items.Select(a => new AuditLogDto(a.Id, a.UserName, a.Action, a.EntityType, a.EntityId, a.Details, a.CreatedAt)),
+            total, page, pageSize);
     }
 }
 

@@ -360,6 +360,7 @@ public record ServiceClientJobDto(
     string SvCode,
     string ClientName,
     string? ClientPhone,
+    string? ClientEmail,
     string? DeviceModel,
     string? ImeiSerial,
     string IssueDescription,
@@ -375,6 +376,7 @@ public record ServiceClientJobDto(
 public record CreateServiceClientJobDto(
     string RetailClientName,
     string? RetailClientPhone,
+    string? RetailClientEmail,
     string? DeviceModel,
     string? ImeiSerial,
     string IssueDescription,
@@ -536,5 +538,16 @@ public record TenantUserDto(
     string DisplayName,
     string Role,
     bool IsActive,
+    DateTime CreatedAt
+);
+
+// ─── AUDITORÍA ─────────────────────────────────────────────
+public record AuditLogDto(
+    Guid Id,
+    string UserName,
+    string Action,
+    string EntityType,
+    Guid? EntityId,
+    string? Details,
     DateTime CreatedAt
 );

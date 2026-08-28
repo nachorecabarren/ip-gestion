@@ -39,6 +39,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<TradeInBaseValuation> TradeInValuations => Set<TradeInBaseValuation>();
     public DbSet<TradeIn> TradeIns => Set<TradeIn>();
     public DbSet<BarcodeMapping> BarcodeMappings => Set<BarcodeMapping>();
+    public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -98,6 +99,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         b.Entity<StockItem>().HasIndex(s => new { s.TenantId, s.Status });
         b.Entity<Sale>().HasIndex(s => new { s.TenantId, s.SaleDate });
         b.Entity<ServiceClientJob>().HasIndex(s => new { s.TenantId, s.Status });
+        b.Entity<AuditLog>().HasIndex(a => new { a.TenantId, a.CreatedAt });
     }
 
     public override Task<int> SaveChangesAsync(CancellationToken ct = default)

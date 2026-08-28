@@ -100,7 +100,7 @@ export interface CashMovement {
 }
 
 export interface ServiceClientJob {
-  id: string; svCode: string; clientName: string; clientPhone?: string; deviceModel?: string;
+  id: string; svCode: string; clientName: string; clientPhone?: string; clientEmail?: string; deviceModel?: string;
   imeiSerial?: string; issueDescription: string; technicianName?: string;
   priceToClientUsd: number; technicianCostUsd: number; depositAmount: number;
   status: ServiceJobStatus; limitDate?: string; createdAt: string;
@@ -109,6 +109,11 @@ export interface ServiceClientJob {
 export interface EntityBalance { entityId: string; entityName: string; phone?: string; type: EntityType; balanceUsd: number; }
 
 export interface RetentionRule { id: string; ruleType: string; daysAfterSale: number; messageTemplate: string; isActive: boolean; }
+
+export interface AuditLog {
+  id: string; userName: string; action: string; entityType: string;
+  entityId?: string; details?: string; createdAt: string;
+}
 export interface RetentionTouchpoint { saleId: string; clientName: string; clientPhone?: string; ruleType: string; messageTemplate: string; triggerDate: string; status: string; }
 
 export interface Objection { id: string; rawText: string; suggestedResponse?: string; source: string; createdAt: string; }

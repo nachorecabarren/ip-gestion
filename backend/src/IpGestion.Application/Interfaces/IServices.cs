@@ -155,3 +155,9 @@ public interface ITcBlueService
 {
     Task<decimal> GetCurrentRateAsync(CancellationToken ct = default);
 }
+
+public interface IAuditService
+{
+    Task LogAsync(Guid tenantId, Guid userId, string userName, string action, string entityType, Guid? entityId, string? details, CancellationToken ct = default);
+    Task<PagedResult<AuditLogDto>> GetPagedAsync(Guid tenantId, int page, int pageSize, CancellationToken ct = default);
+}
