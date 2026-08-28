@@ -57,6 +57,11 @@ export class CajasComponent implements OnInit {
 
   openModal() {
     this.initForm();
+    const defaultCajaId = this.selectedCaja()?.id
+      ?? this.cajas().find(c => c.isDefault)?.id
+      ?? this.cajas()[0]?.id
+      ?? '';
+    this.form.patchValue({ cajaId: defaultCajaId });
     this.showModal.set(true);
   }
 

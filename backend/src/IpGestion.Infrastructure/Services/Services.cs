@@ -415,8 +415,16 @@ public class SaleService(AppDbContext db, IEmailService emailService) : ISaleSer
             }
         }
 
-        // Payments
+        // Payments — cada pago además genera su movimiento de caja (SALE), así el
+        // saldo de Cajas refleja la venta. Va a la caja por defecto del negocio,
+        // que siempre existe (se crea junto con el tenant).
+        var defaultCaja = await db.Cajas.FirstOrDefaultAsync(c => c.TenantId == tenantId && c.IsDefault && c.IsActive, ct)
+            ?? await db.Cajas.FirstOrDefaultAsync(c => c.TenantId == tenantId && c.IsActive, ct);
+        var movementCode = sale.Id.ToString("N")[..8].ToUpperInvariant();
+
         foreach (var p in dto.Payments)
+        {
+            var amountUsd = p.Currency == Currency.USD ? p.Amount : p.Amount / p.ExchangeRateUsd;
             sale.Payments.Add(new Domain.Entities.TransactionPayment
             {
                 TenantId = tenantId,
@@ -426,8 +434,25 @@ public class SaleService(AppDbContext db, IEmailService emailService) : ISaleSer
                 Currency = p.Currency,
                 Amount = p.Amount,
                 ExchangeRateUsd = p.ExchangeRateUsd,
-                AmountUsd = p.Currency == Currency.USD ? p.Amount : p.Amount / p.ExchangeRateUsd
+                AmountUsd = amountUsd
             });
+
+            if (defaultCaja != null)
+                db.CashMovements.Add(new Domain.Entities.CashMovement
+                {
+                    TenantId = tenantId,
+                    CajaId = defaultCaja.Id,
+                    Type = CashMovementType.SALE,
+                    Method = p.Method,
+                    Currency = p.Currency,
+                    Amount = p.Amount,
+                    ExchangeRateUsd = p.ExchangeRateUsd,
+                    AmountUsd = amountUsd,
+                    ReferenceId = sale.Id,
+                    ReferenceType = "SALE",
+                    Detail = $"Venta #{movementCode}"
+                });
+        }
 
         // Trade-in (canje): registra el canje y da de alta el equipo recibido en stock
         if (dto.TradeIn != null)
@@ -704,6 +729,37 @@ public class PurchaseService(AppDbContext db) : IPurchaseService
 
         purchase.TotalUsd = dto.DeviceItems.Sum(i => i.CostUsd) + dto.BulkItems.Sum(i => i.CostUsd * i.Quantity);
         db.Purchases.Add(purchase);
+
+        // Cada pago genera su movimiento de caja (PURCHASE) en la caja por defecto,
+        // igual que en Ventas, para que el saldo de Cajas refleje la compra.
+        if (dto.Payments is { Count: > 0 })
+        {
+            var defaultCaja = await db.Cajas.FirstOrDefaultAsync(c => c.TenantId == tenantId && c.IsDefault && c.IsActive, ct)
+                ?? await db.Cajas.FirstOrDefaultAsync(c => c.TenantId == tenantId && c.IsActive, ct);
+            if (defaultCaja != null)
+            {
+                var purchaseCode = purchase.Id.ToString("N")[..8].ToUpperInvariant();
+                foreach (var p in dto.Payments)
+                {
+                    var amountUsd = p.Currency == Currency.USD ? p.Amount : p.Amount / p.ExchangeRateUsd;
+                    db.CashMovements.Add(new Domain.Entities.CashMovement
+                    {
+                        TenantId = tenantId,
+                        CajaId = defaultCaja.Id,
+                        Type = CashMovementType.PURCHASE,
+                        Method = p.Method,
+                        Currency = p.Currency,
+                        Amount = p.Amount,
+                        ExchangeRateUsd = p.ExchangeRateUsd,
+                        AmountUsd = amountUsd,
+                        ReferenceId = purchase.Id,
+                        ReferenceType = "PURCHASE",
+                        Detail = $"Compra #{purchaseCode}"
+                    });
+                }
+            }
+        }
+
         await db.SaveChangesAsync(ct);
         return (await GetByIdAsync(tenantId, purchase.Id, ct))!;
     }
@@ -715,6 +771,26 @@ public class PurchaseService(AppDbContext db) : IPurchaseService
             ?? throw new NotFoundException(nameof(Domain.Entities.Purchase), id);
         p.Status = PurchaseStatus.CANCELLED;
         p.StockItems.ToList().ForEach(i => i.Status = StockStatus.VOIDED);
+
+        var cajaMovements = await db.CashMovements
+            .Where(m => m.TenantId == tenantId && m.ReferenceId == p.Id && m.ReferenceType == "PURCHASE")
+            .ToListAsync(ct);
+        foreach (var mov in cajaMovements)
+            db.CashMovements.Add(new Domain.Entities.CashMovement
+            {
+                TenantId = tenantId,
+                CajaId = mov.CajaId,
+                Type = CashMovementType.INCOME,
+                Method = mov.Method,
+                Currency = mov.Currency,
+                Amount = mov.Amount,
+                AmountUsd = mov.AmountUsd,
+                ExchangeRateUsd = mov.ExchangeRateUsd,
+                ReferenceId = p.Id,
+                ReferenceType = "PURCHASE_VOID",
+                Detail = $"Reversión compra anulada #{p.Id.ToString()[..8]}"
+            });
+
         await db.SaveChangesAsync(ct);
     }
 
