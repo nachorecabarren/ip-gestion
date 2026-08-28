@@ -126,12 +126,13 @@ public class StockItem : TenantEntity
     public StockStatus Status { get; set; } = StockStatus.AVAILABLE;
     public Guid? LocationId { get; set; }
     public Guid? PurchaseId { get; set; }
-    public Guid? TradeInSaleId { get; set; }
+    public Guid? TradeInId { get; set; }
     public string? Notes { get; set; }
 
     public CatalogModel Model { get; set; } = null!;
     public CatalogLocation? Location { get; set; }
     public Purchase? Purchase { get; set; }
+    public TradeIn? TradeIn { get; set; }
 }
 
 // ─── STOCK BULK ────────────────────────────────────────────
@@ -192,12 +193,18 @@ public class SaleItem : TenantEntity
 public class TradeIn : TenantEntity
 {
     public Guid SaleId { get; set; }
-    public string ModelName { get; set; } = string.Empty;
+    public Guid ModelId { get; set; }
+    public string? ImeiSerial { get; set; }
+    public string? Color { get; set; }
     public int StorageGb { get; set; }
     public int BatteryPct { get; set; }
+    public StockCondition Condition { get; set; }
     public decimal ValueUsd { get; set; }
+    public decimal SuggestedPriceUsd { get; set; }
 
     public Sale Sale { get; set; } = null!;
+    public CatalogModel Model { get; set; } = null!;
+    public StockItem? StockItem { get; set; }
 }
 
 // ─── PURCHASE ──────────────────────────────────────────────

@@ -433,13 +433,11 @@
           <ng-container *ngIf="saleForm.get('tradeInEnabled')?.value">
             <div class="form-row">
               <div class="form-group form-group--grow">
-                <label>Modelo del equipo a canjear</label>
-                <input
-                  type="text"
-                  formControlName="tradeInModel"
-                  class="form-control"
-                  placeholder="ej: iPhone 14 Pro"
-                />
+                <label>Modelo del equipo a canjear *</label>
+                <select formControlName="tradeInModelId" class="form-control">
+                  <option value="">Seleccioná un modelo...</option>
+                  <option *ngFor="let m of models()" [value]="m.id">{{ m.name }}</option>
+                </select>
               </div>
               <div class="form-group form-group--sm">
                 <label>Storage GB</label>
@@ -448,6 +446,19 @@
                   formControlName="tradeInStorage"
                   class="form-control"
                 />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group form-group--grow">
+                <app-imei-scanner
+                  [label]="'IMEI / Serie'"
+                  [placeholder]="'Escanear o ingresar IMEI (opcional)'"
+                  (imeiScanned)="onTradeInImeiScanned($event)"
+                ></app-imei-scanner>
+              </div>
+              <div class="form-group form-group--grow">
+                <label>Color</label>
+                <input type="text" formControlName="tradeInColor" class="form-control" />
               </div>
             </div>
             <div class="form-row">
@@ -462,12 +473,33 @@
                 />
               </div>
               <div class="form-group">
+                <label>Condición</label>
+                <select formControlName="tradeInCondition" class="form-control">
+                  <option value="NEW">Nuevo</option>
+                  <option value="USED">Usado</option>
+                  <option value="REFURBISHED">Reacondicionado</option>
+                  <option value="A_PLUS">A+</option>
+                  <option value="A">A</option>
+                  <option value="B">B</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
                 <label>Valor del canje u$d</label>
                 <input
                   type="number"
                   formControlName="tradeInValue"
                   class="form-control"
                   (input)="updateTotals()"
+                />
+              </div>
+              <div class="form-group">
+                <label>Precio sugerido de reventa u$d</label>
+                <input
+                  type="number"
+                  formControlName="tradeInSuggestedPrice"
+                  class="form-control"
                 />
               </div>
             </div>

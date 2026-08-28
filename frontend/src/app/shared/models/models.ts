@@ -33,8 +33,8 @@ export interface QuickSale { date: string; item: string; client: string; amount:
 export interface DashboardTrendPoint { period: string; facturacionUsd: number; cantidadVentas: number; ventasConCanje: number; }
 
 export interface TradeInHistoryItem {
-  id: string; saleDate: string; modelName: string; storageGb: number;
-  batteryPct: number; valueUsd: number; clientName: string; saleId: string;
+  id: string; saleDate: string; modelName: string; imeiSerial?: string; storageGb: number;
+  batteryPct: number; valueUsd: number; clientName: string; saleId: string; stockItemId?: string;
 }
 
 export interface Entity {

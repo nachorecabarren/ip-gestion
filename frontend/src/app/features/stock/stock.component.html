@@ -127,16 +127,21 @@
   <div class="card" *ngIf="activeTab() === 'canjes'">
     <table class="table" *ngIf="tradeInHistory().length > 0">
       <thead>
-        <tr><th>FECHA</th><th>CLIENTE</th><th>MODELO</th><th>ALMACENAMIENTO</th><th>BATERÍA</th><th>VALOR RECIBIDO</th></tr>
+        <tr><th>FECHA</th><th>CLIENTE</th><th>MODELO</th><th>IMEI</th><th>ALMACENAMIENTO</th><th>BATERÍA</th><th>VALOR RECIBIDO</th><th>EN STOCK</th></tr>
       </thead>
       <tbody>
         <tr *ngFor="let t of tradeInHistory()">
           <td>{{ t.saleDate | date:'dd/MM/yyyy' }}</td>
           <td>{{ t.clientName }}</td>
           <td><strong>{{ t.modelName }}</strong></td>
+          <td>{{ t.imeiSerial ?? '—' }}</td>
           <td>{{ t.storageGb }} GB</td>
           <td>{{ t.batteryPct }}%</td>
           <td><strong>u$d {{ t.valueUsd }}</strong></td>
+          <td>
+            <span class="badge badge--green" *ngIf="t.stockItemId">Sí</span>
+            <span *ngIf="!t.stockItemId">—</span>
+          </td>
         </tr>
       </tbody>
     </table>

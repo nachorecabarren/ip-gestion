@@ -1206,7 +1206,7 @@ namespace IpGestion.Infrastructure.Migrations
                     b.Property<Guid>("TenantId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid?>("TradeInSaleId")
+                    b.Property<Guid?>("TradeInId")
                         .HasColumnType("uuid");
 
                     b.Property<DateTime?>("UpdatedAt")
@@ -1223,6 +1223,9 @@ namespace IpGestion.Infrastructure.Migrations
                     b.HasIndex("ModelId");
 
                     b.HasIndex("PurchaseId");
+
+                    b.HasIndex("TradeInId")
+                        .IsUnique();
 
                     b.HasIndex("TenantId", "Status");
 
@@ -1402,18 +1405,30 @@ namespace IpGestion.Infrastructure.Migrations
                     b.Property<int>("BatteryPct")
                         .HasColumnType("integer");
 
+                    b.Property<string>("Color")
+                        .HasColumnType("text");
+
+                    b.Property<int>("Condition")
+                        .HasColumnType("integer");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("ModelName")
-                        .IsRequired()
+                    b.Property<string>("ImeiSerial")
                         .HasColumnType("text");
+
+                    b.Property<Guid>("ModelId")
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("SaleId")
                         .HasColumnType("uuid");
 
                     b.Property<int>("StorageGb")
                         .HasColumnType("integer");
+
+                    b.Property<decimal>("SuggestedPriceUsd")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)");
 
                     b.Property<Guid>("TenantId")
                         .HasColumnType("uuid");
@@ -1426,6 +1441,8 @@ namespace IpGestion.Infrastructure.Migrations
                         .HasColumnType("numeric(18,4)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ModelId");
 
                     b.HasIndex("SaleId")
                         .IsUnique();
@@ -1760,11 +1777,17 @@ namespace IpGestion.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("IpGestion.Domain.Entities.TradeIn", "TradeIn")
+                        .WithOne("StockItem")
+                        .HasForeignKey("IpGestion.Domain.Entities.StockItem", "TradeInId");
+
                     b.Navigation("Location");
 
                     b.Navigation("Model");
 
                     b.Navigation("Purchase");
+
+                    b.Navigation("TradeIn");
                 });
 
             modelBuilder.Entity("IpGestion.Domain.Entities.TenantInvitation", b =>
@@ -1791,11 +1814,19 @@ namespace IpGestion.Infrastructure.Migrations
 
             modelBuilder.Entity("IpGestion.Domain.Entities.TradeIn", b =>
                 {
+                    b.HasOne("IpGestion.Domain.Entities.CatalogModel", "Model")
+                        .WithMany()
+                        .HasForeignKey("ModelId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("IpGestion.Domain.Entities.Sale", "Sale")
                         .WithOne("TradeIn")
                         .HasForeignKey("IpGestion.Domain.Entities.TradeIn", "SaleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Model");
 
                     b.Navigation("Sale");
                 });
@@ -1877,6 +1908,11 @@ namespace IpGestion.Infrastructure.Migrations
                     b.Navigation("StockItems");
 
                     b.Navigation("Users");
+                });
+
+            modelBuilder.Entity("IpGestion.Domain.Entities.TradeIn", b =>
+                {
+                    b.Navigation("StockItem");
                 });
 #pragma warning restore 612, 618
         }

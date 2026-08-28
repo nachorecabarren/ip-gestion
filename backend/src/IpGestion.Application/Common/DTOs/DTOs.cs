@@ -191,10 +191,14 @@ public record CreateSaleItemDto(
 );
 
 public record TradeInDto(
-    string ModelName,
+    Guid ModelId,
+    string? ImeiSerial,
+    string? Color,
     int StorageGb,
     int BatteryPct,
-    decimal ValueUsd
+    StockCondition Condition,
+    decimal ValueUsd,
+    decimal SuggestedPriceUsd
 );
 
 // ─── COMPRAS ───────────────────────────────────────────────
@@ -472,11 +476,13 @@ public record TradeInHistoryDto(
     Guid Id,
     DateTime SaleDate,
     string ModelName,
+    string? ImeiSerial,
     int StorageGb,
     int BatteryPct,
     decimal ValueUsd,
     string ClientName,
-    Guid SaleId
+    Guid SaleId,
+    Guid? StockItemId
 );
 
 // ─── AUTH ──────────────────────────────────────────────────

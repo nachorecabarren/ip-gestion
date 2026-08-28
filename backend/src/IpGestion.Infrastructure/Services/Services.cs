@@ -278,6 +278,8 @@ public class StockService(AppDbContext db) : IStockService
     public async Task<PagedResult<TradeInHistoryDto>> GetTradeInHistoryAsync(Guid tenantId, int page, int pageSize, CancellationToken ct = default)
     {
         var q = db.TradeIns.Include(t => t.Sale).ThenInclude(s => s.Entity)
+            .Include(t => t.Model)
+            .Include(t => t.StockItem)
             .Where(t => t.TenantId == tenantId)
             .OrderByDescending(t => t.CreatedAt);
 
@@ -287,12 +289,14 @@ public class StockService(AppDbContext db) : IStockService
         return new PagedResult<TradeInHistoryDto>(items.Select(t => new TradeInHistoryDto(
             t.Id,
             t.Sale.SaleDate,
-            t.ModelName,
+            t.Model.Name,
+            t.ImeiSerial,
             t.StorageGb,
             t.BatteryPct,
             t.ValueUsd,
             t.Sale.Entity?.Name ?? t.Sale.RetailClientName ?? "Consumidor Final",
-            t.SaleId
+            t.SaleId,
+            t.StockItem?.Id
         )), total, page, pageSize);
     }
 
@@ -418,17 +422,39 @@ public class SaleService(AppDbContext db) : ISaleService
                 AmountUsd = p.Currency == Currency.USD ? p.Amount : p.Amount / p.ExchangeRateUsd
             });
 
-        // Trade-in (canje)
+        // Trade-in (canje): registra el canje y da de alta el equipo recibido en stock
         if (dto.TradeIn != null)
         {
-            sale.TradeIn = new Domain.Entities.TradeIn
+            var tradeInModelExists = await db.CatalogModels.AnyAsync(m => m.TenantId == tenantId && m.Id == dto.TradeIn.ModelId, ct);
+            if (!tradeInModelExists) throw new NotFoundException(nameof(Domain.Entities.CatalogModel), dto.TradeIn.ModelId);
+
+            var tradeIn = new Domain.Entities.TradeIn
             {
                 TenantId = tenantId,
                 SaleId = sale.Id,
-                ModelName = dto.TradeIn.ModelName,
+                ModelId = dto.TradeIn.ModelId,
+                ImeiSerial = dto.TradeIn.ImeiSerial,
+                Color = dto.TradeIn.Color,
                 StorageGb = dto.TradeIn.StorageGb,
                 BatteryPct = dto.TradeIn.BatteryPct,
-                ValueUsd = dto.TradeIn.ValueUsd
+                Condition = dto.TradeIn.Condition,
+                ValueUsd = dto.TradeIn.ValueUsd,
+                SuggestedPriceUsd = dto.TradeIn.SuggestedPriceUsd
+            };
+            sale.TradeIn = tradeIn;
+            tradeIn.StockItem = new Domain.Entities.StockItem
+            {
+                TenantId = tenantId,
+                ModelId = dto.TradeIn.ModelId,
+                ImeiSerial = dto.TradeIn.ImeiSerial,
+                Color = dto.TradeIn.Color,
+                StorageGb = dto.TradeIn.StorageGb,
+                Condition = dto.TradeIn.Condition,
+                BatteryPct = dto.TradeIn.BatteryPct,
+                CostUsd = dto.TradeIn.ValueUsd,
+                SuggestedPriceUsd = dto.TradeIn.SuggestedPriceUsd,
+                Status = StockStatus.AVAILABLE,
+                InternalCode = $"IP-{DateTime.UtcNow.Ticks % 100000}"
             };
         }
 

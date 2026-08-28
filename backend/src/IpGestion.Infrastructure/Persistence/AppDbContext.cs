@@ -71,6 +71,12 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             .WithOne(t => t.Sale)
             .HasForeignKey<TradeIn>(t => t.SaleId);
 
+        // TradeIn <-> StockItem: 1:1, the physical item the trade-in produced in inventory
+        b.Entity<TradeIn>()
+            .HasOne(t => t.StockItem)
+            .WithOne(si => si.TradeIn)
+            .HasForeignKey<StockItem>(si => si.TradeInId);
+
         // Soft precision for decimals
         foreach (var p in b.Model.GetEntityTypes()
             .SelectMany(t => t.GetProperties())

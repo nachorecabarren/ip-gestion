@@ -52,6 +52,7 @@ export class VentasComponent implements OnInit {
   // Catalog data
   entities = signal<Entity[]>([]);
   availableStock = signal<StockItem[]>([]);
+  models = signal<CatalogModel[]>([]);
   tcBlue = signal(1520);
   tradeInKpis = signal<{ ventasConCanje: number; porcentajeCanje: number } | null>(null);
 
@@ -96,6 +97,7 @@ export class VentasComponent implements OnInit {
     this.api
       .getStockItems("AVAILABLE")
       .subscribe((r) => this.availableStock.set(r.items));
+    this.api.getCatalogModels().subscribe((m) => this.models.set(m));
     // Fuente única de verdad: el % de canje se calcula en el servidor sobre
     // todas las ventas del mes, no sobre la página parcial cargada acá.
     this.api.getDashboardKpis("month").subscribe((k) => this.tradeInKpis.set(k));
@@ -117,10 +119,14 @@ export class VentasComponent implements OnInit {
       items: this.fb.array([]),
       payments: this.fb.array([]),
       tradeInEnabled: [false],
-      tradeInModel: [""],
+      tradeInModelId: [""],
+      tradeInImei: [""],
+      tradeInColor: [""],
       tradeInStorage: [null],
       tradeInBattery: [null],
+      tradeInCondition: ["USED"],
       tradeInValue: [0],
+      tradeInSuggestedPrice: [0],
     });
   }
 
@@ -220,6 +226,10 @@ export class VentasComponent implements OnInit {
       this.items.at(index).patchValue({ priceUsd: price });
       this.updateTotals();
     }
+  }
+
+  onTradeInImeiScanned(value: string) {
+    this.saleForm.patchValue({ tradeInImei: value });
   }
 
   addItem() {
@@ -363,10 +373,14 @@ export class VentasComponent implements OnInit {
       closerIds: [],
       tradeIn: raw.tradeInEnabled
         ? {
-            modelName: raw.tradeInModel || '',
+            modelId: raw.tradeInModelId,
+            imeiSerial: raw.tradeInImei || null,
+            color: raw.tradeInColor || null,
             storageGb: raw.tradeInStorage,
             batteryPct: raw.tradeInBattery,
+            condition: raw.tradeInCondition,
             valueUsd: raw.tradeInValue || 0,
+            suggestedPriceUsd: raw.tradeInSuggestedPrice || 0,
           }
         : null,
     };
