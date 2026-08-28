@@ -149,6 +149,25 @@
       </div>
     </div>
 
+    <!-- Gráficos de tendencia -->
+    <div class="dashboard__charts">
+      <div class="card">
+        <app-bar-chart
+          title="Facturación mensual (últimos 6 meses)"
+          [data]="trendFacturacion"
+          color="var(--color-blue)"
+          [formatValue]="formatUsd"
+        ></app-bar-chart>
+      </div>
+      <div class="card">
+        <app-bar-chart
+          title="Ventas con canje (últimos 6 meses)"
+          [data]="trendCanjes"
+          color="var(--color-amber)"
+        ></app-bar-chart>
+      </div>
+    </div>
+
     <!-- Tabla de ventas recientes -->
     <div class="card dashboard__recent" *ngIf="recentSales().length > 0">
       <div class="dashboard__recent-header">

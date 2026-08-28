@@ -1,19 +1,28 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ApiService } from '../../core/services/api.service';
+import { ConfirmService } from '../../shared/services/confirm.service';
 import { Caja, CashMovement } from '../../shared/models/models';
+import { EscapeCloseDirective } from '../../shared/directives/escape-close.directive';
+import { AutoFocusDirective } from '../../shared/directives/auto-focus.directive';
+import { openIfQueryParam } from '../../shared/utils/open-via-query-param';
+import { confirmDiscard } from '../../shared/utils/confirm-discard';
 
 @Component({
   selector: 'app-cajas',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, EscapeCloseDirective, AutoFocusDirective],
   templateUrl: './cajas.component.html',
   styleUrls: ['./cajas.component.scss']
 })
 export class CajasComponent implements OnInit {
   private api = inject(ApiService);
   private fb = inject(FormBuilder);
+  private confirm = inject(ConfirmService);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
 
   cajas = signal<Caja[]>([]);
   movements = signal<CashMovement[]>([]);
@@ -29,6 +38,17 @@ export class CajasComponent implements OnInit {
     this.initForm();
     this.loadCajas();
     this.api.getTcBlue().subscribe(r => this.tcBlue.set(r.rate));
+    openIfQueryParam(this.route, this.router, 'nueva', () => this.openModal());
+  }
+
+  openModal() {
+    this.initForm();
+    this.showModal.set(true);
+  }
+
+  async dismissModal() {
+    if (!(await confirmDiscard(this.confirm, this.form))) return;
+    this.showModal.set(false);
   }
 
   initForm() {

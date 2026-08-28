@@ -4,7 +4,7 @@
       <h1 class="page-title">Cajas</h1>
       <p class="page-sub">Saldos por moneda y movimientos de efectivo</p>
     </div>
-    <button class="btn btn--primary" (click)="showModal.set(true)">+ Nuevo Movimiento</button>
+    <button class="btn btn--primary" (click)="openModal()">+ Nuevo Movimiento</button>
   </div>
 
   <!-- Caja selector + saldos -->
@@ -73,16 +73,16 @@
 </div>
 
 <!-- Modal -->
-<div class="modal-overlay" *ngIf="showModal()" (click)="showModal.set(false)">
+<div class="modal-overlay" *ngIf="showModal()" (click)="dismissModal()" escapeClose (escapeClose)="dismissModal()">
   <div class="modal" (click)="$event.stopPropagation()">
     <div class="modal__header">
       <div><h2 class="modal__title">Nuevo Movimiento</h2></div>
-      <button class="modal__close" (click)="showModal.set(false)">✕</button>
+      <button class="modal__close" (click)="dismissModal()">✕</button>
     </div>
     <div class="modal__body" [formGroup]="form">
       <div class="form-group">
         <label>Caja *</label>
-        <select formControlName="cajaId" class="form-control">
+        <select formControlName="cajaId" class="form-control" autoFocus>
           <option *ngFor="let c of cajas()" [value]="c.id">{{ c.name }}</option>
         </select>
       </div>
@@ -121,7 +121,7 @@
       </div>
     </div>
     <div class="modal__footer">
-      <button class="btn btn--ghost" (click)="showModal.set(false)">Cancelar</button>
+      <button class="btn btn--ghost" (click)="dismissModal()">Cancelar</button>
       <button class="btn btn--primary" (click)="submit()" [disabled]="submitting()">Registrar</button>
     </div>
   </div>

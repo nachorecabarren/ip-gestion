@@ -4,7 +4,7 @@
       <h1 class="page-title">Reservas</h1>
       <p class="page-sub">Equipos apartados con seña para clientes</p>
     </div>
-    <button class="btn btn--primary" (click)="showModal.set(true); initForm()">+ Nueva Reserva</button>
+    <button class="btn btn--primary" (click)="openModal()">+ Nueva Reserva</button>
   </div>
 
   <div class="reservas__filters">
@@ -50,17 +50,17 @@
 </div>
 
 <!-- Modal -->
-<div class="modal-overlay" *ngIf="showModal()" (click)="showModal.set(false)">
+<div class="modal-overlay" *ngIf="showModal()" (click)="dismissModal()" escapeClose (escapeClose)="dismissModal()">
   <div class="modal" (click)="$event.stopPropagation()">
     <div class="modal__header">
       <div><h2 class="modal__title">Nueva Reserva</h2></div>
-      <button class="modal__close" (click)="showModal.set(false)">✕</button>
+      <button class="modal__close" (click)="dismissModal()">✕</button>
     </div>
     <div class="modal__body" [formGroup]="form">
       <div class="form-group">
         <label>Tipo de cliente</label>
         <div class="radio-group">
-          <label class="radio-option"><input type="radio" formControlName="isConsumerFinal" [value]="true" /> Consumidor Final</label>
+          <label class="radio-option"><input type="radio" formControlName="isConsumerFinal" [value]="true" autoFocus /> Consumidor Final</label>
           <label class="radio-option"><input type="radio" formControlName="isConsumerFinal" [value]="false" /> Registrado</label>
         </div>
       </div>
@@ -136,7 +136,7 @@
       </div>
     </div>
     <div class="modal__footer">
-      <button class="btn btn--ghost" (click)="showModal.set(false)">Cancelar</button>
+      <button class="btn btn--ghost" (click)="dismissModal()">Cancelar</button>
       <button class="btn btn--primary" (click)="submit()" [disabled]="submitting()">
         {{ submitting() ? 'Guardando...' : 'Crear Reserva' }}
       </button>

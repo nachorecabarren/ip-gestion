@@ -1,0 +1,34 @@
+<div class="bar-chart">
+  <div class="bar-chart__title">{{ title }}</div>
+
+  <div class="bar-chart__plot" *ngIf="chartData.length > 0; else empty">
+    <div
+      class="bar-chart__col"
+      *ngFor="let p of points()"
+      (mouseenter)="hovered.set(p.i)"
+      (mouseleave)="hovered.set(null)"
+    >
+      <div class="bar-chart__tooltip" *ngIf="hovered() === p.i">{{ formatValue(p.value) }}</div>
+      <div class="bar-chart__bar-track">
+        <div
+          class="bar-chart__bar"
+          [style.height.%]="heightFloor(p.heightPct)"
+          [style.background]="color"
+        ></div>
+      </div>
+      <div class="bar-chart__label">{{ p.label }}</div>
+    </div>
+  </div>
+
+  <ng-template #empty>
+    <div class="bar-chart__empty">Sin datos en este período</div>
+  </ng-template>
+
+  <table class="sr-only">
+    <caption>{{ title }}</caption>
+    <thead><tr><th>Mes</th><th>Valor</th></tr></thead>
+    <tbody>
+      <tr *ngFor="let p of chartData"><td>{{ p.label }}</td><td>{{ formatValue(p.value) }}</td></tr>
+    </tbody>
+  </table>
+</div>

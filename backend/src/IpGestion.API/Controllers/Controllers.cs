@@ -30,6 +30,10 @@ public class DashboardController(IDashboardService svc) : TenantBaseController
     [HttpGet("recent-sales")]
     public async Task<IActionResult> GetRecentSales([FromQuery] int count = 10, CancellationToken ct = default)
         => Ok(await svc.GetRecentSalesAsync(TenantId, count, ct));
+
+    [HttpGet("trend")]
+    public async Task<IActionResult> GetTrend([FromQuery] int months = 6, CancellationToken ct = default)
+        => Ok(await svc.GetTrendAsync(TenantId, months, ct));
 }
 
 // ─── ENTITIES ──────────────────────────────────────────────
@@ -91,13 +95,6 @@ public class StockController(IStockService svc) : TenantBaseController
         return r == null ? NotFound() : Ok(r);
     }
 
-    [HttpPost("items")]
-    public async Task<IActionResult> CreateItem([FromBody] CreateStockItemDto dto, CancellationToken ct = default)
-    {
-        if (!IsOwner) return Forbid();
-        return Ok(await svc.CreateItemAsync(TenantId, dto, ct));
-    }
-
     [HttpPut("items/{id}")]
     public async Task<IActionResult> UpdateItem(Guid id, [FromBody] UpdateStockItemDto dto, CancellationToken ct = default)
         => Ok(await svc.UpdateItemAsync(TenantId, id, dto, ct));
@@ -117,6 +114,10 @@ public class StockController(IStockService svc) : TenantBaseController
     [HttpPost("tradein/quote")]
     public async Task<IActionResult> GetTradeInQuote([FromBody] TradeInQuoteRequestDto dto, CancellationToken ct = default)
         => Ok(await svc.GetTradeInQuoteAsync(TenantId, dto, ct));
+
+    [HttpGet("tradein/history")]
+    public async Task<IActionResult> GetTradeInHistory([FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken ct = default)
+        => Ok(await svc.GetTradeInHistoryAsync(TenantId, page, pageSize, ct));
 
     [HttpPost("items/bulk-price")]
     public async Task<IActionResult> BulkUpdatePrices([FromBody] BulkPriceUpdateRequest req, CancellationToken ct = default)

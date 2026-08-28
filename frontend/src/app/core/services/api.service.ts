@@ -5,6 +5,8 @@ import { environment } from "../../../environments/environment";
 import {
   PagedResult,
   DashboardKpis,
+  DashboardTrendPoint,
+  TradeInHistoryItem,
   QuickSale,
   Entity,
   CatalogModel,
@@ -49,6 +51,11 @@ export class ApiService {
   getRecentSales(count = 10): Observable<QuickSale[]> {
     return this.http.get<QuickSale[]>(`${this.base}/dashboard/recent-sales`, {
       params: { count },
+    });
+  }
+  getDashboardTrend(months = 6): Observable<DashboardTrendPoint[]> {
+    return this.http.get<DashboardTrendPoint[]>(`${this.base}/dashboard/trend`, {
+      params: { months },
     });
   }
   getTcBlue(): Observable<{ rate: number }> {
@@ -133,9 +140,6 @@ export class ApiService {
       `${this.base}/stock/items/barcode/${barcode}`,
     );
   }
-  createStockItem(dto: any): Observable<StockItem> {
-    return this.http.post<StockItem>(`${this.base}/stock/items`, dto);
-  }
   updateStockItem(id: string, dto: any): Observable<StockItem> {
     return this.http.put<StockItem>(`${this.base}/stock/items/${id}`, dto);
   }
@@ -149,6 +153,12 @@ export class ApiService {
     return this.http.post<TradeInQuote>(
       `${this.base}/stock/tradein/quote`,
       dto,
+    );
+  }
+  getTradeInHistory(page = 1, pageSize = 20): Observable<PagedResult<TradeInHistoryItem>> {
+    return this.http.get<PagedResult<TradeInHistoryItem>>(
+      `${this.base}/stock/tradein/history`,
+      { params: { page, pageSize } },
     );
   }
   bulkUpdatePrices(itemIds: string[], newPrice: number): Observable<void> {

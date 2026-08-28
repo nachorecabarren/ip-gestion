@@ -17,7 +17,7 @@
   <div class="tabs">
     <button class="tab" [class.active]="activeTab() === 'equipos'" (click)="activeTab.set('equipos')">Equipos (Unitario)</button>
     <button class="tab" [class.active]="activeTab() === 'bulk'" (click)="activeTab.set('bulk')">Accesorios (Bulk)</button>
-    <button class="tab" [class.active]="activeTab() === 'canjes'" (click)="activeTab.set('canjes')">Canjes Pendientes</button>
+    <button class="tab" [class.active]="activeTab() === 'canjes'" (click)="activeTab.set('canjes')">Canjes</button>
   </div>
 
   <!-- Filters (Equipos) -->
@@ -125,15 +125,30 @@
 
   <!-- Canjes tab -->
   <div class="card" *ngIf="activeTab() === 'canjes'">
-    <div class="empty-state">
-      <div class="empty-state__title">No hay canjes pendientes</div>
-      <div class="empty-state__sub">Los equipos recibidos como canje aparecerán aquí</div>
+    <table class="table" *ngIf="tradeInHistory().length > 0">
+      <thead>
+        <tr><th>FECHA</th><th>CLIENTE</th><th>MODELO</th><th>ALMACENAMIENTO</th><th>BATERÍA</th><th>VALOR RECIBIDO</th></tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let t of tradeInHistory()">
+          <td>{{ t.saleDate | date:'dd/MM/yyyy' }}</td>
+          <td>{{ t.clientName }}</td>
+          <td><strong>{{ t.modelName }}</strong></td>
+          <td>{{ t.storageGb }} GB</td>
+          <td>{{ t.batteryPct }}%</td>
+          <td><strong>u$d {{ t.valueUsd }}</strong></td>
+        </tr>
+      </tbody>
+    </table>
+    <div *ngIf="tradeInHistory().length === 0" class="empty-state">
+      <div class="empty-state__title">No hay canjes registrados</div>
+      <div class="empty-state__sub">Los equipos recibidos como canje en una venta aparecerán aquí</div>
     </div>
   </div>
 </div>
 
 <!-- Cotizador de Canje modal -->
-<div class="modal-overlay" *ngIf="showCotizadorModal()" (click)="showCotizadorModal.set(false)">
+<div class="modal-overlay" *ngIf="showCotizadorModal()" (click)="showCotizadorModal.set(false)" escapeClose (escapeClose)="showCotizadorModal.set(false)">
   <div class="modal" style="max-width:480px" (click)="$event.stopPropagation()">
     <div class="modal__header">
       <div><h2 class="modal__title">Cotizador de Canje</h2><p class="modal__sub">Calculá el valor de un equipo usado</p></div>
@@ -142,7 +157,7 @@
     <div class="modal__body" [formGroup]="cotizadorForm">
       <div class="form-group">
         <label>Modelo del equipo *</label>
-        <input type="text" formControlName="modelName" class="form-control" placeholder="ej: iPhone 13 Pro"
+        <input type="text" formControlName="modelName" class="form-control" placeholder="ej: iPhone 13 Pro" autoFocus
           [class.form-control--error]="cotizadorForm.get('modelName')?.invalid && cotizadorForm.get('modelName')?.touched" />
       </div>
       <div class="form-row">
@@ -190,16 +205,16 @@
 </div>
 
 <!-- New item modal -->
-<div class="modal-overlay" *ngIf="showNewModal()" (click)="showNewModal.set(false)">
+<div class="modal-overlay" *ngIf="showNewModal()" (click)="dismissNewModal()" escapeClose (escapeClose)="dismissNewModal()">
   <div class="modal" (click)="$event.stopPropagation()">
     <div class="modal__header">
       <div><h2 class="modal__title">Agregar equipo</h2><p class="modal__sub">Se registra como una compra de stock, igual que en Compras → Equipos</p></div>
-      <button class="modal__close" (click)="showNewModal.set(false)">✕</button>
+      <button class="modal__close" (click)="dismissNewModal()">✕</button>
     </div>
     <div class="modal__body" [formGroup]="newForm">
       <div class="form-group">
         <label>Proveedor</label>
-        <select formControlName="providerId" class="form-control">
+        <select formControlName="providerId" class="form-control" autoFocus>
           <option value="">Sin proveedor</option>
           <option *ngFor="let p of providers()" [value]="p.id">{{ p.name }}</option>
         </select>
@@ -289,7 +304,7 @@
     <div class="modal__footer" style="flex-direction:column;align-items:stretch;gap:8px">
       <div class="auth-error" *ngIf="newError()" style="margin:0">{{ newError() }}</div>
       <div style="display:flex;gap:8px;justify-content:flex-end">
-        <button class="btn btn--ghost" (click)="showNewModal.set(false)">Cancelar</button>
+        <button class="btn btn--ghost" (click)="dismissNewModal()">Cancelar</button>
         <button class="btn btn--primary" (click)="submitNew()" [disabled]="submitting()">
           {{ submitting() ? 'Guardando…' : 'Agregar al stock' }}
         </button>
@@ -299,20 +314,20 @@
 </div>
 
 <!-- Edit modal -->
-<div class="modal-overlay" *ngIf="showEditModal()" (click)="showEditModal.set(false)">
+<div class="modal-overlay" *ngIf="showEditModal()" (click)="dismissEditModal()" escapeClose (escapeClose)="dismissEditModal()">
   <div class="modal" (click)="$event.stopPropagation()">
     <div class="modal__header">
       <div>
         <h2 class="modal__title">Editar Ítem</h2>
         <p class="modal__sub">{{ editingItem()?.modelName }}</p>
       </div>
-      <button class="modal__close" (click)="showEditModal.set(false)">✕</button>
+      <button class="modal__close" (click)="dismissEditModal()">✕</button>
     </div>
     <div class="modal__body" [formGroup]="editForm">
       <div class="form-row">
         <div class="form-group form-group--grow">
           <label>Color</label>
-          <input type="text" formControlName="color" class="form-control" />
+          <input type="text" formControlName="color" class="form-control" autoFocus />
         </div>
         <div class="form-group form-group--sm">
           <label>Storage GB</label>
@@ -349,7 +364,7 @@
       </div>
     </div>
     <div class="modal__footer">
-      <button class="btn btn--ghost" (click)="showEditModal.set(false)">Cancelar</button>
+      <button class="btn btn--ghost" (click)="dismissEditModal()">Cancelar</button>
       <button class="btn btn--primary" (click)="saveEdit()">Guardar cambios</button>
     </div>
   </div>

@@ -1,14 +1,15 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ConfirmService } from '../../services/confirm.service';
+import { EscapeCloseDirective } from '../../directives/escape-close.directive';
 
 @Component({
   selector: 'app-confirm-modal',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, EscapeCloseDirective],
   styleUrls: ['./confirm-modal.component.scss'],
   template: `
-    <div class="modal-overlay" *ngIf="svc.state() as s" (click)="svc.cancel()">
+    <div class="modal-overlay" *ngIf="svc.state() as s" (click)="svc.cancel()" escapeClose (escapeClose)="svc.cancel()">
       <div class="modal modal--sm" (click)="$event.stopPropagation()">
         <div class="modal__header">
           <h2 class="modal__title">Confirmar acción</h2>

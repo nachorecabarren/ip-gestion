@@ -30,6 +30,13 @@ export interface DashboardKpis {
 
 export interface QuickSale { date: string; item: string; client: string; amount: number; margin: number; }
 
+export interface DashboardTrendPoint { period: string; facturacionUsd: number; cantidadVentas: number; ventasConCanje: number; }
+
+export interface TradeInHistoryItem {
+  id: string; saleDate: string; modelName: string; storageGb: number;
+  batteryPct: number; valueUsd: number; clientName: string; saleId: string;
+}
+
 export interface Entity {
   id: string; type: EntityType; name: string; phone?: string; email?: string;
   instagram?: string; documentNumber?: string; addressCity?: string; isActive: boolean; balanceUsd?: number;

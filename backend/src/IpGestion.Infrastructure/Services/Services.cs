@@ -83,6 +83,34 @@ public class DashboardService(AppDbContext db) : IDashboardService
             s.TotalUsd - s.Items.Where(i => i.StockItem != null).Sum(i => i.StockItem!.CostUsd)
         ));
     }
+
+    private static readonly string[] MonthLabels =
+        ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
+
+    public async Task<IEnumerable<DashboardTrendPointDto>> GetTrendAsync(Guid tenantId, int months, CancellationToken ct = default)
+    {
+        var now = DateTime.UtcNow;
+        var from = new DateTime(now.Year, now.Month, 1).AddMonths(-(months - 1));
+
+        var sales = await db.Sales
+            .Where(s => s.TenantId == tenantId && s.SaleDate >= from && s.Status == SaleStatus.COMPLETED)
+            .Include(s => s.TradeIn)
+            .ToListAsync(ct);
+
+        var points = new List<DashboardTrendPointDto>();
+        for (var i = 0; i < months; i++)
+        {
+            var monthStart = from.AddMonths(i);
+            var monthSales = sales.Where(s => s.SaleDate.Year == monthStart.Year && s.SaleDate.Month == monthStart.Month).ToList();
+            points.Add(new DashboardTrendPointDto(
+                MonthLabels[monthStart.Month - 1],
+                monthSales.Sum(s => s.TotalUsd),
+                monthSales.Count,
+                monthSales.Count(s => s.TradeIn != null)
+            ));
+        }
+        return points;
+    }
 }
 
 // ─── ENTITY SERVICE ────────────────────────────────────────
@@ -207,36 +235,6 @@ public class StockService(AppDbContext db) : IStockService
         return item == null ? null : Map(item);
     }
 
-    public async Task<StockItemDto> CreateItemAsync(Guid tenantId, CreateStockItemDto dto, CancellationToken ct = default)
-    {
-        var model = await db.CatalogModels.FirstOrDefaultAsync(m => m.TenantId == tenantId && m.Id == dto.ModelId, ct)
-            ?? throw new NotFoundException(nameof(Domain.Entities.CatalogModel), dto.ModelId);
-        var item = new Domain.Entities.StockItem
-        {
-            TenantId = tenantId,
-            ModelId = dto.ModelId,
-            ImeiSerial = dto.ImeiSerial,
-            Color = dto.Color,
-            StorageGb = dto.StorageGb,
-            Condition = dto.Condition,
-            BatteryPct = dto.BatteryPct,
-            CostUsd = dto.CostUsd,
-            SuggestedPriceUsd = dto.SuggestedPriceUsd,
-            WholesalePriceUsd = dto.WholesalePriceUsd,
-            LocationId = dto.LocationId,
-            Notes = dto.Notes,
-            Status = Domain.Enums.StockStatus.AVAILABLE,
-            InternalCode = $"IP-{DateTime.UtcNow.Ticks % 100000}",
-        };
-        db.StockItems.Add(item);
-        await db.SaveChangesAsync(ct);
-        item.Model = model;
-        item.Location = dto.LocationId.HasValue
-            ? await db.CatalogLocations.FindAsync([dto.LocationId.Value], ct)
-            : null;
-        return Map(item);
-    }
-
     public async Task<StockItemDto> UpdateItemAsync(Guid tenantId, Guid id, UpdateStockItemDto dto, CancellationToken ct = default)
     {
         var item = await db.StockItems.Include(s => s.Model).Include(s => s.Location)
@@ -275,6 +273,27 @@ public class StockService(AppDbContext db) : IStockService
         var baseVal = val?.BaseValueUsd ?? 0;
         var adj = req.BatteryPct < 80 ? baseVal * 0.85m : baseVal;
         return new TradeInQuoteDto(baseVal, adj, req.BatteryPct < 80 ? "Descuento por batería < 80%" : "");
+    }
+
+    public async Task<PagedResult<TradeInHistoryDto>> GetTradeInHistoryAsync(Guid tenantId, int page, int pageSize, CancellationToken ct = default)
+    {
+        var q = db.TradeIns.Include(t => t.Sale).ThenInclude(s => s.Entity)
+            .Where(t => t.TenantId == tenantId)
+            .OrderByDescending(t => t.CreatedAt);
+
+        var total = await q.CountAsync(ct);
+        var items = await q.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync(ct);
+
+        return new PagedResult<TradeInHistoryDto>(items.Select(t => new TradeInHistoryDto(
+            t.Id,
+            t.Sale.SaleDate,
+            t.ModelName,
+            t.StorageGb,
+            t.BatteryPct,
+            t.ValueUsd,
+            t.Sale.Entity?.Name ?? t.Sale.RetailClientName ?? "Consumidor Final",
+            t.SaleId
+        )), total, page, pageSize);
     }
 
     public async Task BulkUpdatePricesAsync(Guid tenantId, List<Guid> itemIds, decimal newPrice, CancellationToken ct = default)
@@ -557,6 +576,34 @@ public class PurchaseService(AppDbContext db) : IPurchaseService
 
     public async Task<PurchaseDto> CreateAsync(Guid tenantId, CreatePurchaseDto dto, CancellationToken ct = default)
     {
+        if (dto.ProviderId.HasValue)
+        {
+            var providerExists = await db.Entities.AnyAsync(e => e.TenantId == tenantId && e.Id == dto.ProviderId.Value, ct);
+            if (!providerExists) throw new NotFoundException(nameof(Domain.Entities.Entity), dto.ProviderId.Value);
+        }
+
+        var modelIds = dto.DeviceItems.Select(i => i.ModelId)
+            .Concat(dto.BulkItems.Where(b => b.ModelId.HasValue).Select(b => b.ModelId!.Value))
+            .Distinct().ToList();
+        if (modelIds.Count > 0)
+        {
+            var foundModelIds = await db.CatalogModels
+                .Where(m => m.TenantId == tenantId && modelIds.Contains(m.Id))
+                .Select(m => m.Id).ToListAsync(ct);
+            var missingModelId = modelIds.Except(foundModelIds).FirstOrDefault();
+            if (missingModelId != default) throw new NotFoundException(nameof(Domain.Entities.CatalogModel), missingModelId);
+        }
+
+        var accessoryIds = dto.BulkItems.Select(b => b.AccessoryId).Distinct().ToList();
+        if (accessoryIds.Count > 0)
+        {
+            var foundAccessoryIds = await db.CatalogAccessories
+                .Where(a => a.TenantId == tenantId && accessoryIds.Contains(a.Id))
+                .Select(a => a.Id).ToListAsync(ct);
+            var missingAccessoryId = accessoryIds.Except(foundAccessoryIds).FirstOrDefault();
+            if (missingAccessoryId != default) throw new NotFoundException(nameof(Domain.Entities.CatalogAccessory), missingAccessoryId);
+        }
+
         var purchase = new Domain.Entities.Purchase
         {
             TenantId = tenantId,

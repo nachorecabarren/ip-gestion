@@ -2,12 +2,13 @@ import { Component, OnInit, inject, signal } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { RouterModule } from "@angular/router";
 import { ApiService } from "../../core/services/api.service";
-import { DashboardKpis, QuickSale, Reservation, ServiceClientJob } from "../../shared/models/models";
+import { DashboardKpis, DashboardTrendPoint, QuickSale, Reservation, ServiceClientJob } from "../../shared/models/models";
+import { BarChartComponent } from "../../shared/components/bar-chart/bar-chart.component";
 
 @Component({
   selector: "app-dashboard",
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, BarChartComponent],
   templateUrl: "./dashboard.component.html",
   styleUrls: ["./dashboard.component.scss"],
 })
@@ -20,6 +21,7 @@ export class DashboardComponent implements OnInit {
   recentSales = signal<QuickSale[]>([]);
   reservations = signal<Reservation[]>([]);
   serviceJobs = signal<ServiceClientJob[]>([]);
+  trend = signal<DashboardTrendPoint[]>([]);
   loading = signal(true);
 
   readonly periodoLabels = {
@@ -40,18 +42,21 @@ export class DashboardComponent implements OnInit {
       label: "Nueva Compra",
       sublabel: "Ingresar Stock",
       route: "/compras",
+      queryParams: { nueva: "1" },
       icon: "box",
     },
     {
       label: "Nueva Reserva",
       sublabel: "Apartar modelo",
       route: "/reservas",
+      queryParams: { nueva: "1" },
       icon: "bookmark",
     },
     {
       label: "Nuevo Movimiento",
       sublabel: "Ajuste de caja",
       route: "/cajas",
+      queryParams: { nueva: "1" },
       icon: "dollar",
     },
   ];
@@ -62,6 +67,7 @@ export class DashboardComponent implements OnInit {
     this.api.getServiceJobs().subscribe(r =>
       this.serviceJobs.set(r.items.filter(j => !['DELIVERED', 'CANCELLED', 'CLOSED'].includes(j.status)))
     );
+    this.api.getDashboardTrend(6).subscribe(t => this.trend.set(t));
   }
 
   loadData() {
@@ -78,6 +84,13 @@ export class DashboardComponent implements OnInit {
   setPeriodo(p: "week" | "month" | "year") {
     this.periodo.set(p);
     this.loadData();
+  }
+
+  get trendFacturacion() {
+    return this.trend().map(t => ({ label: t.period, value: t.facturacionUsd }));
+  }
+  get trendCanjes() {
+    return this.trend().map(t => ({ label: t.period, value: t.ventasConCanje }));
   }
 
   formatUsd(v: number) {

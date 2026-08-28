@@ -2,15 +2,20 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { ConfirmService } from '../../shared/services/confirm.service';
 import { AuthService } from '../../core/services/auth.service';
 import { CommonModule } from '@angular/common';
+import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ApiService } from '../../core/services/api.service';
 import { Purchase, Entity, CatalogModel, CatalogAccessory, CatalogLocation } from '../../shared/models/models';
 import { ImeiScannerComponent } from '../../shared/components/imei-scanner/imei-scanner.component';
+import { EscapeCloseDirective } from '../../shared/directives/escape-close.directive';
+import { AutoFocusDirective } from '../../shared/directives/auto-focus.directive';
+import { openIfQueryParam } from '../../shared/utils/open-via-query-param';
+import { confirmDiscard } from '../../shared/utils/confirm-discard';
 
 @Component({
   selector: 'app-compras',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, ImeiScannerComponent],
+  imports: [CommonModule, ReactiveFormsModule, ImeiScannerComponent, EscapeCloseDirective, AutoFocusDirective],
   templateUrl: './compras.component.html',
   styleUrls: ['./compras.component.scss']
 })
@@ -18,6 +23,8 @@ export class ComprasComponent implements OnInit {
   private api = inject(ApiService);
   private fb = inject(FormBuilder);
   private confirm = inject(ConfirmService);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
   auth = inject(AuthService);
 
   purchases = signal<Purchase[]>([]);
@@ -41,6 +48,7 @@ export class ComprasComponent implements OnInit {
     this.api.getCatalogModels().subscribe(m => this.models.set(m));
     this.api.getCatalogAccessories().subscribe(a => this.accessories.set(a));
     this.api.getCatalogLocations().subscribe(l => this.locations.set(l));
+    openIfQueryParam(this.route, this.router, 'nueva', () => this.openModal());
   }
 
   initForm() {
@@ -99,6 +107,11 @@ export class ComprasComponent implements OnInit {
     this.initForm();
     this.addDevice();
     this.showModal.set(true);
+  }
+
+  async dismissModal() {
+    if (!(await confirmDiscard(this.confirm, this.form))) return;
+    this.showModal.set(false);
   }
 
   submit() {

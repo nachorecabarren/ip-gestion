@@ -30,6 +30,7 @@ public interface IDashboardService
 {
     Task<DashboardKpisDto> GetKpisAsync(Guid tenantId, string periodo, CancellationToken ct = default);
     Task<IEnumerable<QuickSaleDto>> GetRecentSalesAsync(Guid tenantId, int count = 10, CancellationToken ct = default);
+    Task<IEnumerable<DashboardTrendPointDto>> GetTrendAsync(Guid tenantId, int months, CancellationToken ct = default);
 }
 
 public interface IEntityService
@@ -46,11 +47,11 @@ public interface IStockService
     Task<PagedResult<StockItemDto>> GetItemsPagedAsync(Guid tenantId, StockStatus? status, StockCondition? condition, string? search, int page, int pageSize, CancellationToken ct = default);
     Task<StockItemDto?> GetItemByIdAsync(Guid tenantId, Guid id, CancellationToken ct = default);
     Task<StockItemDto?> GetByBarcodeAsync(Guid tenantId, string barcode, CancellationToken ct = default);
-    Task<StockItemDto> CreateItemAsync(Guid tenantId, CreateStockItemDto dto, CancellationToken ct = default);
     Task<StockItemDto> UpdateItemAsync(Guid tenantId, Guid id, UpdateStockItemDto dto, CancellationToken ct = default);
     Task VoidItemAsync(Guid tenantId, Guid id, CancellationToken ct = default);
     Task<IEnumerable<StockBulkDto>> GetBulkItemsAsync(Guid tenantId, CancellationToken ct = default);
     Task<TradeInQuoteDto> GetTradeInQuoteAsync(Guid tenantId, TradeInQuoteRequestDto dto, CancellationToken ct = default);
+    Task<PagedResult<TradeInHistoryDto>> GetTradeInHistoryAsync(Guid tenantId, int page, int pageSize, CancellationToken ct = default);
     Task BulkUpdatePricesAsync(Guid tenantId, List<Guid> itemIds, decimal newPrice, CancellationToken ct = default);
     Task TransferStockAsync(Guid tenantId, List<Guid> itemIds, Guid targetLocationId, CancellationToken ct = default);
 }

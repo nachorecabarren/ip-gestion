@@ -30,6 +30,8 @@ public record DashboardKpisDto(
 
 public record QuickSaleDto(DateTime Date, string Item, string Client, decimal Amount, decimal Margin);
 
+public record DashboardTrendPointDto(string Period, decimal FacturacionUsd, int CantidadVentas, int VentasConCanje);
+
 // ─── ENTITY (Clientes, Proveedores, etc.) ──────────────────
 public record EntityDto(
     Guid Id,
@@ -465,6 +467,17 @@ public record CreateCalendarEventDto(
 // ─── TRADE-IN COTIZADOR ────────────────────────────────────
 public record TradeInQuoteRequestDto(string ModelName, int StorageGb, int BatteryPct);
 public record TradeInQuoteDto(decimal BaseValueUsd, decimal AdjustedValueUsd, string Notes);
+
+public record TradeInHistoryDto(
+    Guid Id,
+    DateTime SaleDate,
+    string ModelName,
+    int StorageGb,
+    int BatteryPct,
+    decimal ValueUsd,
+    string ClientName,
+    Guid SaleId
+);
 
 // ─── AUTH ──────────────────────────────────────────────────
 public record LoginRequestDto(string Email, string Password);

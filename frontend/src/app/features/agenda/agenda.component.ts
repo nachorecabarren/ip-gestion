@@ -4,11 +4,14 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ApiService } from '../../core/services/api.service';
 import { CalendarEvent } from '../../shared/models/models';
+import { EscapeCloseDirective } from '../../shared/directives/escape-close.directive';
+import { AutoFocusDirective } from '../../shared/directives/auto-focus.directive';
+import { confirmDiscard } from '../../shared/utils/confirm-discard';
 
 @Component({
   selector: 'app-agenda',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, EscapeCloseDirective, AutoFocusDirective],
   templateUrl: './agenda.component.html',
   styleUrls: ['./agenda.component.scss']
 })
@@ -27,6 +30,16 @@ export class AgendaComponent implements OnInit {
   currentMonth = signal(this.today.getMonth() + 1);
 
   form!: FormGroup;
+
+  openModal() {
+    this.initForm();
+    this.showModal.set(true);
+  }
+
+  async dismissModal() {
+    if (!(await confirmDiscard(this.confirm, this.form))) return;
+    this.showModal.set(false);
+  }
 
   readonly monthNames = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
     'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];

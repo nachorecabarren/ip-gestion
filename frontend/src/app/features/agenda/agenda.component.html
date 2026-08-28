@@ -4,7 +4,7 @@
       <h1 class="page-title">Agenda</h1>
       <p class="page-sub">Eventos, retiros y recordatorios</p>
     </div>
-    <button class="btn btn--primary" (click)="showModal.set(true); initForm()">+ Nuevo Evento</button>
+    <button class="btn btn--primary" (click)="openModal()">+ Nuevo Evento</button>
   </div>
 
   <!-- Navegación de mes -->
@@ -69,16 +69,16 @@
 </div>
 
 <!-- Modal -->
-<div class="modal-overlay" *ngIf="showModal()" (click)="showModal.set(false)">
+<div class="modal-overlay" *ngIf="showModal()" (click)="dismissModal()" escapeClose (escapeClose)="dismissModal()">
   <div class="modal" (click)="$event.stopPropagation()">
     <div class="modal__header">
       <div><h2 class="modal__title">Nuevo Evento</h2></div>
-      <button class="modal__close" (click)="showModal.set(false)">✕</button>
+      <button class="modal__close" (click)="dismissModal()">✕</button>
     </div>
     <div class="modal__body" [formGroup]="form">
       <div class="form-group">
         <label>Título *</label>
-        <input type="text" formControlName="title" class="form-control" placeholder="ej: Retiro reserva Diego" />
+        <input type="text" formControlName="title" class="form-control" placeholder="ej: Retiro reserva Diego" autoFocus />
       </div>
       <div class="form-group">
         <label>Tipo *</label>
@@ -103,7 +103,7 @@
       </div>
     </div>
     <div class="modal__footer">
-      <button class="btn btn--ghost" (click)="showModal.set(false)">Cancelar</button>
+      <button class="btn btn--ghost" (click)="dismissModal()">Cancelar</button>
       <button class="btn btn--primary" (click)="submit()" [disabled]="submitting()">
         {{ submitting() ? 'Guardando...' : 'Crear Evento' }}
       </button>

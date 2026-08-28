@@ -3,8 +3,12 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ApiService } from '../../core/services/api.service';
 import { TeamService } from '../../core/services/team.service';
+import { ConfirmService } from '../../shared/services/confirm.service';
 import { ServiceClientJob, ServiceJobStatus } from '../../shared/models/models';
 import { ImeiScannerComponent } from '../../shared/components/imei-scanner/imei-scanner.component';
+import { EscapeCloseDirective } from '../../shared/directives/escape-close.directive';
+import { AutoFocusDirective } from '../../shared/directives/auto-focus.directive';
+import { confirmDiscard } from '../../shared/utils/confirm-discard';
 
 interface TechnicianOption {
   id: string;
@@ -14,7 +18,7 @@ interface TechnicianOption {
 @Component({
   selector: 'app-servicio-tecnico',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, ImeiScannerComponent],
+  imports: [CommonModule, ReactiveFormsModule, ImeiScannerComponent, EscapeCloseDirective, AutoFocusDirective],
   templateUrl: './servicio-tecnico.component.html',
   styleUrls: ['./servicio-tecnico.component.scss']
 })
@@ -22,6 +26,7 @@ export class ServicioTecnicoComponent implements OnInit {
   private api = inject(ApiService);
   private fb = inject(FormBuilder);
   private team = inject(TeamService);
+  private confirm = inject(ConfirmService);
 
   jobs = signal<ServiceClientJob[]>([]);
   total = signal(0);
@@ -33,6 +38,16 @@ export class ServicioTecnicoComponent implements OnInit {
 
   technicians = signal<TechnicianOption[]>([]);
   form!: FormGroup;
+
+  openModal() {
+    this.initForm();
+    this.showModal.set(true);
+  }
+
+  async dismissModal() {
+    if (!(await confirmDiscard(this.confirm, this.form))) return;
+    this.showModal.set(false);
+  }
 
   readonly statusFlow: { value: ServiceJobStatus; label: string; class: string }[] = [
     { value: 'OPEN', label: 'Abierto', class: 'badge--blue' },

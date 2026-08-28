@@ -4,7 +4,7 @@
       <h1 class="page-title">Servicio Técnico</h1>
       <p class="page-sub">Órdenes de reparación de clientes y stock propio</p>
     </div>
-    <button class="btn btn--primary" (click)="showModal.set(true); initForm()">+ Nuevo SV</button>
+    <button class="btn btn--primary" (click)="openModal()">+ Nuevo SV</button>
   </div>
 
   <!-- KPIs -->
@@ -69,17 +69,17 @@
 </div>
 
 <!-- Modal nuevo SV -->
-<div class="modal-overlay" *ngIf="showModal()" (click)="showModal.set(false)">
+<div class="modal-overlay" *ngIf="showModal()" (click)="dismissModal()" escapeClose (escapeClose)="dismissModal()">
   <div class="modal modal--wide" (click)="$event.stopPropagation()">
     <div class="modal__header">
       <div><h2 class="modal__title">Nueva Orden de Servicio</h2></div>
-      <button class="modal__close" (click)="showModal.set(false)">✕</button>
+      <button class="modal__close" (click)="dismissModal()">✕</button>
     </div>
     <div class="modal__body" [formGroup]="form">
       <div class="form-row">
         <div class="form-group form-group--grow">
           <label>Nombre del cliente *</label>
-          <input type="text" formControlName="retailClientName" class="form-control" />
+          <input type="text" formControlName="retailClientName" class="form-control" autoFocus />
         </div>
         <div class="form-group form-group--grow">
           <label>WhatsApp</label>
@@ -141,7 +141,7 @@
       </div>
     </div>
     <div class="modal__footer">
-      <button class="btn btn--ghost" (click)="showModal.set(false)">Cancelar</button>
+      <button class="btn btn--ghost" (click)="dismissModal()">Cancelar</button>
       <button class="btn btn--primary" (click)="submit()" [disabled]="submitting()">Crear SV</button>
     </div>
   </div>

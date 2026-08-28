@@ -34,18 +34,18 @@
   </div>
 </div>
 
-<div class="modal-overlay" *ngIf="showModal()" (click)="showModal.set(false)">
+<div class="modal-overlay" *ngIf="showModal()" (click)="dismissModal()" escapeClose (escapeClose)="dismissModal()">
   <div class="modal" (click)="$event.stopPropagation()">
     <div class="modal__header">
       <div><h2 class="modal__title">Registrar {{ selectedEntity()?.balanceUsd ?? 0 > 0 ? 'Cobro' : 'Pago' }}</h2>
       <p class="modal__sub">{{ selectedEntity()?.entityName }}</p></div>
-      <button class="modal__close" (click)="showModal.set(false)">✕</button>
+      <button class="modal__close" (click)="dismissModal()">✕</button>
     </div>
     <div class="modal__body" [formGroup]="form">
       <div class="form-row">
         <div class="form-group form-group--grow">
           <label>Monto u$d *</label>
-          <input type="number" formControlName="amountUsd" class="form-control" />
+          <input type="number" formControlName="amountUsd" class="form-control" autoFocus />
         </div>
         <div class="form-group form-group--grow">
           <label>Método *</label>
@@ -63,7 +63,7 @@
       </div>
     </div>
     <div class="modal__footer">
-      <button class="btn btn--ghost" (click)="showModal.set(false)">Cancelar</button>
+      <button class="btn btn--ghost" (click)="dismissModal()">Cancelar</button>
       <button class="btn btn--primary" (click)="submit()">Confirmar</button>
     </div>
   </div>

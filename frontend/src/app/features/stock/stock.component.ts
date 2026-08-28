@@ -4,13 +4,16 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { ApiService } from '../../core/services/api.service';
 import { ConfirmService } from '../../shared/services/confirm.service';
 import { AuthService } from '../../core/services/auth.service';
-import { StockItem, StockBulk, CatalogLocation, CatalogModel, TradeInQuote, Entity } from '../../shared/models/models';
+import { StockItem, StockBulk, CatalogLocation, CatalogModel, TradeInQuote, TradeInHistoryItem, Entity } from '../../shared/models/models';
 import { ImeiScannerComponent } from '../../shared/components/imei-scanner/imei-scanner.component';
+import { EscapeCloseDirective } from '../../shared/directives/escape-close.directive';
+import { AutoFocusDirective } from '../../shared/directives/auto-focus.directive';
+import { confirmDiscard } from '../../shared/utils/confirm-discard';
 
 @Component({
   selector: 'app-stock',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, ImeiScannerComponent],
+  imports: [CommonModule, ReactiveFormsModule, ImeiScannerComponent, EscapeCloseDirective, AutoFocusDirective],
   templateUrl: './stock.component.html',
   styleUrls: ['./stock.component.scss']
 })
@@ -23,6 +26,7 @@ export class StockComponent implements OnInit {
   activeTab = signal<'equipos' | 'bulk' | 'canjes'>('equipos');
   items = signal<StockItem[]>([]);
   bulkItems = signal<StockBulk[]>([]);
+  tradeInHistory = signal<TradeInHistoryItem[]>([]);
   total = signal(0);
   loading = signal(true);
 
@@ -103,12 +107,18 @@ export class StockComponent implements OnInit {
       next: r => { this.items.set(r.items); this.total.set(r.total); this.loading.set(false); }
     });
     this.api.getStockBulk().subscribe(b => this.bulkItems.set(b));
+    this.api.getTradeInHistory().subscribe(r => this.tradeInHistory.set(r.items));
   }
 
   openNew() {
     this.newForm.reset({ providerId: '', modelId: '', condition: 'USED', costUsd: 0, locationId: '' });
     this.newError.set('');
     this.showNewModal.set(true);
+  }
+
+  async dismissNewModal() {
+    if (!(await confirmDiscard(this.confirm, this.newForm))) return;
+    this.showNewModal.set(false);
   }
 
   submitNew() {
@@ -180,7 +190,13 @@ export class StockComponent implements OnInit {
       suggestedPriceUsd: item.suggestedPriceUsd, wholesalePriceUsd: item.wholesalePriceUsd,
       locationId: location?.id ?? null, notes: item.notes
     });
+    this.editForm.markAsPristine();
     this.showEditModal.set(true);
+  }
+
+  async dismissEditModal() {
+    if (!(await confirmDiscard(this.confirm, this.editForm))) return;
+    this.showEditModal.set(false);
   }
 
   saveEdit() {

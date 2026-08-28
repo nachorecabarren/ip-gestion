@@ -2,18 +2,23 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ApiService } from '../../core/services/api.service';
+import { ConfirmService } from '../../shared/services/confirm.service';
 import { EntityBalance } from '../../shared/models/models';
+import { EscapeCloseDirective } from '../../shared/directives/escape-close.directive';
+import { AutoFocusDirective } from '../../shared/directives/auto-focus.directive';
+import { confirmDiscard } from '../../shared/utils/confirm-discard';
 
 @Component({
   selector: 'app-cuentas-corrientes',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, EscapeCloseDirective, AutoFocusDirective],
   templateUrl: './cuentas-corrientes.component.html',
   styleUrls: ['./cuentas-corrientes.component.scss']
 })
 export class CuentasCorrientesComponent implements OnInit {
   private api = inject(ApiService);
   private fb = inject(FormBuilder);
+  private confirm = inject(ConfirmService);
 
   balances = signal<EntityBalance[]>([]);
   total = signal(0);
@@ -50,7 +55,13 @@ export class CuentasCorrientesComponent implements OnInit {
   openPayment(b: EntityBalance) {
     this.selectedEntity.set(b);
     this.form.patchValue({ entityId: b.entityId, amountUsd: Math.abs(b.balanceUsd) });
+    this.form.markAsPristine();
     this.showModal.set(true);
+  }
+
+  async dismissModal() {
+    if (!(await confirmDiscard(this.confirm, this.form))) return;
+    this.showModal.set(false);
   }
 
   submit() {

@@ -21,11 +21,15 @@ import {
   SaleCategory,
 } from "../../shared/models/models";
 import { ImeiScannerComponent } from "../../shared/components/imei-scanner/imei-scanner.component";
+import { EscapeCloseDirective } from "../../shared/directives/escape-close.directive";
+import { AutoFocusDirective } from "../../shared/directives/auto-focus.directive";
+import { openIfQueryParam } from "../../shared/utils/open-via-query-param";
+import { confirmDiscard } from "../../shared/utils/confirm-discard";
 
 @Component({
   selector: "app-ventas",
   standalone: true,
-  imports: [CommonModule, RouterModule, ReactiveFormsModule, ImeiScannerComponent],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, ImeiScannerComponent, EscapeCloseDirective, AutoFocusDirective],
   templateUrl: "./ventas.component.html",
   styleUrls: ["./ventas.component.scss"],
 })
@@ -49,6 +53,7 @@ export class VentasComponent implements OnInit {
   entities = signal<Entity[]>([]);
   availableStock = signal<StockItem[]>([]);
   tcBlue = signal(1520);
+  tradeInKpis = signal<{ ventasConCanje: number; porcentajeCanje: number } | null>(null);
 
   // Search/filter
   search = signal("");
@@ -91,11 +96,11 @@ export class VentasComponent implements OnInit {
     this.api
       .getStockItems("AVAILABLE")
       .subscribe((r) => this.availableStock.set(r.items));
+    // Fuente única de verdad: el % de canje se calcula en el servidor sobre
+    // todas las ventas del mes, no sobre la página parcial cargada acá.
+    this.api.getDashboardKpis("month").subscribe((k) => this.tradeInKpis.set(k));
 
-    if (this.route.snapshot.queryParamMap.get("nueva")) {
-      this.openNewSale();
-      this.router.navigate([], { queryParams: {}, replaceUrl: true });
-    }
+    openIfQueryParam(this.route, this.router, "nueva", () => this.openNewSale());
   }
 
   initForm() {
@@ -154,8 +159,8 @@ export class VentasComponent implements OnInit {
   get wholesaleCount() { return this.completedSales.filter(s => s.category === 'WHOLESALE').length; }
   get ticketPromedio() { return this.completedSales.length > 0 ? this.totalVentas / this.completedSales.length : 0; }
   get margenBruto() { return this.completedSales.reduce((sum, s) => sum + s.marginUsd, 0); }
-  get canjesCount() { return this.completedSales.filter(s => s.hasTradeIn).length; }
-  get canjesPct() { return this.completedSales.length > 0 ? (this.canjesCount / this.completedSales.length) * 100 : 0; }
+  get canjesCount() { return this.tradeInKpis()?.ventasConCanje ?? 0; }
+  get canjesPct() { return this.tradeInKpis()?.porcentajeCanje ?? 0; }
 
   openNewSale() {
     this.initForm();
@@ -170,6 +175,11 @@ export class VentasComponent implements OnInit {
   closeModal() {
     this.submitError.set('');
     this.showModal.set(false);
+  }
+
+  async dismissModal() {
+    if (!(await confirmDiscard(this.confirm, this.saleForm))) return;
+    this.closeModal();
   }
 
   nextStep() {
