@@ -24,6 +24,7 @@ public interface IUserService
 {
     Task<IEnumerable<TenantUserDto>> GetUsersAsync(Guid tenantId, CancellationToken ct = default);
     Task DeactivateAsync(Guid tenantId, Guid userId, Guid currentUserId, CancellationToken ct = default);
+    Task UpdateRoleAsync(Guid tenantId, Guid userId, Guid currentUserId, string currentUserRole, string newRole, CancellationToken ct = default);
 }
 
 public interface IDashboardService
@@ -95,7 +96,9 @@ public interface ICajaService
     Task<IEnumerable<CajaDto>> GetCajasAsync(Guid tenantId, CancellationToken ct = default);
     Task<IEnumerable<CashMovementDto>> GetMovementsAsync(Guid tenantId, Guid? cajaId, DateTime? from, DateTime? to, int page, int pageSize, CancellationToken ct = default);
     Task<CashMovementDto> RegisterMovementAsync(Guid tenantId, CreateCashMovementDto dto, CancellationToken ct = default);
-    Task CloseDayAsync(Guid tenantId, DateOnly date, CancellationToken ct = default);
+    Task<CashClosingPreviewDto> GetClosingPreviewAsync(Guid tenantId, Guid cajaId, CancellationToken ct = default);
+    Task<CashClosingDto> CloseCajaAsync(Guid tenantId, Guid userId, string userName, CloseCajaDto dto, CancellationToken ct = default);
+    Task<PagedResult<CashClosingDto>> GetClosingsAsync(Guid tenantId, Guid cajaId, int page, int pageSize, CancellationToken ct = default);
 }
 
 public interface IServiceTechService

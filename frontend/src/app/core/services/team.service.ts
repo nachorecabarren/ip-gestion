@@ -28,6 +28,14 @@ export interface TeamUser {
   createdAt: string;
 }
 
+export type AssignableRole = 'ADMIN' | 'OPERATOR' | 'VIEWER' | 'EMPLOYEE';
+export const ASSIGNABLE_ROLES: { value: AssignableRole; label: string }[] = [
+  { value: 'ADMIN', label: 'Administrador' },
+  { value: 'OPERATOR', label: 'Operador' },
+  { value: 'VIEWER', label: 'Solo lectura' },
+  { value: 'EMPLOYEE', label: 'Empleado' },
+];
+
 @Injectable({ providedIn: 'root' })
 export class TeamService {
   private http = inject(HttpClient);
@@ -59,5 +67,8 @@ export class TeamService {
   }
   deactivateUser(id: string): Observable<void> {
     return this.http.put<void>(`${this.users}/${id}/desactivar`, {});
+  }
+  updateRole(id: string, role: AssignableRole): Observable<void> {
+    return this.http.put<void>(`${this.users}/${id}/rol`, { role });
   }
 }

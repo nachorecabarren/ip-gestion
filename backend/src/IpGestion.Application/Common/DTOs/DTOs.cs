@@ -327,7 +327,8 @@ public record CajaDto(
     decimal BalanceUsdCash,
     decimal BalanceUsdt,
     decimal BalanceArsCash,
-    decimal BalanceArsTr
+    decimal BalanceArsTr,
+    decimal BalanceMercadoPago
 );
 
 public record CashMovementDto(
@@ -352,6 +353,49 @@ public record CreateCashMovementDto(
     decimal ExchangeRateUsd,
     Guid? CategoryId,
     string? Detail
+);
+
+// Vista previa (sin persistir) de lo que un cierre calcularía ahora mismo.
+public record CashClosingPreviewDto(
+    Guid CajaId,
+    DateTime PeriodFrom,
+    DateTime PeriodTo,
+    decimal ExpectedUsdCash,
+    decimal ExpectedArsCash,
+    decimal ExpectedUsdt,
+    decimal ExpectedArsTr,
+    decimal ExpectedMercadoPago,
+    decimal IngresosUsd,
+    decimal EgresosUsd
+);
+
+public record CloseCajaDto(
+    Guid CajaId,
+    decimal CountedUsdCash,
+    decimal CountedArsCash,
+    string? Notes
+);
+
+public record CashClosingDto(
+    Guid Id,
+    Guid CajaId,
+    string CajaName,
+    DateTime PeriodFrom,
+    DateTime PeriodTo,
+    decimal ExpectedUsdCash,
+    decimal CountedUsdCash,
+    decimal DiffUsdCash,
+    decimal ExpectedArsCash,
+    decimal CountedArsCash,
+    decimal DiffArsCash,
+    decimal ExpectedUsdt,
+    decimal ExpectedArsTr,
+    decimal ExpectedMercadoPago,
+    decimal IngresosUsd,
+    decimal EgresosUsd,
+    string UserName,
+    string? Notes,
+    DateTime CreatedAt
 );
 
 // ─── SERVICIO TÉCNICO ──────────────────────────────────────
@@ -540,6 +584,8 @@ public record TenantUserDto(
     bool IsActive,
     DateTime CreatedAt
 );
+
+public record UpdateRoleDto(string Role);
 
 // ─── AUDITORÍA ─────────────────────────────────────────────
 public record AuditLogDto(

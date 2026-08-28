@@ -2,7 +2,8 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ConfirmService } from '../../shared/services/confirm.service';
-import { TeamService, TeamUser, PendingInvitation, InvitationLink } from '../../core/services/team.service';
+import { AuthService } from '../../core/services/auth.service';
+import { TeamService, TeamUser, PendingInvitation, InvitationLink, ASSIGNABLE_ROLES, AssignableRole } from '../../core/services/team.service';
 
 @Component({
   selector: 'app-equipo',
@@ -15,6 +16,7 @@ export class EquipoComponent implements OnInit {
   private team = inject(TeamService);
   private fb = inject(FormBuilder);
   private confirm = inject(ConfirmService);
+  auth = inject(AuthService);
 
   users = signal<TeamUser[]>([]);
   invites = signal<PendingInvitation[]>([]);
@@ -24,6 +26,10 @@ export class EquipoComponent implements OnInit {
   inviteError = signal<string | null>(null);
   lastLink = signal<InvitationLink | null>(null);
   copiedId = signal<string | null>(null);
+
+  assignableRoles = ASSIGNABLE_ROLES;
+  roleChangingId = signal<string | null>(null);
+  roleError = signal<string | null>(null);
 
   form = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
@@ -87,6 +93,28 @@ export class EquipoComponent implements OnInit {
   }
 
   roleLabel(role: string) {
-    return role === 'OWNER' ? 'Dueño' : 'Empleado';
+    return ({
+      OWNER: 'Dueño', ADMIN: 'Administrador', OPERATOR: 'Operador', VIEWER: 'Solo lectura', EMPLOYEE: 'Empleado',
+    } as Record<string, string>)[role] ?? role;
+  }
+
+  canChangeRole(user: TeamUser): boolean {
+    return this.auth.canManageRoles() && user.role !== 'OWNER' && user.id !== this.auth.currentUser()?.userId;
+  }
+
+  async changeRole(user: TeamUser, newRole: string) {
+    const role = newRole as AssignableRole;
+    if (role === user.role) return;
+    if (!await this.confirm.open(`¿Cambiar el rol de ${user.displayName} a "${this.roleLabel(role)}"?`)) return;
+
+    this.roleError.set(null);
+    this.roleChangingId.set(user.id);
+    this.team.updateRole(user.id, role).subscribe({
+      next: () => { this.roleChangingId.set(null); this.load(); },
+      error: (err) => {
+        this.roleChangingId.set(null);
+        this.roleError.set(err?.error?.error ?? 'No se pudo cambiar el rol');
+      },
+    });
   }
 }

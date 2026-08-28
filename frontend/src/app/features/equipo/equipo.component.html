@@ -27,6 +27,7 @@
   <!-- Empleados activos -->
   <div class="card">
     <h3 class="section-title">Empleados activos</h3>
+    <div *ngIf="roleError()" class="invite-error">{{ roleError() }}</div>
     <div *ngIf="loading()" class="empty-state">Cargando…</div>
     <table class="table" *ngIf="!loading() && users().length > 0">
       <thead>
@@ -43,7 +44,11 @@
           <td>{{ u.displayName }}</td>
           <td>{{ u.email }}</td>
           <td>
-            <span class="badge" [class.badge--blue]="u.role === 'OWNER'">{{ roleLabel(u.role) }}</span>
+            <select *ngIf="canChangeRole(u)" class="form-control role-select" [value]="u.role"
+              [disabled]="roleChangingId() === u.id" (change)="changeRole(u, $any($event.target).value)">
+              <option *ngFor="let r of assignableRoles" [value]="r.value">{{ r.label }}</option>
+            </select>
+            <span *ngIf="!canChangeRole(u)" class="badge" [class.badge--blue]="u.role === 'OWNER'">{{ roleLabel(u.role) }}</span>
           </td>
           <td>{{ u.createdAt | date:'dd/MM/yyyy' }}</td>
           <td class="text-right">

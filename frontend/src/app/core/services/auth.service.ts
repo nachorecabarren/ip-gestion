@@ -23,6 +23,8 @@ export class AuthService {
   checked = signal(false);
 
   isOwner = computed(() => this.currentUser()?.role === 'OWNER');
+  isAdmin = computed(() => this.currentUser()?.role === 'ADMIN');
+  canManageRoles = computed(() => this.isOwner() || this.isAdmin());
   isLoggedIn = computed(() => this.currentUser() !== null);
 
   /** Called once on app start (and by the guard) to restore the session from the cookie. */

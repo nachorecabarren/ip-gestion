@@ -310,10 +310,23 @@ public class CashMovement : TenantEntity
 // ─── CASH CLOSING ──────────────────────────────────────────
 public class CashClosing : TenantEntity
 {
-    public DateOnly FechaCierre { get; set; }
-    public decimal IngresosHoy { get; set; }
-    public decimal EgresosHoy { get; set; }
-    public decimal LiquidezFinalUsd { get; set; }
+    public Guid CajaId { get; set; }
+    public DateTime PeriodFrom { get; set; }
+    public DateTime PeriodTo { get; set; }
+    public Guid UserId { get; set; }
+    public string UserName { get; set; } = string.Empty;
+    public decimal ExpectedUsdCash { get; set; }
+    public decimal CountedUsdCash { get; set; }
+    public decimal ExpectedArsCash { get; set; }
+    public decimal CountedArsCash { get; set; }
+    public decimal ExpectedUsdt { get; set; }
+    public decimal ExpectedArsTr { get; set; }
+    public decimal ExpectedMercadoPago { get; set; }
+    public decimal IngresosUsd { get; set; }
+    public decimal EgresosUsd { get; set; }
+    public string? Notes { get; set; }
+
+    public Caja Caja { get; set; } = null!;
 }
 
 // ─── MOVEMENT CATEGORY ─────────────────────────────────────

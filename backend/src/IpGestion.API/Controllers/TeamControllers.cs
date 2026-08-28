@@ -87,4 +87,12 @@ public class UsersController(IUserService svc) : TenantBaseController
         await svc.DeactivateAsync(TenantId, id, CurrentUserId, ct);
         return NoContent();
     }
+
+    [HttpPut("{id}/rol")]
+    public async Task<IActionResult> UpdateRole(Guid id, [FromBody] UpdateRoleDto dto, CancellationToken ct)
+    {
+        if (!IsOwner && UserRole != nameof(Domain.Enums.UserRole.ADMIN)) return Forbid();
+        await svc.UpdateRoleAsync(TenantId, id, CurrentUserId, UserRole, dto.Role, ct);
+        return NoContent();
+    }
 }

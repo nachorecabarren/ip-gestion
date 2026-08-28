@@ -78,6 +78,13 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             .WithOne(si => si.TradeIn)
             .HasForeignKey<StockItem>(si => si.TradeInId);
 
+        // CashClosing <-> Caja: many closings per caja, over time
+        b.Entity<CashClosing>()
+            .HasOne(c => c.Caja)
+            .WithMany()
+            .HasForeignKey(c => c.CajaId);
+        b.Entity<CashClosing>().HasIndex(c => new { c.TenantId, c.CajaId, c.PeriodTo });
+
         // Soft precision for decimals
         foreach (var p in b.Model.GetEntityTypes()
             .SelectMany(t => t.GetProperties())

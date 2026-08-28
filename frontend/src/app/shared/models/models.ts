@@ -91,12 +91,26 @@ export interface ImportOrder {
 
 export interface Caja {
   id: string; name: string; isDefault: boolean; isActive: boolean;
-  balanceUsdCash: number; balanceUsdt: number; balanceArsCash: number; balanceArsTr: number;
+  balanceUsdCash: number; balanceUsdt: number; balanceArsCash: number; balanceArsTr: number; balanceMercadoPago: number;
 }
 
 export interface CashMovement {
   id: string; cajaName: string; type: CashMovementType; method: PaymentMethod;
   amount: number; amountUsd: number; currency: Currency; detail?: string; category?: string; createdAt: string;
+}
+
+export interface CashClosingPreview {
+  cajaId: string; periodFrom: string; periodTo: string;
+  expectedUsdCash: number; expectedArsCash: number; expectedUsdt: number; expectedArsTr: number; expectedMercadoPago: number;
+  ingresosUsd: number; egresosUsd: number;
+}
+
+export interface CashClosing {
+  id: string; cajaId: string; cajaName: string; periodFrom: string; periodTo: string;
+  expectedUsdCash: number; countedUsdCash: number; diffUsdCash: number;
+  expectedArsCash: number; countedArsCash: number; diffArsCash: number;
+  expectedUsdt: number; expectedArsTr: number; expectedMercadoPago: number;
+  ingresosUsd: number; egresosUsd: number; userName: string; notes?: string; createdAt: string;
 }
 
 export interface ServiceClientJob {

@@ -20,6 +20,8 @@ import {
   ImportOrder,
   Caja,
   CashMovement,
+  CashClosingPreview,
+  CashClosing,
   ServiceClientJob,
   EntityBalance,
   RetentionRule,
@@ -263,8 +265,16 @@ export class ApiService {
   registerCashMovement(dto: any): Observable<CashMovement> {
     return this.http.post<CashMovement>(`${this.base}/cajas/movimientos`, dto);
   }
-  closeDay(date: string): Observable<void> {
-    return this.http.post<void>(`${this.base}/cajas/cierre`, { date });
+  getClosingPreview(cajaId: string): Observable<CashClosingPreview> {
+    return this.http.get<CashClosingPreview>(`${this.base}/cajas/${cajaId}/cierre/preview`);
+  }
+  closeCaja(dto: any): Observable<CashClosing> {
+    return this.http.post<CashClosing>(`${this.base}/cajas/cierre`, dto);
+  }
+  getClosings(cajaId: string, page = 1, pageSize = 20): Observable<PagedResult<CashClosing>> {
+    return this.http.get<PagedResult<CashClosing>>(`${this.base}/cajas/${cajaId}/cierres`, {
+      params: { page, pageSize },
+    });
   }
 
   // ─── SERVICIO TÉCNICO ────────────────────────────────────

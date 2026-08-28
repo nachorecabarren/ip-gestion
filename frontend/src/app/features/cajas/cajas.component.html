@@ -4,7 +4,11 @@
       <h1 class="page-title">Cajas</h1>
       <p class="page-sub">Saldos por moneda y movimientos de efectivo</p>
     </div>
-    <button class="btn btn--primary" (click)="openModal()">+ Nuevo Movimiento</button>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn--ghost" (click)="toggleHistory()" *ngIf="selectedCaja()">{{ showHistory() ? 'Ver movimientos' : 'Ver historial de cierres' }}</button>
+      <button class="btn btn--ghost" (click)="openCloseModal()" *ngIf="selectedCaja()">Cerrar caja</button>
+      <button class="btn btn--primary" (click)="openModal()">+ Nuevo Movimiento</button>
+    </div>
   </div>
 
   <!-- Caja selector + saldos -->
@@ -36,6 +40,10 @@
         <div class="balance-card__label">TRANSFERENCIA ARS</div>
         <div class="balance-card__value">$ {{ caja.balanceArsTr.toLocaleString('es-AR', {minimumFractionDigits:0}) }}</div>
       </div>
+      <div class="balance-card balance-card--tr">
+        <div class="balance-card__label">MERCADOPAGO</div>
+        <div class="balance-card__value">$ {{ caja.balanceMercadoPago.toLocaleString('es-AR', {minimumFractionDigits:0}) }}</div>
+      </div>
       <div class="balance-card balance-card--total">
         <div class="balance-card__label">TOTAL ESTIMADO USD</div>
         <div class="balance-card__value balance-card__value--big">u$d {{ totalUsd.toFixed(2) }}</div>
@@ -44,7 +52,7 @@
   </div>
 
   <!-- Movements table -->
-  <div class="card">
+  <div class="card" *ngIf="!showHistory()">
     <div class="card-header-row">
       <h3>Movimientos</h3>
     </div>
@@ -68,6 +76,42 @@
     </table>
     <div *ngIf="!loading() && movements().length === 0" class="empty-state">
       <div class="empty-state__title">Sin movimientos registrados</div>
+    </div>
+  </div>
+
+  <!-- Historial de cierres -->
+  <div class="card" *ngIf="showHistory()">
+    <div class="card-header-row">
+      <h3>Historial de cierres</h3>
+    </div>
+    <div *ngIf="closingsLoading()" class="empty-state">Cargando...</div>
+    <table class="table" *ngIf="!closingsLoading() && closings().length > 0">
+      <thead>
+        <tr><th>PERÍODO</th><th>USUARIO</th><th>USD EFECTIVO</th><th>ARS EFECTIVO</th><th>OTROS MÉTODOS</th><th>NOTAS</th></tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let c of closings()">
+          <td>{{ c.periodFrom | date:'dd/MM HH:mm' }} → {{ c.periodTo | date:'dd/MM HH:mm' }}</td>
+          <td>{{ c.userName }}</td>
+          <td>
+            contado u$d {{ c.countedUsdCash.toFixed(2) }}
+            <span [ngClass]="c.diffUsdCash === 0 ? 'text-small' : (c.diffUsdCash > 0 ? 'text-green' : 'text-red')">
+              ({{ c.diffUsdCash >= 0 ? '+' : '' }}{{ c.diffUsdCash.toFixed(2) }})
+            </span>
+          </td>
+          <td>
+            contado $ {{ c.countedArsCash.toFixed(2) }}
+            <span [ngClass]="c.diffArsCash === 0 ? 'text-small' : (c.diffArsCash > 0 ? 'text-green' : 'text-red')">
+              ({{ c.diffArsCash >= 0 ? '+' : '' }}{{ c.diffArsCash.toFixed(2) }})
+            </span>
+          </td>
+          <td class="text-small">USDT {{ c.expectedUsdt.toFixed(2) }} · Transf $ {{ c.expectedArsTr.toFixed(2) }} · MP $ {{ c.expectedMercadoPago.toFixed(2) }}</td>
+          <td>{{ c.notes ?? '—' }}</td>
+        </tr>
+      </tbody>
+    </table>
+    <div *ngIf="!closingsLoading() && closings().length === 0" class="empty-state">
+      <div class="empty-state__title">Sin cierres registrados todavía</div>
     </div>
   </div>
 </div>
@@ -123,6 +167,61 @@
     <div class="modal__footer">
       <button class="btn btn--ghost" (click)="dismissModal()">Cancelar</button>
       <button class="btn btn--primary" (click)="submit()" [disabled]="submitting()">Registrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Cerrar caja -->
+<div class="modal-overlay" *ngIf="showCloseModal()" (click)="dismissCloseModal()" escapeClose (escapeClose)="dismissCloseModal()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal__header">
+      <div><h2 class="modal__title">Cerrar caja</h2><p class="modal__sub">{{ selectedCaja()?.name }}</p></div>
+      <button class="modal__close" (click)="dismissCloseModal()">✕</button>
+    </div>
+    <div class="modal__body" *ngIf="closeLoading()">Calculando saldo esperado…</div>
+    <div class="modal__body" [formGroup]="closeForm" *ngIf="!closeLoading() && closePreview() as p">
+      <p class="text-small" style="margin-bottom:12px">
+        Período: {{ p.periodFrom | date:'dd/MM/yy HH:mm' }} → {{ p.periodTo | date:'dd/MM/yy HH:mm' }}
+        ({{ p.ingresosUsd.toFixed(2) }} u$d de ingresos, {{ p.egresosUsd.toFixed(2) }} u$d de egresos)
+      </p>
+
+      <div class="form-row">
+        <div class="form-group form-group--grow">
+          <label>Efectivo USD — esperado u$d {{ p.expectedUsdCash.toFixed(2) }}</label>
+          <input type="number" formControlName="countedUsdCash" class="form-control" autoFocus />
+          <div class="text-small" [ngClass]="diffUsdCash === 0 ? '' : (diffUsdCash > 0 ? 'text-green' : 'text-red')">
+            Diferencia: {{ diffUsdCash >= 0 ? '+' : '' }}{{ diffUsdCash.toFixed(2) }} u$d
+            {{ diffUsdCash === 0 ? '(cuadra)' : diffUsdCash > 0 ? '(sobrante)' : '(faltante)' }}
+          </div>
+        </div>
+        <div class="form-group form-group--grow">
+          <label>Efectivo ARS — esperado $ {{ p.expectedArsCash.toFixed(2) }}</label>
+          <input type="number" formControlName="countedArsCash" class="form-control" />
+          <div class="text-small" [ngClass]="diffArsCash === 0 ? '' : (diffArsCash > 0 ? 'text-green' : 'text-red')">
+            Diferencia: {{ diffArsCash >= 0 ? '+' : '' }}{{ diffArsCash.toFixed(2) }} $
+            {{ diffArsCash === 0 ? '(cuadra)' : diffArsCash > 0 ? '(sobrante)' : '(faltante)' }}
+          </div>
+        </div>
+      </div>
+
+      <p class="text-small" style="margin:12px 0">
+        No se cuentan (no son efectivo físico): USDT u$d {{ p.expectedUsdt.toFixed(2) }} ·
+        Transferencia $ {{ p.expectedArsTr.toFixed(2) }} · MercadoPago $ {{ p.expectedMercadoPago.toFixed(2) }}
+      </p>
+
+      <div class="form-group">
+        <label>Notas</label>
+        <textarea formControlName="notes" class="form-control" rows="2" placeholder="Observaciones del cierre (opcional)"></textarea>
+      </div>
+    </div>
+    <div class="modal__footer" style="flex-direction:column;align-items:stretch;gap:8px">
+      <div class="auth-error" *ngIf="closeError()" style="margin:0">{{ closeError() }}</div>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button class="btn btn--ghost" (click)="dismissCloseModal()">Cancelar</button>
+        <button class="btn btn--primary" (click)="submitClose()" [disabled]="closeSubmitting() || closeLoading()">
+          {{ closeSubmitting() ? 'Cerrando…' : 'Confirmar cierre' }}
+        </button>
+      </div>
     </div>
   </div>
 </div>

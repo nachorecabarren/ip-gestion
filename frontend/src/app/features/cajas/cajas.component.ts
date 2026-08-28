@@ -4,7 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ApiService } from '../../core/services/api.service';
 import { ConfirmService } from '../../shared/services/confirm.service';
-import { Caja, CashMovement } from '../../shared/models/models';
+import { Caja, CashMovement, CashClosingPreview, CashClosing } from '../../shared/models/models';
 import { EscapeCloseDirective } from '../../shared/directives/escape-close.directive';
 import { AutoFocusDirective } from '../../shared/directives/auto-focus.directive';
 import { openIfQueryParam } from '../../shared/utils/open-via-query-param';
@@ -33,6 +33,20 @@ export class CajasComponent implements OnInit {
   tcBlue = signal(1520);
 
   form!: FormGroup;
+
+  // Cierre de caja
+  showCloseModal = signal(false);
+  closePreview = signal<CashClosingPreview | null>(null);
+  closeLoading = signal(false);
+  closeSubmitting = signal(false);
+  closeError = signal('');
+  closeForm!: FormGroup;
+
+  showHistory = signal(false);
+  closings = signal<CashClosing[]>([]);
+  closingsTotal = signal(0);
+  closingsPage = signal(1);
+  closingsLoading = signal(false);
 
   ngOnInit() {
     this.initForm();
@@ -91,6 +105,78 @@ export class CajasComponent implements OnInit {
     this.selectedCaja.set(c);
     this.form.patchValue({ cajaId: c.id });
     this.loadMovements(c.id);
+    this.showHistory.set(false);
+  }
+
+  openCloseModal() {
+    const caja = this.selectedCaja();
+    if (!caja) return;
+    this.closeForm = this.fb.group({
+      countedUsdCash: [0, [Validators.required, Validators.min(0)]],
+      countedArsCash: [0, [Validators.required, Validators.min(0)]],
+      notes: [''],
+    });
+    this.closeError.set('');
+    this.closePreview.set(null);
+    this.closeLoading.set(true);
+    this.showCloseModal.set(true);
+    this.api.getClosingPreview(caja.id).subscribe({
+      next: (p) => {
+        this.closePreview.set(p);
+        this.closeForm.patchValue({ countedUsdCash: p.expectedUsdCash, countedArsCash: p.expectedArsCash });
+        this.closeLoading.set(false);
+      },
+      error: () => this.closeLoading.set(false),
+    });
+  }
+
+  async dismissCloseModal() {
+    if (!(await confirmDiscard(this.confirm, this.closeForm))) return;
+    this.showCloseModal.set(false);
+  }
+
+  get diffUsdCash() {
+    return (this.closeForm?.get('countedUsdCash')?.value ?? 0) - (this.closePreview()?.expectedUsdCash ?? 0);
+  }
+  get diffArsCash() {
+    return (this.closeForm?.get('countedArsCash')?.value ?? 0) - (this.closePreview()?.expectedArsCash ?? 0);
+  }
+
+  submitClose() {
+    const caja = this.selectedCaja();
+    if (!caja || this.closeForm.invalid) { this.closeForm.markAllAsTouched(); return; }
+    this.closeSubmitting.set(true);
+    this.closeError.set('');
+    this.api.closeCaja({ cajaId: caja.id, ...this.closeForm.value }).subscribe({
+      next: () => {
+        this.showCloseModal.set(false);
+        this.closeSubmitting.set(false);
+        this.loadCajas();
+        this.loadMovements(caja.id);
+        if (this.showHistory()) this.loadClosings(caja.id);
+      },
+      error: (e) => {
+        this.closeError.set(e?.error?.error ?? e?.error?.title ?? `Error ${e?.status}`);
+        this.closeSubmitting.set(false);
+      },
+    });
+  }
+
+  toggleHistory() {
+    this.showHistory.update((v) => !v);
+    const caja = this.selectedCaja();
+    if (this.showHistory() && caja) {
+      this.closingsPage.set(1);
+      this.loadClosings(caja.id);
+    }
+  }
+
+  loadClosings(cajaId: string) {
+    this.closingsLoading.set(true);
+    this.api.getClosings(cajaId, this.closingsPage(), 20).subscribe({
+      next: (r) => { this.closings.set(r.items); this.closingsTotal.set(r.total); this.closingsLoading.set(false); },
+      error: () => this.closingsLoading.set(false),
+    });
   }
 
   submit() {

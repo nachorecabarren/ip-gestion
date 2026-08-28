@@ -276,15 +276,23 @@ public class CajasController(ICajaService svc, IAuditService audit) : TenantBase
         return Ok(result);
     }
 
-    [HttpPost("cierre")]
-    public async Task<IActionResult> CloseDay([FromBody] CloseDayRequest req, CancellationToken ct = default)
-    {
-        await svc.CloseDayAsync(TenantId, req.Date, ct);
-        return Ok();
-    }
-}
+    [HttpGet("{cajaId}/cierre/preview")]
+    public async Task<IActionResult> GetClosingPreview(Guid cajaId, CancellationToken ct = default)
+        => Ok(await svc.GetClosingPreviewAsync(TenantId, cajaId, ct));
 
-public record CloseDayRequest(DateOnly Date);
+    [HttpPost("cierre")]
+    public async Task<IActionResult> CloseCaja([FromBody] CloseCajaDto dto, CancellationToken ct = default)
+    {
+        var result = await svc.CloseCajaAsync(TenantId, CurrentUserId, CurrentUserName, dto, ct);
+        await audit.LogAsync(TenantId, CurrentUserId, CurrentUserName, "CREATE", "CashClosing", result.Id,
+            $"Cierre de {result.CajaName}: diferencia u$d {result.DiffUsdCash} / ARS {result.DiffArsCash}", ct);
+        return Ok(result);
+    }
+
+    [HttpGet("{cajaId}/cierres")]
+    public async Task<IActionResult> GetClosings(Guid cajaId, [FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken ct = default)
+        => Ok(await svc.GetClosingsAsync(TenantId, cajaId, page, pageSize, ct));
+}
 
 // ─── SERVICIO TÉCNICO ──────────────────────────────────────
 [Route("api/servicio-tecnico")]

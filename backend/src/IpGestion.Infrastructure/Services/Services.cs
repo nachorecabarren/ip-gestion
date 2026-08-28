@@ -802,7 +802,8 @@ public class CajaService(AppDbContext db) : ICajaService
             decimal Bal(PaymentMethod m) => movs.Where(x => x.Method == m)
                 .Sum(x => x.Type == CashMovementType.INCOME || x.Type == CashMovementType.SALE ? x.Amount : -x.Amount);
             result.Add(new CajaDto(caja.Id, caja.Name, caja.IsDefault, caja.IsActive,
-                Bal(PaymentMethod.USD_CASH), Bal(PaymentMethod.USDT), Bal(PaymentMethod.ARS_CASH), Bal(PaymentMethod.ARS_TR)));
+                Bal(PaymentMethod.USD_CASH), Bal(PaymentMethod.USDT), Bal(PaymentMethod.ARS_CASH), Bal(PaymentMethod.ARS_TR),
+                Bal(PaymentMethod.MERCADOPAGO)));
         }
         return result;
     }
@@ -843,23 +844,88 @@ public class CajaService(AppDbContext db) : ICajaService
             mov.AmountUsd, mov.Currency, mov.Detail, null, mov.CreatedAt);
     }
 
-    public async Task CloseDayAsync(Guid tenantId, DateOnly date, CancellationToken ct = default)
+    // El período de un cierre va desde el cierre anterior de esa caja (o su alta,
+    // si nunca se cerró) hasta ahora — así nunca se cuenta un movimiento dos veces
+    // ni se depende de que el cierre coincida con un día calendario.
+    private async Task<(DateTime From, DateTime To, List<Domain.Entities.CashMovement> Movs)> PendingPeriodAsync(Guid tenantId, Guid cajaId, CancellationToken ct)
     {
-        var from = date.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
-        var to = date.ToDateTime(TimeOnly.MaxValue, DateTimeKind.Utc);
-        var movs = await db.CashMovements.Where(m => m.TenantId == tenantId && m.CreatedAt >= from && m.CreatedAt <= to).ToListAsync(ct);
-        var ing = movs.Where(m => m.Type is CashMovementType.INCOME or CashMovementType.SALE).Sum(m => m.AmountUsd);
-        var eg = movs.Where(m => m.Type is CashMovementType.EXPENSE or CashMovementType.PURCHASE).Sum(m => m.AmountUsd);
-        db.CashClosings.Add(new Domain.Entities.CashClosing
+        var caja = await db.Cajas.FirstOrDefaultAsync(c => c.TenantId == tenantId && c.Id == cajaId, ct)
+            ?? throw new NotFoundException(nameof(Domain.Entities.Caja), cajaId);
+        var lastClosing = await db.CashClosings
+            .Where(c => c.TenantId == tenantId && c.CajaId == cajaId)
+            .OrderByDescending(c => c.PeriodTo)
+            .FirstOrDefaultAsync(ct);
+        var from = lastClosing?.PeriodTo ?? caja.CreatedAt;
+        var to = DateTime.UtcNow;
+        var movs = await db.CashMovements
+            .Where(m => m.TenantId == tenantId && m.CajaId == cajaId && m.CreatedAt > from && m.CreatedAt <= to)
+            .ToListAsync(ct);
+        return (from, to, movs);
+    }
+
+    public async Task<CashClosingPreviewDto> GetClosingPreviewAsync(Guid tenantId, Guid cajaId, CancellationToken ct = default)
+    {
+        var (from, to, movs) = await PendingPeriodAsync(tenantId, cajaId, ct);
+        decimal Expected(PaymentMethod m) => movs.Where(x => x.Method == m)
+            .Sum(x => x.Type == CashMovementType.INCOME || x.Type == CashMovementType.SALE ? x.Amount : -x.Amount);
+        return new CashClosingPreviewDto(
+            cajaId, from, to,
+            Expected(PaymentMethod.USD_CASH), Expected(PaymentMethod.ARS_CASH),
+            Expected(PaymentMethod.USDT), Expected(PaymentMethod.ARS_TR), Expected(PaymentMethod.MERCADOPAGO),
+            movs.Where(m => m.Type is CashMovementType.INCOME or CashMovementType.SALE).Sum(m => m.AmountUsd),
+            movs.Where(m => m.Type is CashMovementType.EXPENSE or CashMovementType.PURCHASE).Sum(m => m.AmountUsd)
+        );
+    }
+
+    public async Task<CashClosingDto> CloseCajaAsync(Guid tenantId, Guid userId, string userName, CloseCajaDto dto, CancellationToken ct = default)
+    {
+        var caja = await db.Cajas.FirstOrDefaultAsync(c => c.TenantId == tenantId && c.Id == dto.CajaId, ct)
+            ?? throw new NotFoundException(nameof(Domain.Entities.Caja), dto.CajaId);
+        var (from, to, movs) = await PendingPeriodAsync(tenantId, dto.CajaId, ct);
+        decimal Expected(PaymentMethod m) => movs.Where(x => x.Method == m)
+            .Sum(x => x.Type == CashMovementType.INCOME || x.Type == CashMovementType.SALE ? x.Amount : -x.Amount);
+
+        var closing = new Domain.Entities.CashClosing
         {
             TenantId = tenantId,
-            FechaCierre = date,
-            IngresosHoy = ing,
-            EgresosHoy = eg,
-            LiquidezFinalUsd = ing - eg
-        });
+            CajaId = dto.CajaId,
+            PeriodFrom = from,
+            PeriodTo = to,
+            UserId = userId,
+            UserName = userName,
+            ExpectedUsdCash = Expected(PaymentMethod.USD_CASH),
+            CountedUsdCash = dto.CountedUsdCash,
+            ExpectedArsCash = Expected(PaymentMethod.ARS_CASH),
+            CountedArsCash = dto.CountedArsCash,
+            ExpectedUsdt = Expected(PaymentMethod.USDT),
+            ExpectedArsTr = Expected(PaymentMethod.ARS_TR),
+            ExpectedMercadoPago = Expected(PaymentMethod.MERCADOPAGO),
+            IngresosUsd = movs.Where(m => m.Type is CashMovementType.INCOME or CashMovementType.SALE).Sum(m => m.AmountUsd),
+            EgresosUsd = movs.Where(m => m.Type is CashMovementType.EXPENSE or CashMovementType.PURCHASE).Sum(m => m.AmountUsd),
+            Notes = dto.Notes,
+        };
+        db.CashClosings.Add(closing);
         await db.SaveChangesAsync(ct);
+        return MapClosing(closing, caja.Name);
     }
+
+    public async Task<PagedResult<CashClosingDto>> GetClosingsAsync(Guid tenantId, Guid cajaId, int page, int pageSize, CancellationToken ct = default)
+    {
+        var q = db.CashClosings.Include(c => c.Caja)
+            .Where(c => c.TenantId == tenantId && c.CajaId == cajaId)
+            .OrderByDescending(c => c.PeriodTo);
+        var total = await q.CountAsync(ct);
+        var items = await q.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync(ct);
+        return new PagedResult<CashClosingDto>(items.Select(c => MapClosing(c, c.Caja.Name)), total, page, pageSize);
+    }
+
+    private static CashClosingDto MapClosing(Domain.Entities.CashClosing c, string cajaName) => new(
+        c.Id, c.CajaId, cajaName, c.PeriodFrom, c.PeriodTo,
+        c.ExpectedUsdCash, c.CountedUsdCash, c.CountedUsdCash - c.ExpectedUsdCash,
+        c.ExpectedArsCash, c.CountedArsCash, c.CountedArsCash - c.ExpectedArsCash,
+        c.ExpectedUsdt, c.ExpectedArsTr, c.ExpectedMercadoPago,
+        c.IngresosUsd, c.EgresosUsd, c.UserName, c.Notes, c.CreatedAt
+    );
 }
 
 // ─── SERVICE TECH ──────────────────────────────────────────
@@ -1426,6 +1492,27 @@ public class UserService(AppDbContext db) : IUserService
             throw new ConflictException("No se puede desactivar al dueño de la cuenta.");
 
         user.IsActive = false;
+        await db.SaveChangesAsync(ct);
+    }
+
+    public async Task UpdateRoleAsync(Guid tenantId, Guid userId, Guid currentUserId, string currentUserRole, string newRole, CancellationToken ct = default)
+    {
+        if (currentUserRole != nameof(Domain.Enums.UserRole.OWNER) && currentUserRole != nameof(Domain.Enums.UserRole.ADMIN))
+            throw new ConflictException("No tenés permisos para cambiar roles.");
+
+        if (!Enum.TryParse<Domain.Enums.UserRole>(newRole, out var parsedRole) || parsedRole == Domain.Enums.UserRole.OWNER)
+            throw new ConflictException("Rol inválido.");
+
+        if (userId == currentUserId)
+            throw new ConflictException("No podés cambiar tu propio rol.");
+
+        var user = await db.TenantUsers.FirstOrDefaultAsync(u => u.TenantId == tenantId && u.Id == userId, ct)
+            ?? throw new NotFoundException(nameof(Domain.Entities.TenantUser), userId);
+
+        if (user.Role == Domain.Enums.UserRole.OWNER)
+            throw new ConflictException("No se puede cambiar el rol del dueño de la cuenta.");
+
+        user.Role = parsedRole;
         await db.SaveChangesAsync(ct);
     }
 }

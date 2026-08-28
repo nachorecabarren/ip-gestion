@@ -180,23 +180,56 @@ namespace IpGestion.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<Guid>("CajaId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("CountedArsCash")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)");
+
+                    b.Property<decimal>("CountedUsdCash")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<decimal>("EgresosHoy")
+                    b.Property<decimal>("EgresosUsd")
                         .HasPrecision(18, 4)
                         .HasColumnType("numeric(18,4)");
 
-                    b.Property<DateOnly>("FechaCierre")
-                        .HasColumnType("date");
-
-                    b.Property<decimal>("IngresosHoy")
+                    b.Property<decimal>("ExpectedArsCash")
                         .HasPrecision(18, 4)
                         .HasColumnType("numeric(18,4)");
 
-                    b.Property<decimal>("LiquidezFinalUsd")
+                    b.Property<decimal>("ExpectedArsTr")
                         .HasPrecision(18, 4)
                         .HasColumnType("numeric(18,4)");
+
+                    b.Property<decimal>("ExpectedMercadoPago")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)");
+
+                    b.Property<decimal>("ExpectedUsdCash")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)");
+
+                    b.Property<decimal>("ExpectedUsdt")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)");
+
+                    b.Property<decimal>("IngresosUsd")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("PeriodFrom")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("PeriodTo")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid>("TenantId")
                         .HasColumnType("uuid");
@@ -204,7 +237,18 @@ namespace IpGestion.Infrastructure.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("UserName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("CajaId");
+
+                    b.HasIndex("TenantId", "CajaId", "PeriodTo");
 
                     b.ToTable("CashClosings");
                 });
@@ -1589,6 +1633,17 @@ namespace IpGestion.Infrastructure.Migrations
                     b.HasIndex("SaleId");
 
                     b.ToTable("TransactionPayments");
+                });
+
+            modelBuilder.Entity("IpGestion.Domain.Entities.CashClosing", b =>
+                {
+                    b.HasOne("IpGestion.Domain.Entities.Caja", "Caja")
+                        .WithMany()
+                        .HasForeignKey("CajaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Caja");
                 });
 
             modelBuilder.Entity("IpGestion.Domain.Entities.CashMovement", b =>
