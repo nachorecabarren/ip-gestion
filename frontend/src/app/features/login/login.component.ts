@@ -16,10 +16,9 @@ export class LoginComponent {
   private auth = inject(AuthService);
   private router = inject(Router);
 
-  // TEMP DEV ONLY — credenciales precargadas para testear localmente. NO commitear este cambio.
   form = this.fb.group({
-    email: ['admin@ipgestion.com', [Validators.required, Validators.email]],
-    password: ['Admin123!', Validators.required],
+    email: ['', [Validators.required, Validators.email]],
+    password: ['', Validators.required],
   });
 
   loading = signal(false);
