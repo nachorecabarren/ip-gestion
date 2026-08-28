@@ -29,9 +29,9 @@ import { CatalogModel, CatalogAccessory, CatalogLocation } from '../../shared/mo
       </div>
     </div>
     <table class="table">
-      <thead><tr><th>NOMBRE</th><th>ID TYPE</th></tr></thead>
+      <thead><tr><th>NOMBRE</th></tr></thead>
       <tbody>
-        <tr *ngFor="let m of models()"><td>{{ m.name }}</td><td>{{ m.idType }}</td></tr>
+        <tr *ngFor="let m of models()"><td>{{ m.name }}</td></tr>
         <tr *ngIf="models().length === 0"><td colspan="2" class="table__empty">Sin modelos cargados</td></tr>
       </tbody>
     </table>

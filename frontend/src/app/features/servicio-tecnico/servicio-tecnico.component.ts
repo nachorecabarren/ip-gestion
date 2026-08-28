@@ -3,8 +3,9 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ApiService } from '../../core/services/api.service';
 import { TeamService } from '../../core/services/team.service';
+import { AuthService } from '../../core/services/auth.service';
 import { ConfirmService } from '../../shared/services/confirm.service';
-import { ServiceClientJob, ServiceJobStatus } from '../../shared/models/models';
+import { ServiceClientJob, ServiceJobStatus, CatalogModel } from '../../shared/models/models';
 import { ImeiScannerComponent } from '../../shared/components/imei-scanner/imei-scanner.component';
 import { EscapeCloseDirective } from '../../shared/directives/escape-close.directive';
 import { AutoFocusDirective } from '../../shared/directives/auto-focus.directive';
@@ -27,6 +28,7 @@ export class ServicioTecnicoComponent implements OnInit {
   private fb = inject(FormBuilder);
   private team = inject(TeamService);
   private confirm = inject(ConfirmService);
+  auth = inject(AuthService);
 
   jobs = signal<ServiceClientJob[]>([]);
   total = signal(0);
@@ -37,10 +39,15 @@ export class ServicioTecnicoComponent implements OnInit {
   search = signal('');
 
   technicians = signal<TechnicianOption[]>([]);
+  models = signal<CatalogModel[]>([]);
+  showAddModel = signal(false);
+  newModelName = signal('');
+  addingModel = signal(false);
   form!: FormGroup;
 
   openModal() {
     this.initForm();
+    this.showAddModel.set(false);
     this.showModal.set(true);
   }
 
@@ -61,6 +68,31 @@ export class ServicioTecnicoComponent implements OnInit {
     this.initForm();
     this.load();
     this.loadTechnicians();
+    this.api.getCatalogModels().subscribe(m => this.models.set(m));
+  }
+
+  openAddModel() {
+    this.newModelName.set('');
+    this.showAddModel.set(true);
+  }
+
+  cancelAddModel() {
+    this.showAddModel.set(false);
+  }
+
+  addModel() {
+    const name = this.newModelName().trim();
+    if (!name) return;
+    this.addingModel.set(true);
+    this.api.createCatalogModel(name).subscribe({
+      next: (model) => {
+        this.models.update(list => [...list, model]);
+        this.form.patchValue({ deviceModel: model.name });
+        this.showAddModel.set(false);
+        this.addingModel.set(false);
+      },
+      error: () => this.addingModel.set(false),
+    });
   }
 
   private loadTechnicians() {

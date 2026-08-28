@@ -2,6 +2,7 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { GUIDE_CATEGORIES, GUIDES, Guide } from './guides.data';
+import { EscapeCloseDirective } from '../../shared/directives/escape-close.directive';
 
 interface CategoryGroup {
   category: string;
@@ -11,7 +12,7 @@ interface CategoryGroup {
 @Component({
   selector: 'app-ayuda',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, EscapeCloseDirective],
   templateUrl: './ayuda.component.html',
   styleUrls: ['./ayuda.component.scss'],
 })
@@ -21,6 +22,8 @@ export class AyudaComponent implements OnInit {
 
   search = signal('');
   selectedId = signal<string>(GUIDES[0].id);
+  zoomedImage = signal<string | null>(null);
+  imageMissing = signal<Set<string>>(new Set());
 
   readonly categories = GUIDE_CATEGORIES;
 
@@ -56,5 +59,21 @@ export class AyudaComponent implements OnInit {
 
   clearSearch() {
     this.search.set('');
+  }
+
+  imagePath(guide: Guide): string {
+    return `assets/ayuda/${guide.id}.png`;
+  }
+
+  onImageMissing(id: string) {
+    this.imageMissing.update((s) => new Set(s).add(id));
+  }
+
+  openZoom(src: string) {
+    this.zoomedImage.set(src);
+  }
+
+  closeZoom() {
+    this.zoomedImage.set(null);
   }
 }

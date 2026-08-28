@@ -89,7 +89,36 @@
       <div class="form-row">
         <div class="form-group form-group--grow">
           <label>Modelo del dispositivo</label>
-          <input type="text" formControlName="deviceModel" class="form-control" placeholder="ej: iPhone 14 Pro" />
+          <select formControlName="deviceModel" class="form-control" *ngIf="!showAddModel()">
+            <option value="">Seleccioná un modelo...</option>
+            <option *ngFor="let m of models()" [value]="m.name">{{ m.name }}</option>
+          </select>
+
+          <ng-container *ngIf="!showAddModel()">
+            <button type="button" class="btn btn--ghost btn--sm" style="margin-top:6px" (click)="openAddModel()" *ngIf="auth.isOwner()">
+              + Agregar modelo nuevo
+            </button>
+            <div class="text-small" style="margin-top:6px" *ngIf="!auth.isOwner()">
+              ¿No está el modelo? Pedile al dueño de la cuenta que lo agregue en Configuración → Modelos.
+            </div>
+          </ng-container>
+
+          <ng-container *ngIf="showAddModel()">
+            <div class="form-row" style="margin-top:4px">
+              <input
+                type="text"
+                class="form-control"
+                placeholder="ej: Samsung Galaxy S24"
+                [value]="newModelName()"
+                (input)="newModelName.set($any($event.target).value)"
+                autoFocus
+              />
+              <button type="button" class="btn btn--primary btn--sm" (click)="addModel()" [disabled]="addingModel()">
+                {{ addingModel() ? 'Agregando…' : 'Agregar' }}
+              </button>
+              <button type="button" class="btn btn--ghost btn--sm" (click)="cancelAddModel()">Cancelar</button>
+            </div>
+          </ng-container>
         </div>
         <div class="form-group form-group--grow">
           <app-imei-scanner

@@ -407,7 +407,8 @@ export const GUIDES: Guide[] = [
       },
       {
         title: 'Completá los datos del cliente y del equipo',
-        detail: 'Nombre, WhatsApp, modelo del dispositivo e IMEI/serie (podés escanearlo).',
+        detail:
+          'Nombre, WhatsApp, modelo del dispositivo (elegilo del listado) e IMEI/serie (podés escanearlo). Si el modelo no está en la lista, el dueño de la cuenta puede agregarlo al toque con "+ Agregar modelo nuevo"; si no sos el dueño, pedile que lo cargue en Configuración → Modelos.',
       },
       {
         title: 'Cargá el precio a cobrarle al cliente y el costo del técnico',

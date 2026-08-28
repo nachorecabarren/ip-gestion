@@ -15,6 +15,19 @@ using System.Net.Http.Json;
 
 namespace IpGestion.Infrastructure.Services;
 
+internal static class DateUtils
+{
+    // Npgsql refuses to write DateTime.Kind=Unspecified to timestamptz columns —
+    // date-only inputs (e.g. from an HTML <input type="date">) deserialize as Unspecified.
+    public static DateTime NormalizeToUtc(DateTime value)
+        => value.Kind switch
+        {
+            DateTimeKind.Utc => value,
+            DateTimeKind.Local => value.ToUniversalTime(),
+            _ => DateTime.SpecifyKind(value, DateTimeKind.Utc)
+        };
+}
+
 // ─── DASHBOARD ─────────────────────────────────────────────
 public class DashboardService(AppDbContext db) : IDashboardService
 {
@@ -24,9 +37,9 @@ public class DashboardService(AppDbContext db) : IDashboardService
         var from = periodo switch
         {
             "week" => now.AddDays(-7),
-            "month" => new DateTime(now.Year, now.Month, 1),
-            "year" => new DateTime(now.Year, 1, 1),
-            _ => new DateTime(now.Year, now.Month, 1)
+            "month" => DateUtils.NormalizeToUtc(new DateTime(now.Year, now.Month, 1)),
+            "year" => DateUtils.NormalizeToUtc(new DateTime(now.Year, 1, 1)),
+            _ => DateUtils.NormalizeToUtc(new DateTime(now.Year, now.Month, 1))
         };
 
         var sales = await db.Sales
@@ -90,7 +103,7 @@ public class DashboardService(AppDbContext db) : IDashboardService
     public async Task<IEnumerable<DashboardTrendPointDto>> GetTrendAsync(Guid tenantId, int months, CancellationToken ct = default)
     {
         var now = DateTime.UtcNow;
-        var from = new DateTime(now.Year, now.Month, 1).AddMonths(-(months - 1));
+        var from = DateUtils.NormalizeToUtc(new DateTime(now.Year, now.Month, 1)).AddMonths(-(months - 1));
 
         var sales = await db.Sales
             .Where(s => s.TenantId == tenantId && s.SaleDate >= from && s.Status == SaleStatus.COMPLETED)
@@ -357,13 +370,6 @@ public class SaleService(AppDbContext db) : ISaleService
             .ToDictionaryAsync(u => u.Id, u => u.DisplayName, ct);
     }
 
-    private static DateTime NormalizeToUtc(DateTime value)
-        => value.Kind switch
-        {
-            DateTimeKind.Utc => value,
-            DateTimeKind.Local => value.ToUniversalTime(),
-            _ => DateTime.SpecifyKind(value, DateTimeKind.Utc)
-        };
 
     public async Task<SaleDto> CreateAsync(Guid tenantId, CreateSaleDto dto, CancellationToken ct = default)
     {
@@ -380,7 +386,7 @@ public class SaleService(AppDbContext db) : ISaleService
             WarrantyDays = dto.WarrantyDays,
             Notes = dto.Notes,
             CloserIds = dto.CloserIds,
-            SaleDate = NormalizeToUtc(dto.SaleDate),
+            SaleDate = DateUtils.NormalizeToUtc(dto.SaleDate),
             Status = SaleStatus.COMPLETED
         };
 
@@ -634,7 +640,7 @@ public class PurchaseService(AppDbContext db) : IPurchaseService
         {
             TenantId = tenantId,
             ProviderId = dto.ProviderId,
-            PurchaseDate = dto.PurchaseDate,
+            PurchaseDate = DateUtils.NormalizeToUtc(dto.PurchaseDate),
             Type = dto.Type,
             Notes = dto.Notes,
             Status = PurchaseStatus.ACTIVE
@@ -736,7 +742,7 @@ public class ReservationService(AppDbContext db) : IReservationService
             StockItemId = dto.StockItemId,
             StockBulkId = dto.StockBulkId,
             SaleCategory = dto.SaleCategory,
-            PickupDate = dto.PickupDate,
+            PickupDate = DateUtils.NormalizeToUtc(dto.PickupDate),
             AgreedPriceUsd = dto.AgreedPriceUsd,
             DepositAmountUsd = dto.DepositAmountUsd,
             Notes = dto.Notes,

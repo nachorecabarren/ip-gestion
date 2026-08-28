@@ -51,6 +51,16 @@
         <p>{{ g.summary }}</p>
       </div>
 
+      <button
+        type="button"
+        class="ayuda__screenshot"
+        *ngIf="!imageMissing().has(g.id)"
+        (click)="openZoom(imagePath(g))"
+      >
+        <img [src]="imagePath(g)" [alt]="'Captura: ' + g.title" (error)="onImageMissing(g.id)" />
+        <span class="ayuda__screenshot-hint">Click para ampliar</span>
+      </button>
+
       <ol class="ayuda__steps">
         <li class="ayuda__step" *ngFor="let step of g.steps; let i = index">
           <div class="ayuda__step-num">{{ i + 1 }}</div>
@@ -72,4 +82,16 @@
       </div>
     </div>
   </div>
+</div>
+
+<!-- Lightbox de captura ampliada -->
+<div
+  class="ayuda__lightbox"
+  *ngIf="zoomedImage() as src"
+  (click)="closeZoom()"
+  escapeClose
+  (escapeClose)="closeZoom()"
+>
+  <button class="ayuda__lightbox-close" (click)="closeZoom()">✕</button>
+  <img [src]="src" (click)="$event.stopPropagation()" />
 </div>
