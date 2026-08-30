@@ -415,6 +415,16 @@
       color: var(--l-muted-light);
       margin: 0;
     }
+
+    &--wide {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+
+      .bento__icon { margin-bottom: 0; flex-shrink: 0; }
+      p { max-width: 640px; }
+    }
   }
 
   &__icon {
@@ -435,6 +445,7 @@
 }
 @media (max-width: 560px) {
   .bento__grid { grid-template-columns: 1fr; }
+  .bento__card--wide { flex-direction: column; align-items: flex-start; }
 }
 
 // ─── STORY SECTIONS ─────────────────────────────────────────

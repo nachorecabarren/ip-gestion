@@ -42,6 +42,7 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
     { icon: 'calendar', title: 'Agenda', desc: 'Turnos, retiros y seguimientos organizados por fecha.' },
     { icon: 'grid', title: 'Dashboard financiero', desc: 'Ventas, márgenes, gastos y tendencias mensuales en un solo panel.' },
     { icon: 'database', title: 'Base de Datos', desc: 'Clientes, técnicos y contactos centralizados para todo el negocio.' },
+    { icon: 'help', title: 'Centro de Ayuda', desc: 'Guías paso a paso con capturas para que un empleado nuevo aprenda a usar el sistema solo, sin depender de vos.' },
   ];
 
   ngAfterViewInit(): void {
