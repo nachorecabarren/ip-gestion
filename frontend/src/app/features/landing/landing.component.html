@@ -1,0 +1,546 @@
+<div class="landing">
+
+  <!-- ─── NAV ─────────────────────────────────────────────── -->
+  <nav class="nav" [class.nav--scrolled]="scrolled() || menuOpen()">
+    <div class="nav__inner">
+      <a class="nav__brand" routerLink="/">
+        <span class="nav__brand-mark">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+        </span>
+        iP Gestión
+      </a>
+
+      <div class="nav__links">
+        <a href="#funciones">Funciones</a>
+        <a href="#operacion">Cómo funciona</a>
+        <a href="#equipo">Equipo</a>
+      </div>
+
+      <div class="nav__actions">
+        <a routerLink="/login" class="nav__login">Iniciar sesión</a>
+        <a [href]="whatsappUrl" target="_blank" rel="noopener" class="nav__cta">Contactanos</a>
+        <button class="nav__burger" (click)="menuOpen.set(!menuOpen())" aria-label="Abrir menú">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+
+    <div class="nav__mobile" *ngIf="menuOpen()">
+      <a href="#funciones" (click)="closeMenu()">Funciones</a>
+      <a href="#operacion" (click)="closeMenu()">Cómo funciona</a>
+      <a href="#equipo" (click)="closeMenu()">Equipo</a>
+      <a routerLink="/login" (click)="closeMenu()">Iniciar sesión</a>
+      <a [href]="whatsappUrl" target="_blank" rel="noopener" class="nav__mobile-cta" (click)="closeMenu()">Contactanos</a>
+    </div>
+  </nav>
+
+  <!-- ─── HERO ────────────────────────────────────────────── -->
+  <header class="hero">
+    <div class="hero__glow hero__glow--a"></div>
+    <div class="hero__glow hero__glow--b"></div>
+
+    <p class="hero__eyebrow reveal">iP Gestión</p>
+    <h1 class="hero__title reveal">
+      El sistema operativo de tu local de celulares.
+    </h1>
+    <p class="hero__subtitle reveal">
+      Ventas, canjes, stock por IMEI, cajas por moneda y servicio técnico — todo
+      conectado, en un solo lugar. Y la cotización del dólar blue, actualizada en
+      tiempo real, siempre visible en cada pantalla para que cotices y factures
+      sin cambiar de pestaña.
+    </p>
+    <div class="hero__actions reveal">
+      <a [href]="whatsappUrl" target="_blank" rel="noopener" class="btn-lg btn-lg--primary">Contactanos</a>
+      <a href="#funciones" class="btn-lg btn-lg--ghost">Ver funciones</a>
+    </div>
+
+    <div class="hero__shot reveal">
+      <div class="browser-frame browser-frame--wide">
+        <div class="browser-frame__bar">
+          <span></span><span></span><span></span>
+        </div>
+        <img src="assets/ayuda/dashboard-metricas.png" alt="Dashboard de iP Gestión con ventas, márgenes y tendencias" loading="lazy">
+      </div>
+    </div>
+  </header>
+
+  <!-- ─── MODULE STRIP ────────────────────────────────────── -->
+  <section class="strip">
+    <div class="strip__track">
+      <span *ngFor="let m of modules">{{ m.title }}</span>
+      <span *ngFor="let m of modules">{{ m.title }}</span>
+    </div>
+  </section>
+
+  <!-- ─── BENTO GRID ──────────────────────────────────────── -->
+  <section id="funciones" class="bento">
+    <h2 class="section-title reveal">Todo lo que tu local necesita,<br>en un solo lugar</h2>
+    <p class="section-sub reveal">Cada módulo pensado para la compra, venta y reparación de celulares — no un ERP genérico.</p>
+
+    <div class="bento__grid">
+      <div class="bento__card reveal" *ngFor="let m of modules">
+        <span class="bento__icon">
+          <svg *ngIf="m.icon==='grid'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          <svg *ngIf="m.icon==='cart'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 001.95-1.57l1.65-8.42H6"/></svg>
+          <svg *ngIf="m.icon==='box'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+          <svg *ngIf="m.icon==='package'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"/><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+          <svg *ngIf="m.icon==='wallet'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M20 12V22H4V12"/><path d="M22 7H2v5h20V7z"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z"/></svg>
+          <svg *ngIf="m.icon==='tool'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+          <svg *ngIf="m.icon==='bookmark'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
+          <svg *ngIf="m.icon==='users'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+          <svg *ngIf="m.icon==='truck'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+          <svg *ngIf="m.icon==='heart'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+          <svg *ngIf="m.icon==='calendar'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <svg *ngIf="m.icon==='database'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+        </span>
+        <h3>{{ m.title }}</h3>
+        <p>{{ m.desc }}</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── STORY: VENTAS Y CANJES ──────────────────────────── -->
+  <section id="operacion" class="story story--dark">
+    <div class="story__inner">
+      <div class="story__text reveal">
+        <p class="story__kicker">Ventas y Canjes</p>
+        <h2>Vendé y tomá canjes sin hacer cuentas a mano.</h2>
+        <p class="story__desc">
+          Cargá cliente, equipo por IMEI y forma de pago. Si el cliente entrega un equipo
+          como parte de pago, el cotizador de canje calcula el valor según modelo,
+          almacenamiento y estado de batería — y lo descuenta del total automáticamente.
+        </p>
+      </div>
+      <div class="story__visual reveal">
+        <div class="browser-frame">
+          <div class="browser-frame__bar"><span></span><span></span><span></span></div>
+          <img src="assets/ayuda/venta-canje.png" alt="Registro de un canje dentro de una venta, con cotización automática" loading="lazy">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── STORY: STOCK POR IMEI ───────────────────────────── -->
+  <section class="story story--light story--reverse">
+    <div class="story__inner">
+      <div class="story__text reveal">
+        <p class="story__kicker">Stock por IMEI</p>
+        <h2>Cada iPhone, con su propio historial.</h2>
+        <p class="story__desc">
+          Escaneá el IMEI con la cámara en vez de tipearlo a mano: el sistema lo reconoce
+          al instante y, si ese equipo ya pasó por tu local, te muestra su historial completo
+          — de qué canje entró, cuándo se compró y su condición actual. Stock unitario para
+          equipos, stock a granel para accesorios, y un cotizador de canje para tasar un
+          equipo en segundos aunque todavía no haya venta.
+        </p>
+      </div>
+      <div class="story__visual reveal">
+        <div class="browser-frame">
+          <div class="browser-frame__bar"><span></span><span></span><span></span></div>
+          <img src="assets/ayuda/stock-cotizador.png" alt="Cotizador de canje calculando el valor de un iPhone usado" loading="lazy">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── STORY: CAJAS ────────────────────────────────────── -->
+  <section class="story story--dark">
+    <div class="story__inner">
+      <div class="story__text reveal">
+        <p class="story__kicker">Cajas por moneda</p>
+        <h2>Efectivo USD, ARS, USDT y transferencias — cada uno en su lugar.</h2>
+        <p class="story__desc">
+          Varias cajas, cada una con su saldo y su historial de movimientos.
+          Registrá ingresos y egresos por categoría y sabé en todo momento
+          cuánto hay, en qué moneda y en qué caja.
+        </p>
+      </div>
+      <div class="story__visual reveal">
+        <div class="browser-frame">
+          <div class="browser-frame__bar"><span></span><span></span><span></span></div>
+          <img src="assets/ayuda/caja-movimiento.png" alt="Pantalla de cajas con saldos por moneda y carga de movimientos" loading="lazy">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── STORY: SERVICIO TÉCNICO ─────────────────────────── -->
+  <section class="story story--light story--reverse">
+    <div class="story__inner">
+      <div class="story__text reveal">
+        <p class="story__kicker">Servicio Técnico</p>
+        <h2>De la seña a la entrega, sin perder el hilo.</h2>
+        <p class="story__desc">
+          Cada orden de reparación con su cliente, la falla reportada, el técnico
+          asignado, la seña recibida y el precio acordado. Seguí el estado del
+          equipo hasta que sale por la puerta.
+        </p>
+      </div>
+      <div class="story__visual reveal">
+        <div class="browser-frame">
+          <div class="browser-frame__bar"><span></span><span></span><span></span></div>
+          <img src="assets/ayuda/servicio-nuevo.png" alt="Formulario de una nueva orden de servicio técnico" loading="lazy">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── STORY: RESERVAS ─────────────────────────────────── -->
+  <section class="story story--dark">
+    <div class="story__inner">
+      <div class="story__text reveal">
+        <p class="story__kicker">Reservas</p>
+        <h2>Apartá un equipo sin sacarlo del stock.</h2>
+        <p class="story__desc">
+          Un cliente puede dejar una seña para apartar un modelo hasta su fecha
+          de retiro, minorista o mayorista, sin perder de vista el resto del inventario.
+        </p>
+      </div>
+      <div class="story__visual reveal">
+        <div class="browser-frame">
+          <div class="browser-frame__bar"><span></span><span></span><span></span></div>
+          <img src="assets/ayuda/reserva-nueva.png" alt="Formulario para crear una nueva reserva con seña" loading="lazy">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── STORY: CUENTAS CORRIENTES ───────────────────────── -->
+  <section class="story story--light story--reverse">
+    <div class="story__inner">
+      <div class="story__text reveal">
+        <p class="story__kicker">Cuentas Corrientes</p>
+        <h2>Saldos con clientes y proveedores, siempre al día.</h2>
+        <p class="story__desc">
+          Quién te debe, a quién le debés, y desde cuándo. Registrá cobros y pagos
+          parciales y mirá el saldo actualizarse al instante.
+        </p>
+      </div>
+      <div class="story__visual reveal">
+        <div class="browser-frame">
+          <div class="browser-frame__bar"><span></span><span></span><span></span></div>
+          <img src="assets/ayuda/cuenta-pago.png" alt="Registro de un cobro en la sección de cuentas corrientes" loading="lazy">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── EQUIPO ──────────────────────────────────────────── -->
+  <section id="equipo" class="team">
+    <div class="team__text reveal">
+      <p class="story__kicker">Tu equipo</p>
+      <h2>Invitá a tu equipo, con el rol justo para cada uno.</h2>
+      <p class="story__desc">
+        Sumá empleados por email con un enlace de invitación. El dueño ve y
+        configura todo; cada empleado opera con permisos acotados a su tarea.
+      </p>
+    </div>
+    <div class="team__card reveal">
+      <div class="team__row">
+        <div class="team__avatar">A</div>
+        <div class="team__info">
+          <span class="team__name">Administrador</span>
+          <span class="team__role team__role--owner">Dueño</span>
+        </div>
+      </div>
+      <div class="team__row">
+        <div class="team__avatar team__avatar--alt">L</div>
+        <div class="team__info">
+          <span class="team__name">Laura Fernández</span>
+          <span class="team__role">Empleada</span>
+        </div>
+      </div>
+      <div class="team__invite">
+        <span>+ Invitar por email</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── PERKS: WEB + DÓLAR BLUE + TEMA ──────────────────── -->
+  <section class="perks">
+    <div class="perks__card reveal">
+      <span class="perks__tag">Acceso</span>
+      <h3>Sin instalar nada</h3>
+      <p>Es una app web: no hay que descargar ni instalar nada. Entrá desde cualquier navegador, en PC, tablet o celular.</p>
+      <div class="perks__devices">
+        <span class="perks__device" title="PC">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        </span>
+        <span class="perks__device" title="Tablet">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="3" y="2" width="18" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+        </span>
+        <span class="perks__device" title="Celular">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="7" y="2" width="10" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+        </span>
+      </div>
+    </div>
+    <div class="perks__card reveal">
+      <span class="perks__tag">Cotización</span>
+      <h3>Dólar blue, siempre a mano</h3>
+      <p>Se muestra en cada pantalla del sistema para cotizar y facturar sin cambiar de pestaña.</p>
+      <div class="perks__blue">
+        <span>Cotización Dólar Blue</span>
+        <strong>$ 1.555</strong>
+      </div>
+    </div>
+    <div class="perks__card perks__card--theme reveal" [class.perks__card--dark]="darkPreview()">
+      <span class="perks__tag">Interfaz</span>
+      <h3>Modo claro y oscuro</h3>
+      <p>Elegí cómo ver tu negocio. El sistema recuerda tu preferencia en cada dispositivo.</p>
+      <label class="perks__switch" [class.perks__switch--active]="darkPreview()">
+        <input type="checkbox" [checked]="darkPreview()" (change)="darkPreview.set(!darkPreview())">
+        <span class="perks__switch-track"><span class="perks__switch-thumb"></span></span>
+        <span>Tema oscuro</span>
+      </label>
+    </div>
+  </section>
+
+  <!-- ─── INSTALL: ACCESO DIRECTO EN iOS / ANDROID ────────── -->
+  <section class="install">
+    <h2 class="section-title reveal">Sumalo como un ícono más</h2>
+    <p class="section-sub reveal">Agregá el acceso directo a la pantalla de inicio y abrilo como una app, sin pasar por el navegador.</p>
+
+    <div class="install__grid">
+
+      <!-- iOS / Safari -->
+      <div class="install__card reveal">
+        <div class="install__os">
+          <span class="install__icon">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12.9 3.2c.15 1.05-.28 2.08-.9 2.8-.65.76-1.72 1.34-2.72 1.26-.14-1.02.34-2.08.94-2.76.68-.77 1.83-1.33 2.68-1.3z"/>
+              <path d="M15.9 8.05c-1.5-.02-2.75.85-3.46.85-.73 0-1.83-.82-3.03-.8-1.56.02-3 .9-3.8 2.3-1.63 2.8-.42 6.95 1.17 9.23.78 1.12 1.7 2.38 2.92 2.33 1.17-.05 1.61-.75 3.02-.75 1.4 0 1.8.75 3.03.73 1.25-.02 2.04-1.13 2.82-2.26.9-1.3 1.27-2.55 1.29-2.62-.03-.01-2.47-.95-2.5-3.76-.02-2.35 1.92-3.47 2.01-3.53-1.1-1.62-2.8-1.8-3.47-1.83z"/>
+            </svg>
+          </span>
+          <span>iOS · Safari</span>
+        </div>
+
+        <div class="phone phone--ios">
+          <span class="phone__notch"></span>
+          <div class="phone__screen">
+            <div class="phone__bar">
+              <span class="phone__lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg></span> ipgestion.com
+            </div>
+            <div class="phone__page">
+              <div class="phone__dash-header">
+                <span class="phone__dash-brand">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+                  Dashboard
+                </span>
+                <span class="phone__dash-fx">$ 1.555</span>
+              </div>
+
+              <div class="phone__dash-kpis">
+                <div class="phone__dash-kpi">
+                  <span>VENTAS DEL MES</span>
+                  <strong>u$d 13.054</strong>
+                </div>
+                <div class="phone__dash-kpi">
+                  <span>MARGEN</span>
+                  <strong class="phone__dash-kpi--pos">u$d 861</strong>
+                </div>
+              </div>
+
+              <div class="phone__dash-chart">
+                <span style="height:35%"></span>
+                <span style="height:55%"></span>
+                <span style="height:45%"></span>
+                <span style="height:75%"></span>
+                <span style="height:60%"></span>
+                <span style="height:90%"></span>
+              </div>
+
+              <div class="phone__dash-row">
+                <span class="phone__dash-dot"></span>
+                <div class="phone__dash-row-text">
+                  <strong>iPhone 15 Pro Max</strong>
+                  <span>Diego Pereyra</span>
+                </div>
+                <strong class="phone__dash-row-amt">u$d 662</strong>
+              </div>
+              <div class="phone__dash-row">
+                <span class="phone__dash-dot phone__dash-dot--alt"></span>
+                <div class="phone__dash-row-text">
+                  <strong>iPhone 14 Pro Max</strong>
+                  <span>Laura Fernández</span>
+                </div>
+                <strong class="phone__dash-row-amt">u$d 784</strong>
+              </div>
+            </div>
+
+            <div class="phone__sheet" [class.phone__sheet--open]="iosStep() >= 3">
+              <span class="phone__sheet-handle"></span>
+              <div class="phone__sheet-apps">
+                <span class="phone__swatch phone__swatch--a"></span>
+                <span class="phone__swatch phone__swatch--b"></span>
+                <span class="phone__swatch phone__swatch--c"></span>
+              </div>
+              <div class="phone__sheet-actions">
+                <div class="phone__action">
+                  <span class="phone__action-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
+                  </span>
+                  Agregar a Favoritos
+                </div>
+                <div class="phone__action phone__action--target" [class.phone__action--active]="iosStep() === 3">
+                  <span class="phone__action-icon phone__action-icon--plus">+</span>
+                  Agregar a pantalla de inicio
+                </div>
+                <div class="phone__action">
+                  <span class="phone__action-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                  </span>
+                  Buscar en la página
+                </div>
+              </div>
+            </div>
+
+            <div class="phone__toolbar" [class.phone__toolbar--dim]="iosStep() >= 3">
+              <span class="phone__tb-icon">◁</span>
+              <span class="phone__tb-icon">▷</span>
+              <span class="phone__tb-icon phone__tb-icon--share" [class.phone__tb-icon--active]="iosStep() === 2">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3v12"/><path d="M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 002 2h10a2 2 0 002-2v-6"/></svg>
+              </span>
+              <span class="phone__tb-icon">▭</span>
+              <span class="phone__tb-icon">☰</span>
+            </div>
+          </div>
+        </div>
+
+        <ol class="install__steps">
+          <li [class.active]="iosStep() === 1" (click)="iosStep.set(1)">Abrí <strong>iP Gestión</strong> desde Safari.</li>
+          <li [class.active]="iosStep() === 2" (click)="iosStep.set(2)">Tocá el ícono de <strong>Compartir</strong>, abajo en la barra.</li>
+          <li [class.active]="iosStep() === 3" (click)="iosStep.set(3)">Elegí <strong>“Agregar a pantalla de inicio”</strong> y confirmá.</li>
+        </ol>
+      </div>
+
+      <!-- Android / Chrome -->
+      <div class="install__card reveal">
+        <div class="install__os">
+          <span class="install__icon">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M6 9a6 6 0 0 1 12 0v4a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1z"/>
+              <circle cx="9.6" cy="9.6" r="0.9" fill="#fff"/>
+              <circle cx="14.4" cy="9.6" r="0.9" fill="#fff"/>
+              <line x1="8.6" y1="4.3" x2="7.8" y2="2.1" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+              <line x1="15.4" y1="4.3" x2="16.2" y2="2.1" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+            </svg>
+          </span>
+          <span>Android · Chrome</span>
+        </div>
+
+        <div class="phone phone--android">
+          <span class="phone__camera-dot"></span>
+          <div class="phone__screen">
+            <div class="phone__bar phone__bar--chrome">
+              <span class="phone__lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg></span> ipgestion.com
+              <span class="phone__menu-dots" [class.phone__menu-dots--active]="androidStep() >= 2">⋮</span>
+            </div>
+            <div class="phone__page">
+              <div class="phone__dash-header">
+                <span class="phone__dash-brand">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+                  Dashboard
+                </span>
+                <span class="phone__dash-fx">$ 1.555</span>
+              </div>
+
+              <div class="phone__dash-kpis">
+                <div class="phone__dash-kpi">
+                  <span>VENTAS DEL MES</span>
+                  <strong>u$d 13.054</strong>
+                </div>
+                <div class="phone__dash-kpi">
+                  <span>MARGEN</span>
+                  <strong class="phone__dash-kpi--pos">u$d 861</strong>
+                </div>
+              </div>
+
+              <div class="phone__dash-chart">
+                <span style="height:35%"></span>
+                <span style="height:55%"></span>
+                <span style="height:45%"></span>
+                <span style="height:75%"></span>
+                <span style="height:60%"></span>
+                <span style="height:90%"></span>
+              </div>
+
+              <div class="phone__dash-row">
+                <span class="phone__dash-dot"></span>
+                <div class="phone__dash-row-text">
+                  <strong>iPhone 15 Pro Max</strong>
+                  <span>Diego Pereyra</span>
+                </div>
+                <strong class="phone__dash-row-amt">u$d 662</strong>
+              </div>
+              <div class="phone__dash-row">
+                <span class="phone__dash-dot phone__dash-dot--alt"></span>
+                <div class="phone__dash-row-text">
+                  <strong>iPhone 14 Pro Max</strong>
+                  <span>Laura Fernández</span>
+                </div>
+                <strong class="phone__dash-row-amt">u$d 784</strong>
+              </div>
+            </div>
+
+            <div class="phone__menu" [class.phone__menu--open]="androidStep() >= 2">
+              <div class="phone__menu-item">Nueva pestaña</div>
+              <div class="phone__menu-item">Historial</div>
+              <div class="phone__menu-divider"></div>
+              <div class="phone__menu-item phone__menu-item--target" [class.phone__menu-item--active]="androidStep() === 3">
+                <span class="phone__action-icon phone__action-icon--plus">+</span>
+                Instalar app
+              </div>
+              <div class="phone__menu-item">Configuración</div>
+            </div>
+          </div>
+        </div>
+
+        <ol class="install__steps">
+          <li [class.active]="androidStep() === 1" (click)="androidStep.set(1)">Abrí <strong>iP Gestión</strong> desde Chrome.</li>
+          <li [class.active]="androidStep() === 2" (click)="androidStep.set(2)">Tocá el menú <strong>⋮</strong>, arriba a la derecha.</li>
+          <li [class.active]="androidStep() === 3" (click)="androidStep.set(3)">Elegí <strong>“Instalar app”</strong> o <strong>“Agregar a pantalla principal”</strong>.</li>
+        </ol>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ─── CTA BANNER ──────────────────────────────────────── -->
+  <section class="cta-banner reveal">
+    <h2>¿Listo para ordenar tu local?</h2>
+    <p>Escribinos y te mostramos cómo funciona iP Gestión para tu negocio.</p>
+    <div class="cta-banner__actions">
+      <a [href]="whatsappUrl" target="_blank" rel="noopener" class="btn-lg btn-lg--primary">Contactanos</a>
+      <a routerLink="/login" class="btn-lg btn-lg--ghost-dark">Ya tengo cuenta</a>
+    </div>
+  </section>
+
+  <!-- ─── FOOTER ──────────────────────────────────────────── -->
+  <footer class="footer">
+    <div class="footer__top">
+      <div class="footer__brand">
+        <span class="nav__brand-mark">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+        </span>
+        iP Gestión
+      </div>
+      <div class="footer__cols">
+        <div class="footer__col">
+          <span class="footer__col-title">Producto</span>
+          <a href="#funciones">Funciones</a>
+          <a href="#operacion">Cómo funciona</a>
+          <a href="#equipo">Equipo</a>
+        </div>
+        <div class="footer__col">
+          <span class="footer__col-title">Cuenta</span>
+          <a routerLink="/login">Iniciar sesión</a>
+          <a [href]="whatsappUrl" target="_blank" rel="noopener">Contactanos</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer__bottom">
+      <span>© 2026 iP Gestión. Todos los derechos reservados.</span>
+    </div>
+  </footer>
+
+</div>

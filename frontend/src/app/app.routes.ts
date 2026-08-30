@@ -2,8 +2,16 @@ import { Routes } from '@angular/router';
 import { MainLayoutComponent } from './core/layout/main-layout.component';
 import { authGuard } from './core/guards/auth.guard';
 import { ownerGuard } from './core/guards/owner.guard';
+import { guestGuard } from './core/guards/guest.guard';
 
 export const routes: Routes = [
+  // ─── Public landing page (guests only; logged-in users skip to the app) ───
+  {
+    path: '',
+    pathMatch: 'full',
+    canActivate: [guestGuard],
+    loadComponent: () => import('./features/landing/landing.component').then(m => m.LandingComponent)
+  },
   // ─── Standalone auth pages (no sidebar) ───────────────────
   {
     path: 'login',
@@ -23,7 +31,6 @@ export const routes: Routes = [
     component: MainLayoutComponent,
     canActivate: [authGuard],
     children: [
-      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       { path: 'dashboard', loadComponent: () => import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent) },
       { path: 'ventas', loadComponent: () => import('./features/ventas/ventas.component').then(m => m.VentasComponent) },
       { path: 'compras', loadComponent: () => import('./features/compras/compras.component').then(m => m.ComprasComponent) },
@@ -45,5 +52,5 @@ export const routes: Routes = [
       { path: 'configuracion', canActivate: [ownerGuard], loadComponent: () => import('./features/configuracion/configuracion.component').then(m => m.ConfiguracionComponent) },
     ]
   },
-  { path: '**', redirectTo: 'login' }
+  { path: '**', redirectTo: '' }
 ];
