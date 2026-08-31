@@ -83,6 +83,7 @@ public class DashboardService(AppDbContext db) : IDashboardService
         var sales = await db.Sales
             .Where(s => s.TenantId == tenantId && s.Status == SaleStatus.COMPLETED)
             .Include(s => s.Items).ThenInclude(i => i.StockItem).ThenInclude(si => si!.Model)
+            .Include(s => s.Items).ThenInclude(i => i.StockBulk).ThenInclude(sb => sb!.Accessory)
             .Include(s => s.Entity)
             .OrderByDescending(s => s.SaleDate)
             .Take(count)
@@ -90,7 +91,8 @@ public class DashboardService(AppDbContext db) : IDashboardService
 
         return sales.Select(s => new QuickSaleDto(
             s.SaleDate,
-            s.Items.FirstOrDefault()?.StockItem?.Model?.Name ?? "Accesorio",
+            s.Items.FirstOrDefault()?.StockItem?.Model?.Name
+                ?? (s.Items.FirstOrDefault()?.StockBulk != null ? s.Items.FirstOrDefault()!.StockBulk!.Accessory.Name : "Accesorio"),
             s.Entity?.Name ?? s.RetailClientName ?? "Consumidor Final",
             s.TotalUsd,
             s.TotalUsd - s.Items.Where(i => i.StockItem != null).Sum(i => i.StockItem!.CostUsd)
@@ -338,6 +340,7 @@ public class SaleService(AppDbContext db, IEmailService emailService) : ISaleSer
     public async Task<PagedResult<SaleDto>> GetPagedAsync(Guid tenantId, SaleCategory? category, SaleOrigin? origin, string? search, DateTime? from, DateTime? to, int page, int pageSize, CancellationToken ct = default)
     {
         var q = db.Sales.Include(s => s.Items).ThenInclude(i => i.StockItem).ThenInclude(si => si!.Model)
+            .Include(s => s.Items).ThenInclude(i => i.StockBulk).ThenInclude(sb => sb!.Accessory)
             .Include(s => s.Payments).Include(s => s.Entity).Include(s => s.TradeIn)
             .Where(s => s.TenantId == tenantId);
         if (category.HasValue) q = q.Where(s => s.SaleCategory == category.Value);
@@ -358,6 +361,7 @@ public class SaleService(AppDbContext db, IEmailService emailService) : ISaleSer
     public async Task<SaleDto?> GetByIdAsync(Guid tenantId, Guid id, CancellationToken ct = default)
     {
         var s = await db.Sales.Include(x => x.Items).ThenInclude(i => i.StockItem).ThenInclude(si => si!.Model)
+            .Include(x => x.Items).ThenInclude(i => i.StockBulk).ThenInclude(sb => sb!.Accessory)
             .Include(x => x.Payments).Include(x => x.Entity).Include(x => x.TradeIn)
             .FirstOrDefaultAsync(x => x.TenantId == tenantId && x.Id == id, ct);
         if (s == null) return null;
@@ -621,7 +625,9 @@ public class SaleService(AppDbContext db, IEmailService emailService) : ISaleSer
             s.Entity?.Name ?? s.RetailClientName, s.Entity?.Phone ?? s.RetailClientPhone,
             s.SaleCategory, s.Origin, s.TotalUsd, s.TotalUsd - costo, s.WarrantyDays, s.Status, s.Notes, s.SaleDate,
             s.Items.Select(i => new SaleItemDto(i.Id, i.Type,
-                i.StockItem?.Model?.Name ?? "Accesorio", i.Quantity, i.PriceUsd, i.StockItem?.ImeiSerial)).ToList(),
+                i.StockItem?.Model?.Name
+                    ?? (i.StockBulk != null ? $"{i.StockBulk.Accessory.Name}{(i.StockBulk.Color != null ? $" - {i.StockBulk.Color}" : "")}" : "Accesorio"),
+                i.Quantity, i.PriceUsd, i.StockItem?.ImeiSerial)).ToList(),
             s.Payments.Select(p => new PaymentDto(p.Method, p.Currency, p.Amount, p.ExchangeRateUsd)).ToList(),
             soldBy,
             s.TradeIn != null,

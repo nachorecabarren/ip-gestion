@@ -15,6 +15,7 @@ import {
   Sale,
   SaleItem,
   StockItem,
+  StockBulk,
   Entity,
   CatalogModel,
   PaymentMethod,
@@ -53,6 +54,7 @@ export class VentasComponent implements OnInit {
   // Catalog data
   entities = signal<Entity[]>([]);
   availableStock = signal<StockItem[]>([]);
+  bulkStock = signal<StockBulk[]>([]);
   models = signal<CatalogModel[]>([]);
   tcBlue = signal(1520);
   tradeInKpis = signal<{ ventasConCanje: number; porcentajeCanje: number } | null>(null);
@@ -98,6 +100,7 @@ export class VentasComponent implements OnInit {
     this.api
       .getStockItems("AVAILABLE", undefined, undefined, 1, 500)
       .subscribe((r) => this.availableStock.set(r.items));
+    this.api.getStockBulk().subscribe((b) => this.bulkStock.set(b));
     this.api.getCatalogModels().subscribe((m) => this.models.set(m));
     // Fuente única de verdad: el % de canje se calcula en el servidor sobre
     // todas las ventas del mes, no sobre la página parcial cargada acá.
@@ -224,10 +227,14 @@ export class VentasComponent implements OnInit {
       return null;
     }
     if (step === 2) {
-      const hasValidItem = this.items.controls.some(
-        (c) => c.get('stockItemId')?.value && Number(c.get('priceUsd')?.value) > 0,
-      );
-      return hasValidItem ? null : 'Seleccioná al menos un equipo con precio válido.';
+      if (this.items.length === 0) return 'Agregá al menos un ítem a la venta.';
+      for (const c of this.items.controls) {
+        const isAccessory = c.get('type')?.value === 'ACCESSORY';
+        if (isAccessory && !c.get('stockBulkId')?.value) return 'Seleccioná un accesorio para cada ítem agregado.';
+        if (!isAccessory && !c.get('stockItemId')?.value) return 'Seleccioná un equipo para cada ítem agregado.';
+        if (!(Number(c.get('priceUsd')?.value) > 0)) return 'Cada ítem debe tener un precio válido.';
+      }
+      return null;
     }
     if (step === 3) {
       if (v.tradeInEnabled && !v.tradeInModelId) return 'Seleccioná el modelo del equipo a canjear.';
@@ -284,12 +291,28 @@ export class VentasComponent implements OnInit {
     this.items.push(
       this.fb.group({
         type: ["EQUIPMENT"],
-        stockItemId: [null, Validators.required],
-        stockBulkId: [null],
+        stockItemId: [null],
+        stockBulkId: [""],
         quantity: [1, [Validators.min(1)]],
         priceUsd: [0, [Validators.required, Validators.min(0.01)]],
       }),
     );
+  }
+
+  setItemType(i: number, type: "EQUIPMENT" | "ACCESSORY") {
+    const group = this.items.at(i);
+    if (group.get("type")?.value === type) return;
+    group.patchValue({ type, stockItemId: null, stockBulkId: "", priceUsd: 0, quantity: 1 });
+    this.setItemFilter(i, "");
+    this.updateTotals();
+  }
+
+  onBulkSelect(i: number, bulkId: string | null) {
+    const bulk = this.bulkStock().find((b) => b.id === bulkId);
+    if (bulk) {
+      this.items.at(i).patchValue({ priceUsd: bulk.suggestedPriceUsd });
+      this.updateTotals();
+    }
   }
 
   removeItem(i: number) {

@@ -145,7 +145,7 @@
           <td>{{ s.saleDate | date: "dd/MM/yy" }}</td>
           <td>
             <div class="item-cell">
-              <strong>{{ s.items.length ? s.items[0].itemName : "—" }}</strong>
+              <strong>{{ s.items.length ? s.items[0].itemName : "—" }}{{ s.items.length > 1 ? " +" + (s.items.length - 1) : "" }}</strong>
               <div *ngIf="getSaleItemImeiList(s.items).length > 0" style="font-size: 11px; color: var(--color-text-muted); margin-top: 2px;">
                 IMEI: {{ getSaleItemImeiList(s.items).join(" · ") }}
               </div>
@@ -370,7 +370,14 @@
                   ✕
                 </button>
               </div>
-              <div class="form-row">
+              <div class="form-group">
+                <div class="category-toggle">
+                  <button type="button" [class.active]="item.get('type')?.value === 'EQUIPMENT'" (click)="setItemType(i, 'EQUIPMENT')">Equipo</button>
+                  <button type="button" [class.active]="item.get('type')?.value === 'ACCESSORY'" (click)="setItemType(i, 'ACCESSORY')">Accesorio</button>
+                </div>
+              </div>
+
+              <div class="form-row" *ngIf="item.get('type')?.value === 'EQUIPMENT'">
                 <div class="form-group form-group--grow">
                   <label>Equipo / Stock *</label>
                   <app-stock-item-select
@@ -387,6 +394,41 @@
                 </div>
                 <div class="form-group form-group--sm">
                   <label>Precio u$d *</label>
+                  <input
+                    type="number"
+                    formControlName="priceUsd"
+                    class="form-control"
+                    (input)="updateTotals()"
+                  />
+                </div>
+              </div>
+
+              <div class="form-row" *ngIf="item.get('type')?.value === 'ACCESSORY'">
+                <div class="form-group form-group--grow">
+                  <label>Accesorio *</label>
+                  <select
+                    formControlName="stockBulkId"
+                    class="form-control"
+                    (change)="onBulkSelect(i, $any($event.target).value)"
+                  >
+                    <option value="">Seleccioná un accesorio...</option>
+                    <option *ngFor="let b of bulkStock()" [value]="b.id">
+                      {{ b.accessoryName }}{{ b.color ? ' - ' + b.color : '' }} (Stock: {{ b.quantity }})
+                    </option>
+                  </select>
+                </div>
+                <div class="form-group form-group--sm">
+                  <label>Cantidad *</label>
+                  <input
+                    type="number"
+                    formControlName="quantity"
+                    class="form-control"
+                    min="1"
+                    (input)="updateTotals()"
+                  />
+                </div>
+                <div class="form-group form-group--sm">
+                  <label>Precio u$d c/u *</label>
                   <input
                     type="number"
                     formControlName="priceUsd"
