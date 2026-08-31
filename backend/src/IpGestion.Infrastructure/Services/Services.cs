@@ -222,11 +222,11 @@ public class StockService(AppDbContext db) : IStockService
         if (status.HasValue) q = q.Where(s => s.Status == status.Value);
         if (condition.HasValue) q = q.Where(s => s.Condition == condition.Value);
         if (!string.IsNullOrWhiteSpace(search))
-            q = q.Where(s => (s.ImeiSerial != null && s.ImeiSerial.Contains(search)) ||
-                             (s.InternalCode != null && s.InternalCode.Contains(search)) ||
-                             s.Model.Name.Contains(search));
+            q = q.Where(s => (s.ImeiSerial != null && EF.Functions.ILike(s.ImeiSerial, $"%{search}%")) ||
+                             (s.InternalCode != null && EF.Functions.ILike(s.InternalCode, $"%{search}%")) ||
+                             EF.Functions.ILike(s.Model.Name, $"%{search}%"));
         if (!string.IsNullOrWhiteSpace(color))
-            q = q.Where(s => s.Color != null && s.Color.Contains(color));
+            q = q.Where(s => s.Color != null && EF.Functions.ILike(s.Color, $"%{color}%"));
         if (storageGb.HasValue)
             q = q.Where(s => s.StorageGb == storageGb.Value);
         var total = await q.CountAsync(ct);
