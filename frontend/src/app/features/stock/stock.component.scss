@@ -3,12 +3,43 @@
 .stock {
   display: flex; flex-direction: column; gap: 16px;
 
-  &__filters {
-    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
-    .search-input { min-width: 180px; }
+  &__filters-bar {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
   }
-  &__color-filter { flex: 0 1 170px; min-width: 130px; max-width: 170px; }
+  &__filters-toggle {
+    display: inline-flex; align-items: center; gap: 7px;
+    background: none; border: none; padding: 4px 2px; cursor: pointer;
+    font-size: 13px; font-weight: 600; color: var(--color-text-secondary); font-family: var(--font-sans);
+
+    svg:first-child { width: 15px; height: 15px; color: var(--color-text-faint); flex-shrink: 0; }
+    &:hover { color: var(--color-text-primary); }
+  }
+  &__filters-chevron {
+    width: 14px; height: 14px; color: var(--color-text-faint); flex-shrink: 0;
+    transition: transform 0.15s ease;
+    &--open { transform: rotate(180deg); }
+  }
+  &__filters {
+    display: flex; align-items: flex-end; gap: 14px; flex-wrap: wrap;
+  }
+  &__color-filter { min-width: 130px; max-width: 170px; }
   &__scanner-feedback { margin-top: -4px; margin-bottom: 8px; }
+}
+
+.filter-field {
+  display: flex; flex-direction: column; gap: 5px;
+
+  label {
+    font-size: 10.5px; font-weight: 600; color: var(--color-text-faint);
+    letter-spacing: .3px; text-transform: uppercase;
+  }
+
+  // .search-input/.filter-select carry row-flex sizing (flex, max-width) meant for
+  // when they're direct children of a row container — reset that here since they're
+  // one column-flex level deeper now, and size from this wrapper's width instead.
+  .search-input, .filter-select { flex: none; max-width: none; min-width: 0; width: 100%; }
+
+  &--grow { flex: 1; min-width: 200px; }
 }
 
 .tabs { display: flex; gap: 0; border-bottom: 1px solid var(--color-border); }

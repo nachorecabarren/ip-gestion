@@ -36,6 +36,7 @@ export class StockComponent implements OnInit {
   conditionFilter = signal('');
   colorFilter = signal('');
   storageFilter = signal('');
+  filtersOpen = signal(true);
 
   readonly storageOptions = [64, 128, 256, 512, 1024, 2048];
 
@@ -102,8 +103,13 @@ export class StockComponent implements OnInit {
     });
   }
 
+  activeFilterCount(): number {
+    return [this.search(), this.statusFilter(), this.conditionFilter(), this.colorFilter(), this.storageFilter()]
+      .filter(v => !!v).length;
+  }
+
   hasActiveFilters(): boolean {
-    return !!(this.search() || this.statusFilter() || this.conditionFilter() || this.colorFilter() || this.storageFilter());
+    return this.activeFilterCount() > 0;
   }
 
   clearFilters() {
