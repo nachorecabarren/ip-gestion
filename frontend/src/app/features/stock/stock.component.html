@@ -21,16 +21,16 @@
   <div class="stock__filters" *ngIf="activeTab() === 'equipos'">
     <div class="search-input">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input type="text" placeholder="Buscar por código..." (input)="search.set($any($event.target).value); loadItems()" />
+      <input type="text" placeholder="Buscar por código..." [value]="search()" (input)="search.set($any($event.target).value); loadItems()" />
     </div>
-    <select class="filter-select" (change)="statusFilter.set($any($event.target).value); loadItems()">
+    <select class="filter-select" [value]="statusFilter()" (change)="statusFilter.set($any($event.target).value); loadItems()">
       <option value="">Todos los estados...</option>
       <option value="AVAILABLE">Disponible</option>
       <option value="RESERVED">Reservado</option>
       <option value="SOLD">Vendido</option>
       <option value="IN_REPAIR">En reparación</option>
     </select>
-    <select class="filter-select" (change)="conditionFilter.set($any($event.target).value); loadItems()">
+    <select class="filter-select" [value]="conditionFilter()" (change)="conditionFilter.set($any($event.target).value); loadItems()">
       <option value="">Toda Condic.</option>
       <option value="NEW">Nuevo</option>
       <option value="USED">Usado</option>
@@ -39,13 +39,13 @@
     </select>
     <div class="search-input stock__color-filter">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input type="text" placeholder="Filtrar por color..." (input)="colorFilter.set($any($event.target).value); loadItems()" />
+      <input type="text" placeholder="Filtrar por color..." [value]="colorFilter()" (input)="colorFilter.set($any($event.target).value); loadItems()" />
     </div>
-    <select class="filter-select" (change)="storageFilter.set($any($event.target).value); loadItems()">
+    <select class="filter-select" [value]="storageFilter()" (change)="storageFilter.set($any($event.target).value); loadItems()">
       <option value="">Todo almacenamiento</option>
       <option *ngFor="let gb of storageOptions" [value]="gb">{{ gb >= 1024 ? (gb / 1024) + 'TB' : gb + 'GB' }}</option>
     </select>
-    <button class="btn btn--primary btn--sm" (click)="loadItems()">🔍 Buscar</button>
+    <button class="btn btn--ghost btn--sm" [disabled]="!hasActiveFilters()" (click)="clearFilters()">✕ Limpiar filtros</button>
     <app-imei-scanner [label]="''" [placeholder]="'Buscar por IMEI'" (imeiScanned)="onImeiScanned($event)"></app-imei-scanner>
   </div>
 

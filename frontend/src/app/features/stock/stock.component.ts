@@ -102,6 +102,19 @@ export class StockComponent implements OnInit {
     });
   }
 
+  hasActiveFilters(): boolean {
+    return !!(this.search() || this.statusFilter() || this.conditionFilter() || this.colorFilter() || this.storageFilter());
+  }
+
+  clearFilters() {
+    this.search.set('');
+    this.statusFilter.set('');
+    this.conditionFilter.set('');
+    this.colorFilter.set('');
+    this.storageFilter.set('');
+    this.loadItems();
+  }
+
   loadItems() {
     this.loading.set(true);
     this.api.getStockItems(
