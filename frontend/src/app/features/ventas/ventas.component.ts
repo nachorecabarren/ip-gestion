@@ -203,18 +203,6 @@ export class VentasComponent implements OnInit {
       this.saleForm.markAllAsTouched();
       return;
     }
-    // Los datos del cliente (paso 1) solo son obligatorios si la venta incluye
-    // un equipo — pero eso recién se sabe al completar el paso 2. Re-validamos
-    // acá para avisar apenas se sale del paso 2, en vez de recién al finalizar.
-    if (this.wizardStep() === 2) {
-      const clientError = this.validateStep(1);
-      if (clientError) {
-        this.submitError.set(clientError);
-        this.saleForm.markAllAsTouched();
-        this.wizardStep.set(1);
-        return;
-      }
-    }
     this.submitError.set('');
     if (this.wizardStep() < 4) this.wizardStep.update((s) => s + 1);
   }
@@ -236,10 +224,20 @@ export class VentasComponent implements OnInit {
     return this.items.controls.some(c => c.get('type')?.value === 'EQUIPMENT' && !!c.get('stockItemId')?.value);
   }
 
-  /** Datos obligatorios por paso: cliente (1, solo si hay equipos), equipo (2) y, si corresponde, email de factura. */
+  /** Datos obligatorios por paso: equipo (1), cliente (2, solo si hay equipos) y, si corresponde, email de factura. */
   validateStep(step: number): string | null {
     const v = this.saleForm.getRawValue();
     if (step === 1) {
+      if (this.items.length === 0) return 'Agregá al menos un ítem a la venta.';
+      for (const c of this.items.controls) {
+        const isAccessory = c.get('type')?.value === 'ACCESSORY';
+        if (isAccessory && !c.get('stockBulkId')?.value) return 'Seleccioná un accesorio para cada ítem agregado.';
+        if (!isAccessory && !c.get('stockItemId')?.value) return 'Seleccioná un equipo para cada ítem agregado.';
+        if (!(Number(c.get('priceUsd')?.value) > 0)) return 'Cada ítem debe tener un precio válido.';
+      }
+      return null;
+    }
+    if (step === 2) {
       const requiresClientData = this.hasEquipmentItem();
       if (v.isConsumerFinal) {
         if (requiresClientData && !v.retailClientName?.trim()) return 'Ingresá el nombre del cliente.';
@@ -250,16 +248,6 @@ export class VentasComponent implements OnInit {
         return requiresClientData
           ? 'Ingresá un email válido — es obligatorio en ventas con equipos.'
           : 'Ingresá un email válido para enviar la factura.';
-      }
-      return null;
-    }
-    if (step === 2) {
-      if (this.items.length === 0) return 'Agregá al menos un ítem a la venta.';
-      for (const c of this.items.controls) {
-        const isAccessory = c.get('type')?.value === 'ACCESSORY';
-        if (isAccessory && !c.get('stockBulkId')?.value) return 'Seleccioná un accesorio para cada ítem agregado.';
-        if (!isAccessory && !c.get('stockItemId')?.value) return 'Seleccioná un equipo para cada ítem agregado.';
-        if (!(Number(c.get('priceUsd')?.value) > 0)) return 'Cada ítem debe tener un precio válido.';
       }
       return null;
     }

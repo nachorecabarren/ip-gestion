@@ -235,14 +235,14 @@
         [class.done]="wizardStep() > s"
       >
         <div class="wizard-step__dot">{{ s }}</div>
-        <span>{{ ["Cliente", "Equipo", "Canje", "Pago"][s - 1] }}</span>
+        <span>{{ ["Equipo", "Cliente", "Canje", "Pago"][s - 1] }}</span>
       </div>
     </div>
 
     <div class="modal__body-split" [formGroup]="saleForm">
       <!-- Main wizard content -->
       <div class="modal__main">
-        <!-- STEP 1: Cliente -->
+        <!-- STEP 1: Equipos -->
         <ng-container *ngIf="wizardStep() === 1">
           <div class="form-row">
             <div class="form-group">
@@ -255,104 +255,6 @@
               />
             </div>
           </div>
-          <div class="form-group">
-            <label>Tipo de cliente</label>
-            <div class="radio-group">
-              <label class="radio-option">
-                <input
-                  type="radio"
-                  formControlName="isConsumerFinal"
-                  [value]="true"
-                />
-                Consumidor Final
-              </label>
-              <label class="radio-option">
-                <input
-                  type="radio"
-                  formControlName="isConsumerFinal"
-                  [value]="false"
-                />
-                Cliente Registrado
-              </label>
-            </div>
-          </div>
-
-          <ng-container *ngIf="saleForm.get('isConsumerFinal')?.value">
-            <div class="form-group">
-              <label>Nombre del Cliente {{ hasEquipmentItem() ? '*' : '(opcional)' }}</label>
-              <input
-                type="text"
-                formControlName="retailClientName"
-                class="form-control"
-                placeholder="Nombre completo"
-              />
-            </div>
-            <div class="form-row">
-              <div class="form-group">
-                <label>WhatsApp</label>
-                <input
-                  type="text"
-                  formControlName="retailClientPhone"
-                  class="form-control"
-                  placeholder="+54 9..."
-                />
-              </div>
-              <div class="form-group">
-                <label>Email {{ hasEquipmentItem() || saleForm.get('sendInvoiceEmail')?.value ? '*' : '' }}</label>
-                <input
-                  type="email"
-                  formControlName="invoiceEmail"
-                  class="form-control"
-                  placeholder="cliente@email.com"
-                />
-              </div>
-            </div>
-          </ng-container>
-
-          <ng-container *ngIf="!saleForm.get('isConsumerFinal')?.value">
-            <div class="form-group">
-              <label>Cliente *</label>
-              <select formControlName="entityId" class="form-control" (change)="onEntitySelect($event)">
-                <option value="">Seleccionar cliente...</option>
-                <option *ngFor="let e of entities()" [value]="e.id">
-                  {{ e.name }} {{ e.phone ? "— " + e.phone : "" }}
-                </option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Email {{ hasEquipmentItem() || saleForm.get('sendInvoiceEmail')?.value ? '*' : '' }}</label>
-              <input
-                type="email"
-                formControlName="invoiceEmail"
-                class="form-control"
-                placeholder="cliente@email.com"
-              />
-            </div>
-          </ng-container>
-
-          <div class="form-group">
-            <label class="toggle-label toggle-label--inline">
-              <span>¿Enviar factura o resumen de compra por email?</span>
-              <div
-                class="toggle"
-                [class.on]="saleForm.get('sendInvoiceEmail')?.value"
-                (click)="saleForm.patchValue({ sendInvoiceEmail: !saleForm.get('sendInvoiceEmail')?.value })"
-              ></div>
-            </label>
-          </div>
-
-          <div class="form-group">
-            <label>Días de Garantía</label>
-            <input
-              type="number"
-              formControlName="warrantyDays"
-              class="form-control"
-            />
-          </div>
-        </ng-container>
-
-        <!-- STEP 2: Equipos -->
-        <ng-container *ngIf="wizardStep() === 2">
           <div formArrayName="items">
             <div
               *ngFor="let item of items.controls; let i = index"
@@ -455,6 +357,105 @@
               rows="2"
               placeholder="Notas internas..."
             ></textarea>
+          </div>
+        </ng-container>
+
+        <!-- STEP 2: Cliente (solo obligatorio si la venta incluye un equipo) -->
+        <ng-container *ngIf="wizardStep() === 2">
+          <div class="form-group">
+            <label>Tipo de cliente</label>
+            <div class="radio-group">
+              <label class="radio-option">
+                <input
+                  type="radio"
+                  formControlName="isConsumerFinal"
+                  [value]="true"
+                />
+                Consumidor Final
+              </label>
+              <label class="radio-option">
+                <input
+                  type="radio"
+                  formControlName="isConsumerFinal"
+                  [value]="false"
+                />
+                Cliente Registrado
+              </label>
+            </div>
+          </div>
+
+          <ng-container *ngIf="saleForm.get('isConsumerFinal')?.value">
+            <div class="form-group">
+              <label>Nombre del Cliente {{ hasEquipmentItem() ? '*' : '(opcional)' }}</label>
+              <input
+                type="text"
+                formControlName="retailClientName"
+                class="form-control"
+                placeholder="Nombre completo"
+                autoFocus
+              />
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>WhatsApp</label>
+                <input
+                  type="text"
+                  formControlName="retailClientPhone"
+                  class="form-control"
+                  placeholder="+54 9..."
+                />
+              </div>
+              <div class="form-group">
+                <label>Email {{ hasEquipmentItem() || saleForm.get('sendInvoiceEmail')?.value ? '*' : '' }}</label>
+                <input
+                  type="email"
+                  formControlName="invoiceEmail"
+                  class="form-control"
+                  placeholder="cliente@email.com"
+                />
+              </div>
+            </div>
+          </ng-container>
+
+          <ng-container *ngIf="!saleForm.get('isConsumerFinal')?.value">
+            <div class="form-group">
+              <label>Cliente *</label>
+              <select formControlName="entityId" class="form-control" (change)="onEntitySelect($event)">
+                <option value="">Seleccionar cliente...</option>
+                <option *ngFor="let e of entities()" [value]="e.id">
+                  {{ e.name }} {{ e.phone ? "— " + e.phone : "" }}
+                </option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Email {{ hasEquipmentItem() || saleForm.get('sendInvoiceEmail')?.value ? '*' : '' }}</label>
+              <input
+                type="email"
+                formControlName="invoiceEmail"
+                class="form-control"
+                placeholder="cliente@email.com"
+              />
+            </div>
+          </ng-container>
+
+          <div class="form-group">
+            <label class="toggle-label toggle-label--inline">
+              <span>¿Enviar factura o resumen de compra por email?</span>
+              <div
+                class="toggle"
+                [class.on]="saleForm.get('sendInvoiceEmail')?.value"
+                (click)="saleForm.patchValue({ sendInvoiceEmail: !saleForm.get('sendInvoiceEmail')?.value })"
+              ></div>
+            </label>
+          </div>
+
+          <div class="form-group">
+            <label>Días de Garantía</label>
+            <input
+              type="number"
+              formControlName="warrantyDays"
+              class="form-control"
+            />
           </div>
         </ng-container>
 
