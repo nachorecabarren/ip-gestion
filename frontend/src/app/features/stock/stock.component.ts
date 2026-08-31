@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ApiService } from '../../core/services/api.service';
@@ -30,13 +30,42 @@ export class StockComponent implements OnInit {
   total = signal(0);
   loading = signal(true);
 
-  // Filters
+  // Filters (Equipos)
   search = signal('');
   statusFilter = signal('');
   conditionFilter = signal('');
   colorFilter = signal('');
   storageFilter = signal('');
   filtersOpen = signal(true);
+
+  // Filters (Accesorios)
+  bulkSearch = signal('');
+  bulkLowStockOnly = signal(false);
+
+  filteredBulkItems = computed(() => {
+    const q = this.bulkSearch().toLowerCase().trim();
+    let list = this.bulkItems();
+    if (q) {
+      list = list.filter(b =>
+        b.accessoryName.toLowerCase().includes(q) ||
+        (b.color ?? '').toLowerCase().includes(q) ||
+        (b.locationName ?? '').toLowerCase().includes(q)
+      );
+    }
+    if (this.bulkLowStockOnly()) {
+      list = list.filter(b => b.quantity <= b.lowStockThreshold);
+    }
+    return list;
+  });
+
+  hasActiveBulkFilters(): boolean {
+    return !!this.bulkSearch() || this.bulkLowStockOnly();
+  }
+
+  clearBulkFilters() {
+    this.bulkSearch.set('');
+    this.bulkLowStockOnly.set(false);
+  }
 
   readonly storageOptions = [64, 128, 256, 512, 1024, 2048];
 

@@ -129,14 +129,30 @@
     </div>
   </div>
 
+  <!-- Filters (Accesorios) -->
+  <div class="stock__filters" *ngIf="activeTab() === 'bulk'" style="margin-bottom:2px">
+    <div class="filter-field filter-field--grow">
+      <label>Buscar</label>
+      <div class="search-input">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" placeholder="Accesorio, color o ubicación..." [value]="bulkSearch()" (input)="bulkSearch.set($any($event.target).value)" />
+      </div>
+    </div>
+    <label class="filter-field" style="flex-direction:row;align-items:center;gap:6px;cursor:pointer">
+      <input type="checkbox" [checked]="bulkLowStockOnly()" (change)="bulkLowStockOnly.set($any($event.target).checked)" />
+      Solo stock bajo
+    </label>
+    <button type="button" class="btn btn--ghost btn--sm" [disabled]="!hasActiveBulkFilters()" (click)="clearBulkFilters()">✕ Limpiar filtros</button>
+  </div>
+
   <!-- Bulk table -->
   <div class="card" *ngIf="activeTab() === 'bulk'">
-    <table class="table" *ngIf="bulkItems().length > 0">
+    <table class="table" *ngIf="filteredBulkItems().length > 0">
       <thead>
         <tr><th>ACCESORIO</th><th>COLOR</th><th>CANTIDAD</th><th>ALERTA STOCK</th><th>COSTO</th><th>PRECIO VENTA</th><th>UBICACIÓN</th></tr>
       </thead>
       <tbody>
-        <tr *ngFor="let b of bulkItems()">
+        <tr *ngFor="let b of filteredBulkItems()">
           <td><strong>{{ b.accessoryName }}</strong></td>
           <td>{{ b.color ?? '—' }}</td>
           <td>
@@ -150,7 +166,8 @@
         </tr>
       </tbody>
     </table>
-    <div *ngIf="bulkItems().length === 0" class="empty-state"><div class="empty-state__title">Sin accesorios en stock</div></div>
+    <div *ngIf="filteredBulkItems().length === 0 && bulkItems().length === 0" class="empty-state"><div class="empty-state__title">Sin accesorios en stock</div></div>
+    <div *ngIf="filteredBulkItems().length === 0 && bulkItems().length > 0" class="empty-state"><div class="empty-state__title">Sin resultados para ese filtro</div></div>
   </div>
 
   <!-- Canjes tab -->
