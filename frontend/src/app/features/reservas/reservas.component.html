@@ -91,12 +91,12 @@
 
       <div class="form-group">
         <label>Equipo a apartar</label>
-        <select formControlName="stockItemId" class="form-control" (change)="onStockItemChange()">
-          <option value="">Sin equipo específico</option>
-          <option *ngFor="let s of availableStock()" [value]="s.id">
-            {{ s.modelName }} {{ s.storageGb }}GB {{ s.color }}{{ s.imeiSerial ? ' (IMEI ' + s.imeiSerial + ')' : '' }}
-          </option>
-        </select>
+        <app-stock-item-select
+          formControlName="stockItemId"
+          [items]="availableStock()"
+          [emptyOptionLabel]="'Sin equipo específico'"
+          [placeholder]="'Sin equipo específico'"
+        ></app-stock-item-select>
         <app-imei-scanner
           [label]="''"
           [placeholder]="'Escanear o ingresar IMEI'"

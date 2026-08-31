@@ -21,6 +21,7 @@ import {
   SaleCategory,
 } from "../../shared/models/models";
 import { ImeiScannerComponent } from "../../shared/components/imei-scanner/imei-scanner.component";
+import { StockItemSelectComponent } from "../../shared/components/stock-item-select/stock-item-select.component";
 import { EscapeCloseDirective } from "../../shared/directives/escape-close.directive";
 import { AutoFocusDirective } from "../../shared/directives/auto-focus.directive";
 import { openIfQueryParam } from "../../shared/utils/open-via-query-param";
@@ -29,7 +30,7 @@ import { confirmDiscard } from "../../shared/utils/confirm-discard";
 @Component({
   selector: "app-ventas",
   standalone: true,
-  imports: [CommonModule, RouterModule, ReactiveFormsModule, ImeiScannerComponent, EscapeCloseDirective, AutoFocusDirective],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, ImeiScannerComponent, StockItemSelectComponent, EscapeCloseDirective, AutoFocusDirective],
   templateUrl: "./ventas.component.html",
   styleUrls: ["./ventas.component.scss"],
 })
@@ -95,7 +96,7 @@ export class VentasComponent implements OnInit {
     this.api.getTcBlue().subscribe((r) => this.tcBlue.set(r.rate));
     this.api.getEntities("CLIENT").subscribe((r) => this.entities.set(r.items));
     this.api
-      .getStockItems("AVAILABLE")
+      .getStockItems("AVAILABLE", undefined, undefined, 1, 500)
       .subscribe((r) => this.availableStock.set(r.items));
     this.api.getCatalogModels().subscribe((m) => this.models.set(m));
     // Fuente única de verdad: el % de canje se calcula en el servidor sobre
@@ -311,8 +312,7 @@ export class VentasComponent implements OnInit {
     this.payments.removeAt(i);
   }
 
-  onStockSelect(index: number, event: Event) {
-    const id = (event.target as HTMLSelectElement).value;
+  onStockSelect(index: number, id: string | null) {
     const item = this.availableStock().find((s) => s.id === id);
     if (item) {
       const isWholesale =

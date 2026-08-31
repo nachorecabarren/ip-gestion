@@ -11,11 +11,12 @@ import { AutoFocusDirective } from '../../shared/directives/auto-focus.directive
 import { openIfQueryParam } from '../../shared/utils/open-via-query-param';
 import { confirmDiscard } from '../../shared/utils/confirm-discard';
 import { ImeiScannerComponent } from '../../shared/components/imei-scanner/imei-scanner.component';
+import { StockItemSelectComponent } from '../../shared/components/stock-item-select/stock-item-select.component';
 
 @Component({
   selector: 'app-reservas',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, EscapeCloseDirective, AutoFocusDirective, ImeiScannerComponent],
+  imports: [CommonModule, ReactiveFormsModule, EscapeCloseDirective, AutoFocusDirective, ImeiScannerComponent, StockItemSelectComponent],
   templateUrl: './reservas.component.html',
   styleUrls: ['./reservas.component.scss']
 })
@@ -95,10 +96,6 @@ export class ReservasComponent implements OnInit {
     return this.availableStock().find(s => s.id === id)?.imeiSerial ?? null;
   }
 
-  onStockItemChange() {
-    this.imeiScanMessage.set('');
-  }
-
   initForm() {
     this.imeiScanMessage.set('');
     this.form = this.fb.group({
@@ -115,6 +112,9 @@ export class ReservasComponent implements OnInit {
       depositMethod: ['USD_CASH'],
       notes: [''],
     });
+    // Manually picking from the dropdown clears a stale scan message. A successful
+    // scan re-sets it right after, since patchValue emits synchronously in onImeiScanned.
+    this.form.get('stockItemId')!.valueChanges.subscribe(() => this.imeiScanMessage.set(''));
   }
 
   load() {

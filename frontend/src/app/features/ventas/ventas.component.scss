@@ -12,25 +12,6 @@
   }
 }
 
-.form-control--search {
-  border-bottom-left-radius: 0;
-  border-bottom-right-radius: 0;
-  border-bottom: none;
-}
-
-.form-control--sub {
-  border-top-left-radius: 0;
-  border-top-right-radius: 0;
-  margin-top: 0;
-}
-
-.stock-count {
-  font-size: 11px;
-  color: var(--color-text-muted);
-  padding: 3px 6px;
-  text-align: right;
-}
-
 .toggle-label--inline {
   justify-content: flex-start;
   gap: 10px;

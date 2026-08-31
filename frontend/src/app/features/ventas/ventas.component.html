@@ -373,30 +373,12 @@
               <div class="form-row">
                 <div class="form-group form-group--grow">
                   <label>Equipo / Stock *</label>
-                  <input
-                    type="text"
-                    class="form-control form-control--search"
-                    placeholder="Buscar por IMEI, modelo, color..."
-                    [value]="itemFilters()[i] || ''"
-                    (input)="setItemFilter(i, $any($event.target).value)"
-                  />
-                  <select
+                  <app-stock-item-select
                     formControlName="stockItemId"
-                    class="form-control form-control--sub"
-                    (change)="onStockSelect(i, $event)"
-                  >
-                    <option value="">— Seleccioná un equipo —</option>
-                    <option *ngFor="let s of filteredStockFor(i)" [value]="s.id">
-                      {{ s.modelName }}
-                      {{ s.storageGb ? s.storageGb + "GB" : "" }}
-                      {{ s.color ?? "" }}
-                      {{ s.imeiSerial ? "· " + s.imeiSerial : "" }}
-                      ({{ s.internalCode }})
-                    </option>
-                  </select>
-                  <div class="stock-count" *ngIf="itemFilters()[i]">
-                    {{ filteredStockFor(i).length }} resultado{{ filteredStockFor(i).length === 1 ? '' : 's' }}
-                  </div>
+                    [items]="availableStock()"
+                    [placeholder]="'— Seleccioná un equipo —'"
+                    (valueSelected)="onStockSelect(i, $event)"
+                  ></app-stock-item-select>
                   <app-imei-scanner
                     [label]="'Escanear IMEI'"
                     [placeholder]="'Escanear o ingresar IMEI'"
