@@ -91,15 +91,18 @@
 
       <div class="form-group">
         <label>Equipo a apartar</label>
-        <select formControlName="stockItemId" class="form-control">
+        <select formControlName="stockItemId" class="form-control" (change)="onStockItemChange()">
           <option value="">Sin equipo específico</option>
-          <option *ngFor="let s of availableStock()" [value]="s.id">{{ s.modelName }} {{ s.storageGb }}GB {{ s.color }}</option>
+          <option *ngFor="let s of availableStock()" [value]="s.id">
+            {{ s.modelName }} {{ s.storageGb }}GB {{ s.color }}{{ s.imeiSerial ? ' (IMEI ' + s.imeiSerial + ')' : '' }}
+          </option>
         </select>
         <app-imei-scanner
           [label]="''"
           [placeholder]="'Escanear o ingresar IMEI'"
           (imeiScanned)="onImeiScanned($event)"
         ></app-imei-scanner>
+        <div class="text-small" style="margin-top:4px" *ngIf="selectedImei() as imei">IMEI: {{ imei }}</div>
         <div *ngIf="imeiScanMessage()" style="margin-top:6px">
           <span class="badge" [ngClass]="imeiScanMessageType() === 'error' ? 'badge--red' : 'badge--green'">{{ imeiScanMessage() }}</span>
         </div>

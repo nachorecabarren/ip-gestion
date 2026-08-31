@@ -61,7 +61,7 @@ export class ReservasComponent implements OnInit {
     this.initForm();
     this.load();
     this.api.getEntities('CLIENT').subscribe(r => this.clients.set(r.items));
-    this.api.getStockItems('AVAILABLE').subscribe(r => this.availableStock.set(r.items));
+    this.api.getStockItems('AVAILABLE', undefined, undefined, 1, 500).subscribe(r => this.availableStock.set(r.items));
     this.api.getTcBlue().subscribe(r => this.tcBlue.set(r.rate));
     openIfQueryParam(this.route, this.router, 'nueva', () => this.openModal());
   }
@@ -86,6 +86,17 @@ export class ReservasComponent implements OnInit {
       this.imeiScanMessage.set('No se encontró un equipo disponible con ese IMEI.');
       this.imeiScanMessageType.set('error');
     }
+  }
+
+  /** IMEI del equipo seleccionado en el dropdown, venga de un escaneo o de una selección manual. */
+  selectedImei(): string | null {
+    const id = this.form?.get('stockItemId')?.value;
+    if (!id) return null;
+    return this.availableStock().find(s => s.id === id)?.imeiSerial ?? null;
+  }
+
+  onStockItemChange() {
+    this.imeiScanMessage.set('');
   }
 
   initForm() {
