@@ -215,7 +215,7 @@ public class StockService(AppDbContext db) : IStockService
         s.Condition, s.ConditionGrade, s.BatteryPct, s.CostUsd, s.SuggestedPriceUsd,
         s.WholesalePriceUsd, s.Status, s.Location?.Name, s.Notes, s.CreatedAt);
 
-    public async Task<PagedResult<StockItemDto>> GetItemsPagedAsync(Guid tenantId, StockStatus? status, StockCondition? condition, string? search, int page, int pageSize, CancellationToken ct = default)
+    public async Task<PagedResult<StockItemDto>> GetItemsPagedAsync(Guid tenantId, StockStatus? status, StockCondition? condition, string? search, string? color, int? storageGb, int page, int pageSize, CancellationToken ct = default)
     {
         var q = db.StockItems.Include(s => s.Model).Include(s => s.Location)
             .Where(s => s.TenantId == tenantId);
@@ -225,6 +225,10 @@ public class StockService(AppDbContext db) : IStockService
             q = q.Where(s => (s.ImeiSerial != null && s.ImeiSerial.Contains(search)) ||
                              (s.InternalCode != null && s.InternalCode.Contains(search)) ||
                              s.Model.Name.Contains(search));
+        if (!string.IsNullOrWhiteSpace(color))
+            q = q.Where(s => s.Color != null && s.Color.Contains(color));
+        if (storageGb.HasValue)
+            q = q.Where(s => s.StorageGb == storageGb.Value);
         var total = await q.CountAsync(ct);
         var items = await q.OrderByDescending(s => s.CreatedAt)
             .Skip((page - 1) * pageSize).Take(pageSize).ToListAsync(ct);

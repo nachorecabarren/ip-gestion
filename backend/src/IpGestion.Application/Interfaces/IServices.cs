@@ -45,7 +45,7 @@ public interface IEntityService
 
 public interface IStockService
 {
-    Task<PagedResult<StockItemDto>> GetItemsPagedAsync(Guid tenantId, StockStatus? status, StockCondition? condition, string? search, int page, int pageSize, CancellationToken ct = default);
+    Task<PagedResult<StockItemDto>> GetItemsPagedAsync(Guid tenantId, StockStatus? status, StockCondition? condition, string? search, string? color, int? storageGb, int page, int pageSize, CancellationToken ct = default);
     Task<StockItemDto?> GetItemByIdAsync(Guid tenantId, Guid id, CancellationToken ct = default);
     Task<StockItemDto?> GetByBarcodeAsync(Guid tenantId, string barcode, CancellationToken ct = default);
     Task<StockItemDto> UpdateItemAsync(Guid tenantId, Guid id, UpdateStockItemDto dto, CancellationToken ct = default);

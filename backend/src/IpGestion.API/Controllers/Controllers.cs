@@ -79,8 +79,9 @@ public class StockController(IStockService svc, IAuditService audit) : TenantBas
 {
     [HttpGet("items")]
     public async Task<IActionResult> GetItems([FromQuery] StockStatus? status, [FromQuery] StockCondition? condition,
-        [FromQuery] string? search, [FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken ct = default)
-        => Ok(await svc.GetItemsPagedAsync(TenantId, status, condition, search, page, pageSize, ct));
+        [FromQuery] string? search, [FromQuery] string? color, [FromQuery] int? storageGb,
+        [FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken ct = default)
+        => Ok(await svc.GetItemsPagedAsync(TenantId, status, condition, search, color, storageGb, page, pageSize, ct));
 
     [HttpGet("items/{id:guid}")]
     public async Task<IActionResult> GetItem(Guid id, CancellationToken ct = default)

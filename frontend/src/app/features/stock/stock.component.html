@@ -6,9 +6,6 @@
     </div>
     <div style="display:flex;gap:8px">
       <button class="btn btn--ghost" (click)="openCotizador()">📊 Cotizador de Canje</button>
-      <div class="dropdown-btn" *ngIf="hasSelected()">
-        <button class="btn btn--ghost">Acciones masivas ▾</button>
-      </div>
       <button class="btn btn--primary" (click)="openNew()" *ngIf="auth.isOwner()">+ Agregar equipo</button>
     </div>
   </div>
@@ -40,6 +37,14 @@
       <option value="A_PLUS">A+</option>
       <option value="A">A</option>
     </select>
+    <div class="search-input stock__color-filter">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" placeholder="Filtrar por color..." (input)="colorFilter.set($any($event.target).value); loadItems()" />
+    </div>
+    <select class="filter-select" (change)="storageFilter.set($any($event.target).value); loadItems()">
+      <option value="">Todo almacenamiento</option>
+      <option *ngFor="let gb of storageOptions" [value]="gb">{{ gb >= 1024 ? (gb / 1024) + 'TB' : gb + 'GB' }}</option>
+    </select>
     <button class="btn btn--primary btn--sm" (click)="loadItems()">🔍 Buscar</button>
     <app-imei-scanner [label]="''" [placeholder]="'Buscar por IMEI'" (imeiScanned)="onImeiScanned($event)"></app-imei-scanner>
   </div>
@@ -57,14 +62,12 @@
     <table class="table" *ngIf="!loading() && items().length > 0">
       <thead>
         <tr>
-          <th style="width:36px"><input type="checkbox" /></th>
           <th>MODELO</th><th>CÓDIGO</th><th>IMEI/SERIE</th>
           <th>COND.</th><th>BAT.</th><th>COSTO</th><th>PRECIO</th><th>ESTADO</th><th>ACCIONES</th>
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let item of items()" [class.selected]="isSelected(item.id)">
-          <td><input type="checkbox" [checked]="isSelected(item.id)" (change)="toggleSelect(item.id)" /></td>
+        <tr *ngFor="let item of items()">
           <td>
             <div><strong>{{ item.modelName }}</strong></div>
             <div class="text-small">{{ item.color }} {{ item.storageGb ? item.storageGb + 'GB' : '' }}</div>
@@ -217,27 +220,47 @@
       <button class="modal__close" (click)="dismissNewModal()">✕</button>
     </div>
     <div class="modal__body" [formGroup]="newForm">
-      <div class="form-group">
-        <label>Proveedor</label>
-        <select formControlName="providerId" class="form-control" autoFocus>
-          <option value="">Sin proveedor</option>
-          <option *ngFor="let p of providers()" [value]="p.id">{{ p.name }}</option>
-        </select>
-      </div>
+      <div class="page-sub" style="margin:0 0 8px">Equipo</div>
+
       <div class="form-group">
         <label>Modelo *</label>
-        <select formControlName="modelId" class="form-control"
+        <select formControlName="modelId" class="form-control" autoFocus *ngIf="!showAddModel()"
           [class.form-control--error]="newForm.get('modelId')?.invalid && newForm.get('modelId')?.touched">
           <option value="">Seleccioná un modelo...</option>
           <option *ngFor="let m of models()" [value]="m.id">{{ m.name }}</option>
         </select>
-        <div class="auth-field-error" *ngIf="newForm.get('modelId')?.invalid && newForm.get('modelId')?.touched">
+        <div class="auth-field-error" *ngIf="!showAddModel() && newForm.get('modelId')?.invalid && newForm.get('modelId')?.touched">
           Seleccioná un modelo.
         </div>
-        <div class="auth-field-error" *ngIf="models().length === 0">
-          ⚠ No hay modelos cargados. Agregá uno en Configuración → Modelos primero.
-        </div>
+
+        <ng-container *ngIf="!showAddModel()">
+          <button type="button" class="btn btn--ghost btn--sm" style="margin-top:6px" (click)="openAddModel()" *ngIf="auth.isOwner()">
+            + Agregar modelo nuevo
+          </button>
+          <div class="text-small" style="margin-top:6px" *ngIf="!auth.isOwner()">
+            ¿No está el modelo? Pedile al dueño de la cuenta que lo agregue en Configuración → Modelos.
+          </div>
+        </ng-container>
+
+        <ng-container *ngIf="showAddModel()">
+          <div class="form-row" style="margin-top:4px">
+            <input
+              type="text"
+              class="form-control"
+              placeholder="ej: iPhone 16 Pro"
+              [value]="newModelName()"
+              (input)="newModelName.set($any($event.target).value)"
+              (keydown.enter)="addModel()"
+              autoFocus
+            />
+            <button type="button" class="btn btn--primary btn--sm" (click)="addModel()" [disabled]="addingModel()">
+              {{ addingModel() ? 'Agregando…' : 'Agregar' }}
+            </button>
+            <button type="button" class="btn btn--ghost btn--sm" (click)="cancelAddModel()">Cancelar</button>
+          </div>
+        </ng-container>
       </div>
+
       <div class="form-row">
         <div class="form-group form-group--grow">
           <app-imei-scanner
@@ -248,13 +271,16 @@
         </div>
         <div class="form-group form-group--grow">
           <label>Color</label>
-          <input type="text" formControlName="color" class="form-control" />
+          <input type="text" formControlName="color" class="form-control" placeholder="ej: Negro" />
         </div>
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label>Storage GB</label>
-          <input type="number" formControlName="storageGb" class="form-control" />
+          <label>Almacenamiento</label>
+          <select formControlName="storageGb" class="form-control">
+            <option value="">—</option>
+            <option *ngFor="let gb of storageOptions" [value]="gb">{{ gb >= 1024 ? (gb / 1024) + 'TB' : gb + 'GB' }}</option>
+          </select>
         </div>
         <div class="form-group">
           <label>Condición *</label>
@@ -269,9 +295,11 @@
         </div>
         <div class="form-group">
           <label>% Batería</label>
-          <input type="number" formControlName="batteryPct" class="form-control" min="0" max="100" />
+          <input type="number" formControlName="batteryPct" class="form-control" min="0" max="100" placeholder="0-100" />
         </div>
       </div>
+
+      <div class="page-sub" style="margin:18px 0 8px">Precio</div>
       <div class="form-row">
         <div class="form-group form-group--grow">
           <label>Costo u$d *</label>
@@ -294,12 +322,23 @@
           <input type="number" formControlName="wholesalePriceUsd" class="form-control" />
         </div>
       </div>
-      <div class="form-group">
-        <label>Ubicación</label>
-        <select formControlName="locationId" class="form-control">
-          <option value="">Sin ubicación</option>
-          <option *ngFor="let l of locations()" [value]="l.id">{{ l.name }}</option>
-        </select>
+
+      <div class="page-sub" style="margin:18px 0 8px">Otros datos (opcional)</div>
+      <div class="form-row">
+        <div class="form-group form-group--grow">
+          <label>Proveedor</label>
+          <select formControlName="providerId" class="form-control">
+            <option value="">Sin proveedor</option>
+            <option *ngFor="let p of providers()" [value]="p.id">{{ p.name }}</option>
+          </select>
+        </div>
+        <div class="form-group form-group--grow">
+          <label>Ubicación</label>
+          <select formControlName="locationId" class="form-control">
+            <option value="">Sin ubicación</option>
+            <option *ngFor="let l of locations()" [value]="l.id">{{ l.name }}</option>
+          </select>
+        </div>
       </div>
       <div class="form-group">
         <label>Notas</label>

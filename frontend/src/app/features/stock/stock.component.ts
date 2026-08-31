@@ -34,6 +34,10 @@ export class StockComponent implements OnInit {
   search = signal('');
   statusFilter = signal('');
   conditionFilter = signal('');
+  colorFilter = signal('');
+  storageFilter = signal('');
+
+  readonly storageOptions = [64, 128, 256, 512, 1024, 2048];
 
   // New item modal
   showNewModal = signal(false);
@@ -43,6 +47,9 @@ export class StockComponent implements OnInit {
   models = signal<CatalogModel[]>([]);
   locations = signal<CatalogLocation[]>([]);
   providers = signal<Entity[]>([]);
+  showAddModel = signal(false);
+  newModelName = signal('');
+  addingModel = signal(false);
 
   // Edit modal
   showEditModal = signal(false);
@@ -55,8 +62,6 @@ export class StockComponent implements OnInit {
   cotizadorResult = signal<TradeInQuote | null>(null);
   cotizadorLoading = signal(false);
 
-  // Selected for bulk actions
-  selected = signal<Set<string>>(new Set());
   scannerMessage = signal('');
   scannerMessageType = signal<'success' | 'error'>('success');
 
@@ -102,7 +107,11 @@ export class StockComponent implements OnInit {
     this.api.getStockItems(
       this.statusFilter() as any || undefined,
       this.conditionFilter() as any || undefined,
-      this.search() || undefined
+      this.search() || undefined,
+      1,
+      20,
+      this.colorFilter() || undefined,
+      this.storageFilter() ? Number(this.storageFilter()) : undefined,
     ).subscribe({
       next: r => { this.items.set(r.items); this.total.set(r.total); this.loading.set(false); }
     });
@@ -111,9 +120,34 @@ export class StockComponent implements OnInit {
   }
 
   openNew() {
-    this.newForm.reset({ providerId: '', modelId: '', condition: 'USED', costUsd: 0, locationId: '' });
+    this.newForm.reset({ providerId: '', modelId: '', condition: 'USED', costUsd: 0, locationId: '', storageGb: '' });
     this.newError.set('');
+    this.showAddModel.set(false);
     this.showNewModal.set(true);
+  }
+
+  openAddModel() {
+    this.newModelName.set('');
+    this.showAddModel.set(true);
+  }
+
+  cancelAddModel() {
+    this.showAddModel.set(false);
+  }
+
+  addModel() {
+    const name = this.newModelName().trim();
+    if (!name) return;
+    this.addingModel.set(true);
+    this.api.createCatalogModel(name).subscribe({
+      next: (model) => {
+        this.models.update(list => [...list, model]);
+        this.newForm.patchValue({ modelId: model.id });
+        this.showAddModel.set(false);
+        this.addingModel.set(false);
+      },
+      error: () => this.addingModel.set(false),
+    });
   }
 
   async dismissNewModal() {
@@ -238,15 +272,6 @@ export class StockComponent implements OnInit {
   onNewImeiScanned(value: string) {
     this.newForm.patchValue({ imeiSerial: value });
   }
-
-  toggleSelect(id: string) {
-    const s = new Set(this.selected());
-    s.has(id) ? s.delete(id) : s.add(id);
-    this.selected.set(s);
-  }
-
-  isSelected(id: string) { return this.selected().has(id); }
-  hasSelected() { return this.selected().size > 0; }
 
   getConditionLabel(c: string) {
     return ({ NEW: 'Nuevo', USED: 'Usado', REFURBISHED: 'Reacondicionado', A_PLUS: 'A+', A: 'A', B: 'B' })[c] ?? c;

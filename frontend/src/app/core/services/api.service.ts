@@ -129,11 +129,15 @@ export class ApiService {
     search?: string,
     page = 1,
     pageSize = 20,
+    color?: string,
+    storageGb?: number,
   ): Observable<PagedResult<StockItem>> {
     let params = new HttpParams().set("page", page).set("pageSize", pageSize);
     if (status) params = params.set("status", status);
     if (condition) params = params.set("condition", condition);
     if (search) params = params.set("search", search);
+    if (color) params = params.set("color", color);
+    if (storageGb) params = params.set("storageGb", storageGb);
     return this.http.get<PagedResult<StockItem>>(`${this.base}/stock/items`, {
       params,
     });
