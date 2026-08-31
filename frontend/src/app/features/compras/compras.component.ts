@@ -32,6 +32,7 @@ export class ComprasComponent implements OnInit {
   loading = signal(true);
   showModal = signal(false);
   submitting = signal(false);
+  error = signal('');
   activeTab = signal<'device' | 'bulk'>('device');
 
   providers = signal<Entity[]>([]);
@@ -136,8 +137,9 @@ export class ComprasComponent implements OnInit {
 
   openModal() {
     this.initForm();
-    this.addDevice();
+    this.activeTab.set('device');
     this.addAccessoryOpenIndex.set(null);
+    this.error.set('');
     this.showModal.set(true);
   }
 
@@ -147,7 +149,18 @@ export class ComprasComponent implements OnInit {
   }
 
   submit() {
-    if (this.form.invalid) return;
+    this.error.set('');
+
+    if (this.deviceItems.length === 0 && this.bulkItems.length === 0) {
+      this.error.set('Agregá al menos un equipo o un accesorio antes de guardar.');
+      return;
+    }
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      this.error.set('Completá los campos obligatorios marcados en rojo.');
+      return;
+    }
+
     this.submitting.set(true);
     const v = this.form.value;
     const dto = {
@@ -160,7 +173,10 @@ export class ComprasComponent implements OnInit {
     };
     this.api.createPurchase(dto).subscribe({
       next: () => { this.showModal.set(false); this.loadPurchases(); this.submitting.set(false); },
-      error: () => this.submitting.set(false)
+      error: (e) => {
+        this.submitting.set(false);
+        this.error.set(e?.error?.error || e?.error?.title || `Error ${e?.status}`);
+      }
     });
   }
 
