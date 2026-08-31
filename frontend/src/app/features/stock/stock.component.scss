@@ -26,6 +26,10 @@
   &__scanner-feedback { margin-top: -4px; margin-bottom: 8px; }
 }
 
+@media (max-width: 640px) {
+  .stock__filters .filter-field--grow { flex-basis: 100%; }
+}
+
 .filter-field {
   display: flex; flex-direction: column; gap: 5px;
 
