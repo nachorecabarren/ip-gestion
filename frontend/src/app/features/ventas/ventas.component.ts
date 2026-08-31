@@ -117,7 +117,10 @@ export class VentasComponent implements OnInit {
       retailClientName: [""],
       retailClientPhone: [""],
       invoiceEmail: [""],
-      sendInvoiceEmail: [true],
+      // Arranca apagado: para accesorios no tiene sentido pedir email. Se
+      // prende solo cuando se agrega un equipo (ver onStockSelect), donde sí
+      // es obligatorio.
+      sendInvoiceEmail: [false],
       isConsumerFinal: [true],
       warrantyDays: [90, [Validators.required, Validators.min(0)]],
       notes: [""],
@@ -200,6 +203,18 @@ export class VentasComponent implements OnInit {
       this.saleForm.markAllAsTouched();
       return;
     }
+    // Los datos del cliente (paso 1) solo son obligatorios si la venta incluye
+    // un equipo — pero eso recién se sabe al completar el paso 2. Re-validamos
+    // acá para avisar apenas se sale del paso 2, en vez de recién al finalizar.
+    if (this.wizardStep() === 2) {
+      const clientError = this.validateStep(1);
+      if (clientError) {
+        this.submitError.set(clientError);
+        this.saleForm.markAllAsTouched();
+        this.wizardStep.set(1);
+        return;
+      }
+    }
     this.submitError.set('');
     if (this.wizardStep() < 4) this.wizardStep.update((s) => s + 1);
   }
@@ -212,17 +227,29 @@ export class VentasComponent implements OnInit {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
   }
 
-  /** Datos obligatorios por paso: cliente (1), equipo (2) y, si corresponde, email de factura. */
+  /**
+   * Una venta de solo accesorios (funda, cable, etc.) no necesita datos del cliente.
+   * Ojo: cada ítem nuevo arranca en type 'EQUIPMENT' por defecto aunque todavía no
+   * se haya elegido nada, así que solo cuenta si además tiene un equipo seleccionado.
+   */
+  hasEquipmentItem(): boolean {
+    return this.items.controls.some(c => c.get('type')?.value === 'EQUIPMENT' && !!c.get('stockItemId')?.value);
+  }
+
+  /** Datos obligatorios por paso: cliente (1, solo si hay equipos), equipo (2) y, si corresponde, email de factura. */
   validateStep(step: number): string | null {
     const v = this.saleForm.getRawValue();
     if (step === 1) {
+      const requiresClientData = this.hasEquipmentItem();
       if (v.isConsumerFinal) {
-        if (!v.retailClientName?.trim()) return 'Ingresá el nombre del cliente.';
+        if (requiresClientData && !v.retailClientName?.trim()) return 'Ingresá el nombre del cliente.';
       } else if (!v.entityId) {
         return 'Seleccioná un cliente.';
       }
-      if (v.sendInvoiceEmail && !this.isValidEmail(v.invoiceEmail || '')) {
-        return 'Ingresá un email válido para enviar la factura.';
+      if ((requiresClientData || v.sendInvoiceEmail) && !this.isValidEmail(v.invoiceEmail || '')) {
+        return requiresClientData
+          ? 'Ingresá un email válido — es obligatorio en ventas con equipos.'
+          : 'Ingresá un email válido para enviar la factura.';
       }
       return null;
     }
@@ -346,6 +373,9 @@ export class VentasComponent implements OnInit {
           : item.suggestedPriceUsd;
       this.items.at(index).patchValue({ priceUsd: price });
       this.updateTotals();
+      // Las ventas de equipos siempre piden email — activamos el envío de
+      // factura por defecto en vez de dejarlo como un campo obligatorio "mudo".
+      this.saleForm.patchValue({ sendInvoiceEmail: true });
     }
   }
 
