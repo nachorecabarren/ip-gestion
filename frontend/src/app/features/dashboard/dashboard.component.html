@@ -10,6 +10,21 @@
     <button class="btn btn--primary" routerLink="/configuracion">Ir a Carga Inicial →</button>
   </div> -->
 
+  <!-- Alerta de stock bajo -->
+  <div class="dashboard__low-stock" *ngIf="lowStockItems().length && !lowStockAlertDismissed()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" class="dashboard__low-stock-icon">
+      <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/>
+      <line x1="12" y1="9" x2="12" y2="13"/>
+      <line x1="12" y1="17" x2="12.01" y2="17"/>
+    </svg>
+    <div class="dashboard__low-stock-text">
+      <strong>{{ lowStockItems().length }}</strong> {{ lowStockItems().length === 1 ? 'accesorio con stock bajo' : 'accesorios con stock bajo' }}:
+      <span class="dashboard__low-stock-names">{{ lowStockNamesPreview }}</span>
+    </div>
+    <a routerLink="/stock" [queryParams]="{ tab: 'bulk' }" class="dashboard__low-stock-link">Ver stock →</a>
+    <button type="button" class="dashboard__low-stock-close" (click)="dismissLowStockAlert()" aria-label="Cerrar alerta">✕</button>
+  </div>
+
   <!-- Header: período + tabs financiero/operativo -->
   <div class="dashboard__header">
     <div class="dashboard__period">

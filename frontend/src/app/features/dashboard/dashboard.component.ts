@@ -2,7 +2,7 @@ import { Component, OnInit, inject, signal } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { RouterModule } from "@angular/router";
 import { ApiService } from "../../core/services/api.service";
-import { DashboardKpis, DashboardTrendPoint, QuickSale, Reservation, ServiceClientJob } from "../../shared/models/models";
+import { DashboardKpis, DashboardTrendPoint, QuickSale, Reservation, ServiceClientJob, StockBulk } from "../../shared/models/models";
 import { BarChartComponent } from "../../shared/components/bar-chart/bar-chart.component";
 
 @Component({
@@ -23,6 +23,8 @@ export class DashboardComponent implements OnInit {
   serviceJobs = signal<ServiceClientJob[]>([]);
   trend = signal<DashboardTrendPoint[]>([]);
   loading = signal(true);
+  lowStockItems = signal<StockBulk[]>([]);
+  lowStockAlertDismissed = signal(false);
 
   readonly periodoLabels = {
     week: "Esta semana",
@@ -68,6 +70,18 @@ export class DashboardComponent implements OnInit {
       this.serviceJobs.set(r.items.filter(j => !['DELIVERED', 'CANCELLED', 'CLOSED'].includes(j.status)))
     );
     this.api.getDashboardTrend(6).subscribe(t => this.trend.set(t));
+    this.api.getStockBulk().subscribe(items =>
+      this.lowStockItems.set(items.filter(b => b.quantity <= b.lowStockThreshold))
+    );
+  }
+
+  dismissLowStockAlert() {
+    this.lowStockAlertDismissed.set(true);
+  }
+
+  get lowStockNamesPreview(): string {
+    const names = this.lowStockItems().slice(0, 4).map(i => i.accessoryName).join(', ');
+    return this.lowStockItems().length > 4 ? `${names}…` : names;
   }
 
   loadData() {

@@ -138,7 +138,7 @@
         <input type="text" placeholder="Accesorio, color o ubicación..." [value]="bulkSearch()" (input)="bulkSearch.set($any($event.target).value)" />
       </div>
     </div>
-    <label class="filter-field" style="flex-direction:row;align-items:center;gap:6px;cursor:pointer">
+    <label class="filter-field filter-field--check">
       <input type="checkbox" [checked]="bulkLowStockOnly()" (change)="bulkLowStockOnly.set($any($event.target).checked)" />
       Solo stock bajo
     </label>

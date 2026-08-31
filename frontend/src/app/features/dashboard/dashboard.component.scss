@@ -28,6 +28,28 @@
     &--active { background: var(--color-blue-light); color: var(--color-blue); border-color: var(--color-blue-border); }
   }
 
+  &__low-stock {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--color-amber-bg); border: 1px solid var(--color-amber-border);
+    border-radius: 10px; padding: 12px 14px; font-size: 13px; color: var(--color-amber);
+
+    &-icon { width: 18px; height: 18px; flex-shrink: 0; }
+    &-text { flex: 1; min-width: 0; }
+    &-names { color: var(--color-text-secondary); }
+    &-link {
+      font-size: 13px; font-weight: 600; color: var(--color-amber); white-space: nowrap;
+      text-decoration: none; flex-shrink: 0;
+      &:hover { text-decoration: underline; }
+    }
+    &-close {
+      display: flex; align-items: center; justify-content: center;
+      width: 22px; height: 22px; flex-shrink: 0; border: none; background: none;
+      border-radius: 6px; font-size: 13px; line-height: 1; color: var(--color-amber);
+      cursor: pointer; opacity: .7;
+      &:hover { opacity: 1; background: rgba(0,0,0,.06); }
+    }
+  }
+
   &__alerts {
     background: var(--color-surface-elevated); border: 1px solid var(--color-border); border-radius: 10px; padding: 14px 18px;
     &-header { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--color-text-secondary);

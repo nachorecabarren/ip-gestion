@@ -1,5 +1,6 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ActivatedRoute } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ApiService } from '../../core/services/api.service';
 import { ConfirmService } from '../../shared/services/confirm.service';
@@ -21,6 +22,7 @@ export class StockComponent implements OnInit {
   private api = inject(ApiService);
   private fb = inject(FormBuilder);
   private confirm = inject(ConfirmService);
+  private route = inject(ActivatedRoute);
   auth = inject(AuthService);
 
   activeTab = signal<'equipos' | 'bulk' | 'canjes'>('equipos');
@@ -96,6 +98,8 @@ export class StockComponent implements OnInit {
   scannerMessageType = signal<'success' | 'error'>('success');
 
   ngOnInit() {
+    const tabParam = this.route.snapshot.queryParamMap.get('tab');
+    if (tabParam === 'bulk' || tabParam === 'equipos' || tabParam === 'canjes') this.activeTab.set(tabParam);
     this.loadItems();
     this.api.getCatalogLocations().subscribe(l => this.locations.set(l));
     this.api.getCatalogModels().subscribe(m => this.models.set(m));
