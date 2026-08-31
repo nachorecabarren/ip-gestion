@@ -39,6 +39,10 @@ export class ComprasComponent implements OnInit {
   accessories = signal<CatalogAccessory[]>([]);
   locations = signal<CatalogLocation[]>([]);
 
+  addAccessoryOpenIndex = signal<number | null>(null);
+  newAccessoryName = signal('');
+  addingAccessory = signal(false);
+
   form!: FormGroup;
 
   ngOnInit() {
@@ -94,7 +98,34 @@ export class ComprasComponent implements OnInit {
     }));
   }
 
-  removeBulk(i: number) { this.bulkItems.removeAt(i); }
+  removeBulk(i: number) {
+    this.bulkItems.removeAt(i);
+    this.addAccessoryOpenIndex.set(null);
+  }
+
+  openAddAccessory(i: number) {
+    this.newAccessoryName.set('');
+    this.addAccessoryOpenIndex.set(i);
+  }
+
+  cancelAddAccessory() {
+    this.addAccessoryOpenIndex.set(null);
+  }
+
+  addAccessory(i: number) {
+    const name = this.newAccessoryName().trim();
+    if (!name) return;
+    this.addingAccessory.set(true);
+    this.api.createCatalogAccessory(name).subscribe({
+      next: (accessory) => {
+        this.accessories.update(list => [...list, accessory]);
+        this.bulkItems.at(i).patchValue({ accessoryId: accessory.id });
+        this.addAccessoryOpenIndex.set(null);
+        this.addingAccessory.set(false);
+      },
+      error: () => this.addingAccessory.set(false),
+    });
+  }
 
   loadPurchases() {
     this.loading.set(true);
@@ -106,6 +137,7 @@ export class ComprasComponent implements OnInit {
   openModal() {
     this.initForm();
     this.addDevice();
+    this.addAccessoryOpenIndex.set(null);
     this.showModal.set(true);
   }
 

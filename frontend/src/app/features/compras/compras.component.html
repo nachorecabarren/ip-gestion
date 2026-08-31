@@ -138,10 +138,36 @@
           <div class="form-row">
             <div class="form-group form-group--grow">
               <label>Accesorio *</label>
-              <select formControlName="accessoryId" class="form-control">
+              <select formControlName="accessoryId" class="form-control" *ngIf="addAccessoryOpenIndex() !== i">
                 <option value="">Seleccionar...</option>
                 <option *ngFor="let a of accessories()" [value]="a.id">{{ a.name }}</option>
               </select>
+
+              <button
+                type="button"
+                class="btn btn--ghost btn--sm"
+                style="margin-top:6px"
+                *ngIf="addAccessoryOpenIndex() !== i"
+                (click)="openAddAccessory(i)"
+              >
+                + Agregar accesorio nuevo
+              </button>
+
+              <div class="form-row" style="margin-top:4px" *ngIf="addAccessoryOpenIndex() === i">
+                <input
+                  type="text"
+                  class="form-control"
+                  placeholder="ej: Cargador MagSafe"
+                  [value]="newAccessoryName()"
+                  (input)="newAccessoryName.set($any($event.target).value)"
+                  (keydown.enter)="addAccessory(i)"
+                  autoFocus
+                />
+                <button type="button" class="btn btn--primary btn--sm" (click)="addAccessory(i)" [disabled]="addingAccessory()">
+                  {{ addingAccessory() ? 'Agregando…' : 'Agregar' }}
+                </button>
+                <button type="button" class="btn btn--ghost btn--sm" (click)="cancelAddAccessory()">Cancelar</button>
+              </div>
             </div>
             <div class="form-group form-group--sm">
               <label>Color</label>
