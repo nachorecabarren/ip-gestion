@@ -10,11 +10,12 @@ import { EscapeCloseDirective } from '../../shared/directives/escape-close.direc
 import { AutoFocusDirective } from '../../shared/directives/auto-focus.directive';
 import { openIfQueryParam } from '../../shared/utils/open-via-query-param';
 import { confirmDiscard } from '../../shared/utils/confirm-discard';
+import { ImeiScannerComponent } from '../../shared/components/imei-scanner/imei-scanner.component';
 
 @Component({
   selector: 'app-reservas',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, EscapeCloseDirective, AutoFocusDirective],
+  imports: [CommonModule, ReactiveFormsModule, EscapeCloseDirective, AutoFocusDirective, ImeiScannerComponent],
   templateUrl: './reservas.component.html',
   styleUrls: ['./reservas.component.scss']
 })
@@ -36,6 +37,8 @@ export class ReservasComponent implements OnInit {
   clients = signal<Entity[]>([]);
   availableStock = signal<StockItem[]>([]);
   tcBlue = signal(1520);
+  imeiScanMessage = signal('');
+  imeiScanMessageType = signal<'success' | 'error'>('success');
 
   form!: FormGroup;
 
@@ -73,7 +76,20 @@ export class ReservasComponent implements OnInit {
     this.showModal.set(false);
   }
 
+  onImeiScanned(value: string) {
+    const match = this.availableStock().find(s => s.imeiSerial === value);
+    if (match) {
+      this.form.patchValue({ stockItemId: match.id });
+      this.imeiScanMessage.set(`Equipo encontrado: ${match.modelName}`);
+      this.imeiScanMessageType.set('success');
+    } else {
+      this.imeiScanMessage.set('No se encontró un equipo disponible con ese IMEI.');
+      this.imeiScanMessageType.set('error');
+    }
+  }
+
   initForm() {
+    this.imeiScanMessage.set('');
     this.form = this.fb.group({
       isConsumerFinal: [true],
       entityId: [null],

@@ -22,6 +22,7 @@ export const GUIDE_CATEGORIES = [
   'Cuentas Corrientes',
   'Servicio Técnico',
   'Dashboard',
+  'Equipo',
 ] as const;
 
 export const GUIDES: Guide[] = [
@@ -462,6 +463,35 @@ export const GUIDES: Guide[] = [
         detail:
           'Muestran los últimos 6 meses de facturación y de ventas con canje, siempre — independiente del período que hayas elegido arriba.',
       },
+    ],
+  },
+
+  // ─── EQUIPO ────────────────────────────────────────────────
+  {
+    id: 'equipo-roles',
+    category: 'Equipo',
+    title: 'Cómo y cuándo se asignan los roles',
+    summary: 'Quién es Dueño, quién es Empleado, y cómo cambiarle el rol a alguien.',
+    steps: [
+      {
+        title: 'El primer usuario de la cuenta siempre es el Dueño',
+        detail:
+          'Se define una sola vez, al registrar el negocio, y no se puede reasignar después: no hay forma de convertir a otro usuario en Dueño ni de dejar de serlo vos mismo.',
+      },
+      {
+        title: 'Todo invitado entra como Empleado',
+        detail:
+          'La invitación que mandás desde Mi Equipo solo lleva el email, no elegís un rol al invitar. Cuando la persona acepta el link, su cuenta se crea siempre con el rol Empleado.',
+      },
+      {
+        title: 'Después podés cambiarle el rol desde Mi Equipo',
+        detail:
+          'Solo el Dueño o un Administrador pueden hacerlo. Elegís entre Administrador, Operador, Solo lectura o Empleado para cualquier miembro del equipo, menos vos mismo.',
+      },
+    ],
+    tips: [
+      'El rol de Dueño no se le puede asignar a nadie desde Mi Equipo — nace únicamente del registro inicial del negocio.',
+      'El Dueño de la cuenta es el único que no se puede desactivar.',
     ],
   },
 ];
