@@ -4,10 +4,10 @@
   </div>
 
   <div class="cc__filters">
-    <button class="filter-btn" [class.active]="filterMode()===''" (click)="filterMode.set(''); load()">Todos</button>
-    <button class="filter-btn" [class.active]="filterMode()==='cobrar'" (click)="filterMode.set('cobrar'); load()">A cobrar</button>
-    <button class="filter-btn" [class.active]="filterMode()==='pagar'" (click)="filterMode.set('pagar'); load()">A pagar</button>
-    <button class="filter-btn" [class.active]="filterMode()==='cero'" (click)="filterMode.set('cero'); load()">Al día</button>
+    <button class="filter-btn" [class.active]="filterMode()===''" (click)="filterMode.set(''); applyFilters()">Todos</button>
+    <button class="filter-btn" [class.active]="filterMode()==='cobrar'" (click)="filterMode.set('cobrar'); applyFilters()">A cobrar</button>
+    <button class="filter-btn" [class.active]="filterMode()==='pagar'" (click)="filterMode.set('pagar'); applyFilters()">A pagar</button>
+    <button class="filter-btn" [class.active]="filterMode()==='cero'" (click)="filterMode.set('cero'); applyFilters()">Al día</button>
     <span class="filter-count">{{ total() }} entidades</span>
   </div>
 
@@ -31,6 +31,12 @@
       </tbody>
     </table>
     <div *ngIf="!loading() && balances().length === 0" class="empty-state"><div class="empty-state__title">Sin saldos</div></div>
+    <app-pagination
+      [page]="page()"
+      [pageSize]="pageSize()"
+      [total]="total()"
+      (paramsChange)="onPageParams($event)"
+    ></app-pagination>
   </div>
 </div>
 

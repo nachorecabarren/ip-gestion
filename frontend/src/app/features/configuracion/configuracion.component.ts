@@ -1,13 +1,14 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ApiService } from '../../core/services/api.service';
 import { CatalogModel, CatalogAccessory, CatalogLocation, AuditLog } from '../../shared/models/models';
+import { PaginationComponent, PageParams } from '../../shared/components/pagination/pagination.component';
 
 @Component({
   selector: 'app-configuracion',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, PaginationComponent],
   template: `
   <div class="page-header"><div><h1 class="page-title">Configuración</h1><p class="page-sub">Catálogos, equipo de trabajo y ajustes del sistema</p></div></div>
   <div class="tabs">
@@ -32,10 +33,12 @@ import { CatalogModel, CatalogAccessory, CatalogLocation, AuditLog } from '../..
     <table class="table">
       <thead><tr><th>NOMBRE</th></tr></thead>
       <tbody>
-        <tr *ngFor="let m of models()"><td>{{ m.name }}</td></tr>
+        <tr *ngFor="let m of pagedModels()"><td>{{ m.name }}</td></tr>
         <tr *ngIf="models().length === 0"><td colspan="2" class="table__empty">Sin modelos cargados</td></tr>
       </tbody>
     </table>
+    <app-pagination [page]="modelsPage()" [pageSize]="modelsPageSize()" [total]="models().length"
+      (paramsChange)="modelsPage.set($event.page); modelsPageSize.set($event.pageSize)"></app-pagination>
   </div>
 
   <div class="card" *ngIf="tab()==='accesorios'">
@@ -51,10 +54,12 @@ import { CatalogModel, CatalogAccessory, CatalogLocation, AuditLog } from '../..
     <table class="table">
       <thead><tr><th>NOMBRE</th></tr></thead>
       <tbody>
-        <tr *ngFor="let a of accessories()"><td>{{ a.name }}</td></tr>
+        <tr *ngFor="let a of pagedAccessories()"><td>{{ a.name }}</td></tr>
         <tr *ngIf="accessories().length === 0"><td class="table__empty">Sin accesorios cargados</td></tr>
       </tbody>
     </table>
+    <app-pagination [page]="accPage()" [pageSize]="accPageSize()" [total]="accessories().length"
+      (paramsChange)="accPage.set($event.page); accPageSize.set($event.pageSize)"></app-pagination>
   </div>
 
   <div class="card" *ngIf="tab()==='ubicaciones'">
@@ -70,10 +75,12 @@ import { CatalogModel, CatalogAccessory, CatalogLocation, AuditLog } from '../..
     <table class="table">
       <thead><tr><th>UBICACIÓN</th></tr></thead>
       <tbody>
-        <tr *ngFor="let l of locations()"><td>{{ l.name }}</td></tr>
+        <tr *ngFor="let l of pagedLocations()"><td>{{ l.name }}</td></tr>
         <tr *ngIf="locations().length === 0"><td class="table__empty">Sin ubicaciones cargadas</td></tr>
       </tbody>
     </table>
+    <app-pagination [page]="locPage()" [pageSize]="locPageSize()" [total]="locations().length"
+      (paramsChange)="locPage.set($event.page); locPageSize.set($event.pageSize)"></app-pagination>
   </div>
 
   <div class="card" *ngIf="tab()==='auditoria'">
@@ -94,11 +101,8 @@ import { CatalogModel, CatalogAccessory, CatalogLocation, AuditLog } from '../..
         <tr *ngIf="auditLoading()"><td colspan="4" class="table__empty">Cargando…</td></tr>
       </tbody>
     </table>
-    <div class="form-row" style="justify-content:flex-end;margin-top:12px" *ngIf="auditTotal() > 30">
-      <button class="btn btn--ghost btn--sm" [disabled]="auditPage() <= 1" (click)="auditPage.set(auditPage() - 1); loadAudit()">← Anterior</button>
-      <span class="filter-count">Página {{ auditPage() }}</span>
-      <button class="btn btn--ghost btn--sm" [disabled]="auditPage() * 30 >= auditTotal()" (click)="auditPage.set(auditPage() + 1); loadAudit()">Siguiente →</button>
-    </div>
+    <app-pagination [page]="auditPage()" [pageSize]="auditPageSize()" [total]="auditTotal()"
+      (paramsChange)="onAuditPageParams($event)"></app-pagination>
   </div>
   `,
   styleUrls: ['./configuracion.component.scss']
@@ -113,9 +117,33 @@ export class ConfiguracionComponent implements OnInit {
   error = signal('');
   modelForm!: FormGroup; accForm!: FormGroup; locForm!: FormGroup;
 
+  // Los catálogos se traen completos (los usan otras pantallas como dropdown),
+  // acá solo se pagina la vista.
+  modelsPage = signal(1);
+  modelsPageSize = signal(100);
+  pagedModels = computed(() => {
+    const start = (this.modelsPage() - 1) * this.modelsPageSize();
+    return this.models().slice(start, start + this.modelsPageSize());
+  });
+
+  accPage = signal(1);
+  accPageSize = signal(100);
+  pagedAccessories = computed(() => {
+    const start = (this.accPage() - 1) * this.accPageSize();
+    return this.accessories().slice(start, start + this.accPageSize());
+  });
+
+  locPage = signal(1);
+  locPageSize = signal(100);
+  pagedLocations = computed(() => {
+    const start = (this.locPage() - 1) * this.locPageSize();
+    return this.locations().slice(start, start + this.locPageSize());
+  });
+
   auditLogs = signal<AuditLog[]>([]);
   auditTotal = signal(0);
   auditPage = signal(1);
+  auditPageSize = signal(100);
   auditLoading = signal(false);
 
   ngOnInit() {
@@ -157,10 +185,16 @@ export class ConfiguracionComponent implements OnInit {
 
   loadAudit() {
     this.auditLoading.set(true);
-    this.api.getAuditLog(this.auditPage(), 30).subscribe({
+    this.api.getAuditLog(this.auditPage(), this.auditPageSize()).subscribe({
       next: r => { this.auditLogs.set(r.items); this.auditTotal.set(r.total); this.auditLoading.set(false); },
       error: () => this.auditLoading.set(false),
     });
+  }
+
+  onAuditPageParams(p: PageParams) {
+    this.auditPage.set(p.page);
+    this.auditPageSize.set(p.pageSize);
+    this.loadAudit();
   }
 
   private readonly auditActionLabels: Record<string, string> = {

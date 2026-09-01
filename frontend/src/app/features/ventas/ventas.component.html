@@ -65,7 +65,7 @@
       <input
         type="text"
         placeholder="Buscar por equipo, cliente o id..."
-        (input)="search.set($any($event.target).value); loadSales()"
+        (input)="search.set($any($event.target).value); applyFilters()"
       />
     </div>
     <div class="date-filter">
@@ -73,7 +73,7 @@
         <div
           class="toggle"
           [class.on]="filterByDate()"
-          (click)="filterByDate.set(!filterByDate()); loadSales()"
+          (click)="filterByDate.set(!filterByDate()); applyFilters()"
         ></div>
         <span style="font-size: 12px; color: var(--color-text-muted)"
           >Filtrar por fecha</span
@@ -86,19 +86,19 @@
         type="date"
         class="filter-select"
         [value]="dateFrom()"
-        (change)="dateFrom.set($any($event.target).value); loadSales()"
+        (change)="dateFrom.set($any($event.target).value); applyFilters()"
       />
       <span style="font-size: 12px; color: var(--color-text-muted)">→</span>
       <input
         type="date"
         class="filter-select"
         [value]="dateTo()"
-        (change)="dateTo.set($any($event.target).value); loadSales()"
+        (change)="dateTo.set($any($event.target).value); applyFilters()"
       />
     </ng-container>
     <select
       class="filter-select"
-      (change)="filterOrigin.set($any($event.target).value); loadSales()"
+      (change)="filterOrigin.set($any($event.target).value); applyFilters()"
     >
       <option value="">Todos los orígenes</option>
       <option value="DIRECT">Directo</option>
@@ -197,6 +197,12 @@
         </tr>
       </tbody>
     </table>
+    <app-pagination
+      [page]="page()"
+      [pageSize]="pageSize()"
+      [total]="total()"
+      (paramsChange)="onPageParams($event)"
+    ></app-pagination>
   </div>
 </div>
 

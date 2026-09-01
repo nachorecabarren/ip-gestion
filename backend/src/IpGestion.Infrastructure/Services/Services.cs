@@ -909,18 +909,20 @@ public class CajaService(AppDbContext db) : ICajaService
         return result;
     }
 
-    public async Task<IEnumerable<CashMovementDto>> GetMovementsAsync(Guid tenantId, Guid? cajaId, DateTime? from, DateTime? to, int page, int pageSize, CancellationToken ct = default)
+    public async Task<PagedResult<CashMovementDto>> GetMovementsAsync(Guid tenantId, Guid? cajaId, DateTime? from, DateTime? to, int page, int pageSize, CancellationToken ct = default)
     {
         var q = db.CashMovements.Include(m => m.Caja).Include(m => m.Category)
             .Where(m => m.TenantId == tenantId);
         if (cajaId.HasValue) q = q.Where(m => m.CajaId == cajaId.Value);
         if (from.HasValue) q = q.Where(m => m.CreatedAt >= from.Value);
         if (to.HasValue) q = q.Where(m => m.CreatedAt <= to.Value);
-        return await q.OrderByDescending(m => m.CreatedAt)
+        var total = await q.CountAsync(ct);
+        var items = await q.OrderByDescending(m => m.CreatedAt)
             .Skip((page - 1) * pageSize).Take(pageSize)
             .Select(m => new CashMovementDto(m.Id, m.Caja.Name, m.Type, m.Method, m.Amount,
                 m.AmountUsd, m.Currency, m.Detail, m.Category != null ? m.Category.Name : null, m.CreatedAt))
             .ToListAsync(ct);
+        return new PagedResult<CashMovementDto>(items, total, page, pageSize);
     }
 
     public async Task<CashMovementDto> RegisterMovementAsync(Guid tenantId, CreateCashMovementDto dto, CancellationToken ct = default)

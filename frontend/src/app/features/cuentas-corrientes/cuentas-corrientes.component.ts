@@ -4,6 +4,7 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { ApiService } from '../../core/services/api.service';
 import { ConfirmService } from '../../shared/services/confirm.service';
 import { EntityBalance } from '../../shared/models/models';
+import { PaginationComponent, PageParams } from '../../shared/components/pagination/pagination.component';
 import { EscapeCloseDirective } from '../../shared/directives/escape-close.directive';
 import { AutoFocusDirective } from '../../shared/directives/auto-focus.directive';
 import { confirmDiscard } from '../../shared/utils/confirm-discard';
@@ -11,7 +12,7 @@ import { confirmDiscard } from '../../shared/utils/confirm-discard';
 @Component({
   selector: 'app-cuentas-corrientes',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, EscapeCloseDirective, AutoFocusDirective],
+  imports: [CommonModule, ReactiveFormsModule, PaginationComponent, EscapeCloseDirective, AutoFocusDirective],
   templateUrl: './cuentas-corrientes.component.html',
   styleUrls: ['./cuentas-corrientes.component.scss']
 })
@@ -22,6 +23,8 @@ export class CuentasCorrientesComponent implements OnInit {
 
   balances = signal<EntityBalance[]>([]);
   total = signal(0);
+  page = signal(1);
+  pageSize = signal(100);
   loading = signal(true);
   showModal = signal(false);
   selectedEntity = signal<EntityBalance | null>(null);
@@ -47,9 +50,20 @@ export class CuentasCorrientesComponent implements OnInit {
 
   load() {
     this.loading.set(true);
-    this.api.getBalances(undefined, this.filterMode() || undefined).subscribe({
+    this.api.getBalances(undefined, this.filterMode() || undefined, this.page(), this.pageSize()).subscribe({
       next: r => { this.balances.set(r.items); this.total.set(r.total); this.loading.set(false); }
     });
+  }
+
+  applyFilters() {
+    this.page.set(1);
+    this.load();
+  }
+
+  onPageParams(p: PageParams) {
+    this.page.set(p.page);
+    this.pageSize.set(p.pageSize);
+    this.load();
   }
 
   openPayment(b: EntityBalance) {

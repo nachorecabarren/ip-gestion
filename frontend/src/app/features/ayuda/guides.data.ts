@@ -131,7 +131,6 @@ export const GUIDES: Guide[] = [
       },
     ],
     tips: [
-      'Usá el Cotizador de Stock (pestaña "Canjes" → botón Cotizador) si necesitás una referencia de precio antes de negociar el canje con el cliente.',
       'Podés ver el historial completo de equipos recibidos por canje en Stock → pestaña "Canjes".',
     ],
   },
@@ -208,29 +207,30 @@ export const GUIDES: Guide[] = [
       },
     ],
   },
-  {
-    id: 'stock-cotizador',
-    category: 'Stock',
-    title: 'Cómo usar el cotizador de canje',
-    summary: 'Calculá un valor de referencia antes de aceptar un canje.',
-    steps: [
-      {
-        title: 'Entrá a Stock → pestaña "Canjes" y hacé clic en "Cotizador"',
-        detail: '',
-      },
-      {
-        title: 'Ingresá modelo, almacenamiento y % de batería del equipo',
-        detail: '',
-      },
-      {
-        title: 'Obtené el valor base y el valor ajustado',
-        detail: 'Si la batería está por debajo del 80%, el sistema aplica automáticamente un descuento sobre el valor base.',
-      },
-    ],
-    tips: [
-      'El cotizador es solo una referencia — el valor final del canje se carga a mano en el paso 3 del asistente de venta.',
-    ],
-  },
+  // Cotizador de Canje deshabilitado por el momento (no se usa) — guía oculta hasta que se reactive.
+  // {
+  //   id: 'stock-cotizador',
+  //   category: 'Stock',
+  //   title: 'Cómo usar el cotizador de canje',
+  //   summary: 'Calculá un valor de referencia antes de aceptar un canje.',
+  //   steps: [
+  //     {
+  //       title: 'Entrá a Stock → pestaña "Canjes" y hacé clic en "Cotizador"',
+  //       detail: '',
+  //     },
+  //     {
+  //       title: 'Ingresá modelo, almacenamiento y % de batería del equipo',
+  //       detail: '',
+  //     },
+  //     {
+  //       title: 'Obtené el valor base y el valor ajustado',
+  //       detail: 'Si la batería está por debajo del 80%, el sistema aplica automáticamente un descuento sobre el valor base.',
+  //     },
+  //   ],
+  //   tips: [
+  //     'El cotizador es solo una referencia — el valor final del canje se carga a mano en el paso 3 del asistente de venta.',
+  //   ],
+  // },
   {
     id: 'stock-historial-canjes',
     category: 'Stock',

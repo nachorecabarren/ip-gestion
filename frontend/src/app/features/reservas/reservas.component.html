@@ -8,10 +8,10 @@
   </div>
 
   <div class="reservas__filters">
-    <button class="filter-btn" [class.active]="statusFilter() === 'ACTIVE'" (click)="statusFilter.set('ACTIVE'); load()">Activas</button>
-    <button class="filter-btn" [class.active]="statusFilter() === 'SOLD'" (click)="statusFilter.set('SOLD'); load()">Concretadas</button>
-    <button class="filter-btn" [class.active]="statusFilter() === 'CANCELLED'" (click)="statusFilter.set('CANCELLED'); load()">Canceladas</button>
-    <button class="filter-btn" [class.active]="statusFilter() === ''" (click)="statusFilter.set(''); load()">Todas</button>
+    <button class="filter-btn" [class.active]="statusFilter() === 'ACTIVE'" (click)="statusFilter.set('ACTIVE'); applyFilters()">Activas</button>
+    <button class="filter-btn" [class.active]="statusFilter() === 'SOLD'" (click)="statusFilter.set('SOLD'); applyFilters()">Concretadas</button>
+    <button class="filter-btn" [class.active]="statusFilter() === 'CANCELLED'" (click)="statusFilter.set('CANCELLED'); applyFilters()">Canceladas</button>
+    <button class="filter-btn" [class.active]="statusFilter() === ''" (click)="statusFilter.set(''); applyFilters()">Todas</button>
     <span class="filter-count">{{ total() }} {{ total() === 1 ? 'reserva' : 'reservas' }}</span>
   </div>
 
@@ -47,6 +47,12 @@
         </tr>
       </tbody>
     </table>
+    <app-pagination
+      [page]="page()"
+      [pageSize]="pageSize()"
+      [total]="total()"
+      (paramsChange)="onPageParams($event)"
+    ></app-pagination>
   </div>
 </div>
 

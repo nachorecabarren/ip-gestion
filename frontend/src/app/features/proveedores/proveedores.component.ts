@@ -4,9 +4,10 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ApiService } from '../../core/services/api.service';
 import { Entity } from '../../shared/models/models';
+import { PaginationComponent, PageParams } from '../../shared/components/pagination/pagination.component';
 
 // ─── PROVEEDORES ──────────────────────────────────────────
-@Component({ selector:'app-proveedores', standalone:true, imports:[CommonModule,ReactiveFormsModule],
+@Component({ selector:'app-proveedores', standalone:true, imports:[CommonModule,ReactiveFormsModule,PaginationComponent],
   styleUrls:['./proveedores.component.scss'],
   template:`
   <div class="page-header"><div><h1 class="page-title">Proveedores</h1><p class="page-sub">Catálogo de proveedores y condiciones</p></div>
@@ -23,6 +24,12 @@ import { Entity } from '../../shared/models/models';
         </tr>
       </tbody>
     </table>
+    <app-pagination
+      [page]="page()"
+      [pageSize]="pageSize()"
+      [total]="total()"
+      (paramsChange)="onPageParams($event)"
+    ></app-pagination>
   </div>
   <div class="modal-overlay" *ngIf="showModal()" (click)="showModal.set(false)">
     <div class="modal" (click)="$event.stopPropagation()">
@@ -47,14 +54,25 @@ import { Entity } from '../../shared/models/models';
 export class ProveedoresComponent implements OnInit {
   private api = inject(ApiService); private fb = inject(FormBuilder);
   providers = signal<Entity[]>([]); loading = signal(true); showModal = signal(false);
+  total = signal(0); page = signal(1); pageSize = signal(100);
   form!: FormGroup;
   ngOnInit() {
     this.form = this.fb.group({ name:['',Validators.required], phone:[''], email:[''], addressCity:[''], type:['PROVIDER'] });
-    this.api.getEntities('PROVIDER').subscribe(r => { this.providers.set(r.items); this.loading.set(false); });
+    this.load();
+  }
+  load() {
+    this.loading.set(true);
+    this.api.getEntities('PROVIDER', undefined, this.page(), this.pageSize()).subscribe(r => {
+      this.providers.set(r.items); this.total.set(r.total); this.loading.set(false);
+    });
+  }
+  onPageParams(p: PageParams) {
+    this.page.set(p.page);
+    this.pageSize.set(p.pageSize);
+    this.load();
   }
   submit() {
     if (this.form.invalid) return;
-    this.api.createEntity(this.form.value).subscribe(() => { this.showModal.set(false);
-      this.api.getEntities('PROVIDER').subscribe(r => this.providers.set(r.items)); });
+    this.api.createEntity(this.form.value).subscribe(() => { this.showModal.set(false); this.load(); });
   }
 }

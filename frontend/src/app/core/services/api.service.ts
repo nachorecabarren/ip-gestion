@@ -257,13 +257,13 @@ export class ApiService {
     from?: string,
     to?: string,
     page = 1,
-    pageSize = 30,
-  ): Observable<CashMovement[]> {
+    pageSize = 100,
+  ): Observable<PagedResult<CashMovement>> {
     let params = new HttpParams().set("page", page).set("pageSize", pageSize);
     if (cajaId) params = params.set("cajaId", cajaId);
     if (from) params = params.set("from", from);
     if (to) params = params.set("to", to);
-    return this.http.get<CashMovement[]>(`${this.base}/cajas/movimientos`, {
+    return this.http.get<PagedResult<CashMovement>>(`${this.base}/cajas/movimientos`, {
       params,
     });
   }

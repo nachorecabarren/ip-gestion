@@ -1,13 +1,13 @@
 <div class="base-datos">
   <div class="page-header">
     <div><h1 class="page-title">Base de Datos</h1><p class="page-sub">Reportes y exportaciones</p></div>
-    <button class="btn btn--ghost" (click)="exportExcel()">↓ Exportar Excel</button>
+    <button class="btn btn--ghost" (click)="exportExcel()" [disabled]="exporting()">{{ exporting() ? 'Exportando…' : '↓ Exportar Excel' }}</button>
   </div>
 
   <div class="tabs">
-    <button class="tab" [class.active]="activeTab()==='caja'" (click)="activeTab.set('caja')">Caja</button>
-    <button class="tab" [class.active]="activeTab()==='minorista'" (click)="activeTab.set('minorista')">Minorista</button>
-    <button class="tab" [class.active]="activeTab()==='mayorista'" (click)="activeTab.set('mayorista')">Mayorista</button>
+    <button class="tab" [class.active]="activeTab()==='caja'" (click)="setTab('caja')">Caja</button>
+    <button class="tab" [class.active]="activeTab()==='minorista'" (click)="setTab('minorista')">Minorista</button>
+    <button class="tab" [class.active]="activeTab()==='mayorista'" (click)="setTab('mayorista')">Mayorista</button>
     <button class="tab tab--disabled" disabled title="Próximamente">Servicio Técnico ✦</button>
     <button class="tab tab--disabled" disabled title="Próximamente">Reservas ✦</button>
   </div>
@@ -29,13 +29,14 @@
         </tr>
       </tbody>
     </table>
+    <app-pagination [page]="page()" [pageSize]="pageSize()" [total]="total()" (paramsChange)="onPageParams($event)"></app-pagination>
   </div>
 
   <!-- Minorista -->
   <div class="card" *ngIf="activeTab()==='minorista'">
     <div class="report-summary">
-      <div class="stat-card"><div class="stat-card__label">TOTAL VENTAS MIN</div><div class="stat-card__value">u$d {{ totalRetail.toFixed(0) }}</div></div>
-      <div class="stat-card"><div class="stat-card__label">CANTIDAD</div><div class="stat-card__value">{{ retailSales.length }}</div></div>
+      <div class="stat-card"><div class="stat-card__label">TOTAL VENTAS MIN</div><div class="stat-card__value">u$d {{ summaryTotalUsd().toFixed(0) }}</div></div>
+      <div class="stat-card"><div class="stat-card__label">CANTIDAD</div><div class="stat-card__value">{{ summaryCount() }}</div></div>
     </div>
     <table class="table">
       <thead><tr><th>FECHA</th><th>CLIENTE</th><th>MONTO</th><th>MARGEN</th></tr></thead>
@@ -48,13 +49,14 @@
         </tr>
       </tbody>
     </table>
+    <app-pagination [page]="page()" [pageSize]="pageSize()" [total]="total()" (paramsChange)="onPageParams($event)"></app-pagination>
   </div>
 
   <!-- Mayorista -->
   <div class="card" *ngIf="activeTab()==='mayorista'">
     <div class="report-summary">
-      <div class="stat-card"><div class="stat-card__label">TOTAL VENTAS MAY</div><div class="stat-card__value">u$d {{ totalWholesale.toFixed(0) }}</div></div>
-      <div class="stat-card"><div class="stat-card__label">CANTIDAD</div><div class="stat-card__value">{{ wholesaleSales.length }}</div></div>
+      <div class="stat-card"><div class="stat-card__label">TOTAL VENTAS MAY</div><div class="stat-card__value">u$d {{ summaryTotalUsd().toFixed(0) }}</div></div>
+      <div class="stat-card"><div class="stat-card__label">CANTIDAD</div><div class="stat-card__value">{{ summaryCount() }}</div></div>
     </div>
     <table class="table">
       <thead><tr><th>FECHA</th><th>CLIENTE</th><th>MONTO</th><th>MARGEN</th></tr></thead>
@@ -67,6 +69,7 @@
         </tr>
       </tbody>
     </table>
+    <app-pagination [page]="page()" [pageSize]="pageSize()" [total]="total()" (paramsChange)="onPageParams($event)"></app-pagination>
   </div>
 
   <div class="card" *ngIf="activeTab()==='sv' || activeTab()==='reservas'">

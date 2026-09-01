@@ -7,6 +7,7 @@ import { ConfirmService } from '../../shared/services/confirm.service';
 import { AuthService } from '../../core/services/auth.service';
 import { StockItem, StockBulk, CatalogLocation, CatalogModel, TradeInQuote, TradeInHistoryItem, Entity } from '../../shared/models/models';
 import { ImeiScannerComponent } from '../../shared/components/imei-scanner/imei-scanner.component';
+import { PaginationComponent, PageParams } from '../../shared/components/pagination/pagination.component';
 import { EscapeCloseDirective } from '../../shared/directives/escape-close.directive';
 import { AutoFocusDirective } from '../../shared/directives/auto-focus.directive';
 import { confirmDiscard } from '../../shared/utils/confirm-discard';
@@ -14,7 +15,7 @@ import { confirmDiscard } from '../../shared/utils/confirm-discard';
 @Component({
   selector: 'app-stock',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, ImeiScannerComponent, EscapeCloseDirective, AutoFocusDirective],
+  imports: [CommonModule, ReactiveFormsModule, ImeiScannerComponent, PaginationComponent, EscapeCloseDirective, AutoFocusDirective],
   templateUrl: './stock.component.html',
   styleUrls: ['./stock.component.scss']
 })
@@ -30,7 +31,19 @@ export class StockComponent implements OnInit {
   bulkItems = signal<StockBulk[]>([]);
   tradeInHistory = signal<TradeInHistoryItem[]>([]);
   total = signal(0);
+  page = signal(1);
+  pageSize = signal(100);
   loading = signal(true);
+
+  // Paginación (Canjes) — la trae el backend paginada, la de Equipos comparte total()/page()/pageSize() de arriba
+  tradeInPage = signal(1);
+  tradeInPageSize = signal(100);
+  tradeInTotal = signal(0);
+
+  // Paginación (Accesorios/Bulk) — el fetch trae todo (lo necesita el buscador client-side),
+  // así que acá se pagina en memoria sobre la lista ya filtrada.
+  bulkPage = signal(1);
+  bulkPageSize = signal(100);
 
   // Filters (Equipos)
   search = signal('');
@@ -60,6 +73,11 @@ export class StockComponent implements OnInit {
     return list;
   });
 
+  pagedBulkItems = computed(() => {
+    const start = (this.bulkPage() - 1) * this.bulkPageSize();
+    return this.filteredBulkItems().slice(start, start + this.bulkPageSize());
+  });
+
   hasActiveBulkFilters(): boolean {
     return !!this.bulkSearch() || this.bulkLowStockOnly();
   }
@@ -67,6 +85,12 @@ export class StockComponent implements OnInit {
   clearBulkFilters() {
     this.bulkSearch.set('');
     this.bulkLowStockOnly.set(false);
+    this.bulkPage.set(1);
+  }
+
+  onBulkPageParams(p: PageParams) {
+    this.bulkPage.set(p.page);
+    this.bulkPageSize.set(p.pageSize);
   }
 
   readonly storageOptions = [64, 128, 256, 512, 1024, 2048];
@@ -151,7 +175,25 @@ export class StockComponent implements OnInit {
     this.conditionFilter.set('');
     this.colorFilter.set('');
     this.storageFilter.set('');
+    this.applyFilters();
+  }
+
+  /** Los filtros arrancan siempre desde la página 1 — si no, podés quedar en una página que ya no existe. */
+  applyFilters() {
+    this.page.set(1);
     this.loadItems();
+  }
+
+  onPageParams(p: PageParams) {
+    this.page.set(p.page);
+    this.pageSize.set(p.pageSize);
+    this.loadItems();
+  }
+
+  onTradeInPageParams(p: PageParams) {
+    this.tradeInPage.set(p.page);
+    this.tradeInPageSize.set(p.pageSize);
+    this.loadTradeInHistory();
   }
 
   loadItems() {
@@ -160,15 +202,22 @@ export class StockComponent implements OnInit {
       this.statusFilter() as any || undefined,
       this.conditionFilter() as any || undefined,
       this.search() || undefined,
-      1,
-      20,
+      this.page(),
+      this.pageSize(),
       this.colorFilter() || undefined,
       this.storageFilter() ? Number(this.storageFilter()) : undefined,
     ).subscribe({
       next: r => { this.items.set(r.items); this.total.set(r.total); this.loading.set(false); }
     });
     this.api.getStockBulk().subscribe(b => this.bulkItems.set(b));
-    this.api.getTradeInHistory().subscribe(r => this.tradeInHistory.set(r.items));
+    this.loadTradeInHistory();
+  }
+
+  loadTradeInHistory() {
+    this.api.getTradeInHistory(this.tradeInPage(), this.tradeInPageSize()).subscribe(r => {
+      this.tradeInHistory.set(r.items);
+      this.tradeInTotal.set(r.total);
+    });
   }
 
   openNew() {

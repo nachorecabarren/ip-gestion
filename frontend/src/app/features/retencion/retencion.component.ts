@@ -2,23 +2,24 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ApiService } from '../../core/services/api.service';
 import { RetentionRule, RetentionTouchpoint } from '../../shared/models/models';
+import { PaginationComponent, PageParams } from '../../shared/components/pagination/pagination.component';
 
 @Component({
   selector: 'app-retencion',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, PaginationComponent],
   templateUrl: './retencion.component.html',
   styleUrls: ['./retencion.component.scss']
 })
 export class RetencionComponent implements OnInit {
   private api = inject(ApiService);
-  readonly pageSize = 25;
   tab = signal<'touchpoints' | 'reglas'>('touchpoints');
   touchpoints = signal<RetentionTouchpoint[]>([]);
   rules = signal<RetentionRule[]>([]);
   loading = signal(true);
   filterStatus = signal('');
   page = signal(1);
+  pageSize = signal(100);
   total = signal(0);
   totalAll = signal(0);
   paraHoy = signal(0);
@@ -28,7 +29,7 @@ export class RetencionComponent implements OnInit {
 
   load() {
     this.loading.set(true);
-    this.api.getTouchpoints(this.filterStatus() || undefined, this.page(), this.pageSize).subscribe({
+    this.api.getTouchpoints(this.filterStatus() || undefined, this.page(), this.pageSize()).subscribe({
       next: r => {
         this.touchpoints.set(r.items);
         this.total.set(r.total);
@@ -48,15 +49,9 @@ export class RetencionComponent implements OnInit {
     this.load();
   }
 
-  prevPage() {
-    if (this.page() <= 1) return;
-    this.page.set(this.page() - 1);
-    this.load();
-  }
-
-  nextPage() {
-    if (this.page() * this.pageSize >= this.total()) return;
-    this.page.set(this.page() + 1);
+  onPageParams(p: PageParams) {
+    this.page.set(p.page);
+    this.pageSize.set(p.pageSize);
     this.load();
   }
 
@@ -75,9 +70,5 @@ export class RetencionComponent implements OnInit {
   }
   getStatusLabel(s: string) {
     return ({ PARA_HOY: 'Para hoy', VENCIDO: 'Vencido', PENDIENTE: 'Pendiente' })[s] ?? s;
-  }
-
-  ceilDiv(total: number, size: number) {
-    return Math.max(1, Math.ceil(total / size));
   }
 }

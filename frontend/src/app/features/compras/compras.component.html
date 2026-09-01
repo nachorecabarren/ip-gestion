@@ -33,6 +33,12 @@
         </tr>
       </tbody>
     </table>
+    <app-pagination
+      [page]="page()"
+      [pageSize]="pageSize()"
+      [total]="total()"
+      (paramsChange)="onPageParams($event)"
+    ></app-pagination>
   </div>
 </div>
 

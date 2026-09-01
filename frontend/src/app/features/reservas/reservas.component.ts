@@ -12,11 +12,12 @@ import { openIfQueryParam } from '../../shared/utils/open-via-query-param';
 import { confirmDiscard } from '../../shared/utils/confirm-discard';
 import { ImeiScannerComponent } from '../../shared/components/imei-scanner/imei-scanner.component';
 import { StockItemSelectComponent } from '../../shared/components/stock-item-select/stock-item-select.component';
+import { PaginationComponent, PageParams } from '../../shared/components/pagination/pagination.component';
 
 @Component({
   selector: 'app-reservas',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, EscapeCloseDirective, AutoFocusDirective, ImeiScannerComponent, StockItemSelectComponent],
+  imports: [CommonModule, ReactiveFormsModule, EscapeCloseDirective, AutoFocusDirective, ImeiScannerComponent, StockItemSelectComponent, PaginationComponent],
   templateUrl: './reservas.component.html',
   styleUrls: ['./reservas.component.scss']
 })
@@ -30,6 +31,8 @@ export class ReservasComponent implements OnInit {
 
   reservations = signal<Reservation[]>([]);
   total = signal(0);
+  page = signal(1);
+  pageSize = signal(100);
   loading = signal(true);
   showModal = signal(false);
   submitting = signal(false);
@@ -119,9 +122,20 @@ export class ReservasComponent implements OnInit {
 
   load() {
     this.loading.set(true);
-    this.api.getReservations(this.statusFilter() as any || undefined).subscribe({
+    this.api.getReservations(this.statusFilter() as any || undefined, this.page(), this.pageSize()).subscribe({
       next: r => { this.reservations.set(r.items); this.total.set(r.total); this.loading.set(false); }
     });
+  }
+
+  applyFilters() {
+    this.page.set(1);
+    this.load();
+  }
+
+  onPageParams(p: PageParams) {
+    this.page.set(p.page);
+    this.pageSize.set(p.pageSize);
+    this.load();
   }
 
   submit() {

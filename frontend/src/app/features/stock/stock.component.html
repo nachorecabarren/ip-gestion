@@ -5,7 +5,8 @@
       <p class="page-sub">Gestión de equipos unitarios, accesorios y canjes</p>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button class="btn btn--ghost" (click)="openCotizador()">📊 Cotizador de Canje</button>
+      <!-- Cotizador de Canje: deshabilitado por el momento, no se usa -->
+      <!-- <button class="btn btn--ghost" (click)="openCotizador()">📊 Cotizador de Canje</button> -->
       <button class="btn btn--primary" (click)="openNew()" *ngIf="auth.isOwner()">+ Agregar equipo</button>
     </div>
   </div>
@@ -33,12 +34,12 @@
       <label>Buscar</label>
       <div class="search-input">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input type="text" placeholder="Código, IMEI o modelo..." [value]="search()" (input)="search.set($any($event.target).value); loadItems()" />
+        <input type="text" placeholder="Código, IMEI o modelo..." [value]="search()" (input)="search.set($any($event.target).value); applyFilters()" />
       </div>
     </div>
     <div class="filter-field">
       <label>Estado</label>
-      <select class="filter-select" [value]="statusFilter()" (change)="statusFilter.set($any($event.target).value); loadItems()">
+      <select class="filter-select" [value]="statusFilter()" (change)="statusFilter.set($any($event.target).value); applyFilters()">
         <option value="">Todos</option>
         <option value="AVAILABLE">Disponible</option>
         <option value="RESERVED">Reservado</option>
@@ -48,7 +49,7 @@
     </div>
     <div class="filter-field">
       <label>Condición</label>
-      <select class="filter-select" [value]="conditionFilter()" (change)="conditionFilter.set($any($event.target).value); loadItems()">
+      <select class="filter-select" [value]="conditionFilter()" (change)="conditionFilter.set($any($event.target).value); applyFilters()">
         <option value="">Todas</option>
         <option value="NEW">Nuevo</option>
         <option value="USED">Usado</option>
@@ -60,12 +61,12 @@
       <label>Color</label>
       <div class="search-input">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input type="text" placeholder="Cualquiera..." [value]="colorFilter()" (input)="colorFilter.set($any($event.target).value); loadItems()" />
+        <input type="text" placeholder="Cualquiera..." [value]="colorFilter()" (input)="colorFilter.set($any($event.target).value); applyFilters()" />
       </div>
     </div>
     <div class="filter-field">
       <label>Almacenamiento</label>
-      <select class="filter-select" [value]="storageFilter()" (change)="storageFilter.set($any($event.target).value); loadItems()">
+      <select class="filter-select" [value]="storageFilter()" (change)="storageFilter.set($any($event.target).value); applyFilters()">
         <option value="">Cualquiera</option>
         <option *ngFor="let gb of storageOptions" [value]="gb">{{ gb >= 1024 ? (gb / 1024) + 'TB' : gb + 'GB' }}</option>
       </select>
@@ -124,9 +125,13 @@
         </tr>
       </tbody>
     </table>
-    <div class="table-footer" *ngIf="!loading()">
-      <span>{{ total() }} resultados</span>
-    </div>
+    <app-pagination
+      *ngIf="!loading()"
+      [page]="page()"
+      [pageSize]="pageSize()"
+      [total]="total()"
+      (paramsChange)="onPageParams($event)"
+    ></app-pagination>
   </div>
 
   <!-- Filters (Accesorios) -->
@@ -135,11 +140,11 @@
       <label>Buscar</label>
       <div class="search-input">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input type="text" placeholder="Accesorio, color o ubicación..." [value]="bulkSearch()" (input)="bulkSearch.set($any($event.target).value)" />
+        <input type="text" placeholder="Accesorio, color o ubicación..." [value]="bulkSearch()" (input)="bulkSearch.set($any($event.target).value); bulkPage.set(1)" />
       </div>
     </div>
     <label class="filter-field filter-field--check">
-      <input type="checkbox" [checked]="bulkLowStockOnly()" (change)="bulkLowStockOnly.set($any($event.target).checked)" />
+      <input type="checkbox" [checked]="bulkLowStockOnly()" (change)="bulkLowStockOnly.set($any($event.target).checked); bulkPage.set(1)" />
       Solo stock bajo
     </label>
     <button type="button" class="btn btn--ghost btn--sm" [disabled]="!hasActiveBulkFilters()" (click)="clearBulkFilters()">✕ Limpiar filtros</button>
@@ -147,12 +152,12 @@
 
   <!-- Bulk table -->
   <div class="card" *ngIf="activeTab() === 'bulk'">
-    <table class="table" *ngIf="filteredBulkItems().length > 0">
+    <table class="table" *ngIf="pagedBulkItems().length > 0">
       <thead>
         <tr><th>ACCESORIO</th><th>COLOR</th><th>CANTIDAD</th><th>ALERTA STOCK</th><th>COSTO</th><th>PRECIO VENTA</th><th>UBICACIÓN</th></tr>
       </thead>
       <tbody>
-        <tr *ngFor="let b of filteredBulkItems()">
+        <tr *ngFor="let b of pagedBulkItems()">
           <td><strong>{{ b.accessoryName }}</strong></td>
           <td>{{ b.color ?? '—' }}</td>
           <td>
@@ -168,6 +173,12 @@
     </table>
     <div *ngIf="filteredBulkItems().length === 0 && bulkItems().length === 0" class="empty-state"><div class="empty-state__title">Sin accesorios en stock</div></div>
     <div *ngIf="filteredBulkItems().length === 0 && bulkItems().length > 0" class="empty-state"><div class="empty-state__title">Sin resultados para ese filtro</div></div>
+    <app-pagination
+      [page]="bulkPage()"
+      [pageSize]="bulkPageSize()"
+      [total]="filteredBulkItems().length"
+      (paramsChange)="onBulkPageParams($event)"
+    ></app-pagination>
   </div>
 
   <!-- Canjes tab -->
@@ -196,6 +207,12 @@
       <div class="empty-state__title">No hay canjes registrados</div>
       <div class="empty-state__sub">Los equipos recibidos como canje en una venta aparecerán aquí</div>
     </div>
+    <app-pagination
+      [page]="tradeInPage()"
+      [pageSize]="tradeInPageSize()"
+      [total]="tradeInTotal()"
+      (paramsChange)="onTradeInPageParams($event)"
+    ></app-pagination>
   </div>
 </div>
 

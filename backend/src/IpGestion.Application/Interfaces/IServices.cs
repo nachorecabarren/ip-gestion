@@ -94,7 +94,7 @@ public interface IImportService
 public interface ICajaService
 {
     Task<IEnumerable<CajaDto>> GetCajasAsync(Guid tenantId, CancellationToken ct = default);
-    Task<IEnumerable<CashMovementDto>> GetMovementsAsync(Guid tenantId, Guid? cajaId, DateTime? from, DateTime? to, int page, int pageSize, CancellationToken ct = default);
+    Task<PagedResult<CashMovementDto>> GetMovementsAsync(Guid tenantId, Guid? cajaId, DateTime? from, DateTime? to, int page, int pageSize, CancellationToken ct = default);
     Task<CashMovementDto> RegisterMovementAsync(Guid tenantId, CreateCashMovementDto dto, CancellationToken ct = default);
     Task<CashClosingPreviewDto> GetClosingPreviewAsync(Guid tenantId, Guid cajaId, CancellationToken ct = default);
     Task<CashClosingDto> CloseCajaAsync(Guid tenantId, Guid userId, string userName, CloseCajaDto dto, CancellationToken ct = default);

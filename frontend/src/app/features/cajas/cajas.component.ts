@@ -5,6 +5,7 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { ApiService } from '../../core/services/api.service';
 import { ConfirmService } from '../../shared/services/confirm.service';
 import { Caja, CashMovement, CashClosingPreview, CashClosing } from '../../shared/models/models';
+import { PaginationComponent, PageParams } from '../../shared/components/pagination/pagination.component';
 import { EscapeCloseDirective } from '../../shared/directives/escape-close.directive';
 import { AutoFocusDirective } from '../../shared/directives/auto-focus.directive';
 import { openIfQueryParam } from '../../shared/utils/open-via-query-param';
@@ -13,7 +14,7 @@ import { confirmDiscard } from '../../shared/utils/confirm-discard';
 @Component({
   selector: 'app-cajas',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, EscapeCloseDirective, AutoFocusDirective],
+  imports: [CommonModule, ReactiveFormsModule, PaginationComponent, EscapeCloseDirective, AutoFocusDirective],
   templateUrl: './cajas.component.html',
   styleUrls: ['./cajas.component.scss']
 })
@@ -26,6 +27,9 @@ export class CajasComponent implements OnInit {
 
   cajas = signal<Caja[]>([]);
   movements = signal<CashMovement[]>([]);
+  movementsTotal = signal(0);
+  movementsPage = signal(1);
+  movementsPageSize = signal(100);
   selectedCaja = signal<Caja | null>(null);
   loading = signal(true);
   showModal = signal(false);
@@ -46,6 +50,7 @@ export class CajasComponent implements OnInit {
   closings = signal<CashClosing[]>([]);
   closingsTotal = signal(0);
   closingsPage = signal(1);
+  closingsPageSize = signal(100);
   closingsLoading = signal(false);
 
   ngOnInit() {
@@ -100,15 +105,24 @@ export class CajasComponent implements OnInit {
 
   loadMovements(cajaId: string) {
     this.loading.set(true);
-    this.api.getCashMovements(cajaId).subscribe(m => {
-      this.movements.set(m);
+    this.api.getCashMovements(cajaId, undefined, undefined, this.movementsPage(), this.movementsPageSize()).subscribe(r => {
+      this.movements.set(r.items);
+      this.movementsTotal.set(r.total);
       this.loading.set(false);
     });
+  }
+
+  onMovementsPageParams(p: PageParams) {
+    this.movementsPage.set(p.page);
+    this.movementsPageSize.set(p.pageSize);
+    const caja = this.selectedCaja();
+    if (caja) this.loadMovements(caja.id);
   }
 
   selectCaja(c: Caja) {
     this.selectedCaja.set(c);
     this.form.patchValue({ cajaId: c.id });
+    this.movementsPage.set(1);
     this.loadMovements(c.id);
     this.showHistory.set(false);
   }
@@ -178,10 +192,17 @@ export class CajasComponent implements OnInit {
 
   loadClosings(cajaId: string) {
     this.closingsLoading.set(true);
-    this.api.getClosings(cajaId, this.closingsPage(), 20).subscribe({
+    this.api.getClosings(cajaId, this.closingsPage(), this.closingsPageSize()).subscribe({
       next: (r) => { this.closings.set(r.items); this.closingsTotal.set(r.total); this.closingsLoading.set(false); },
       error: () => this.closingsLoading.set(false),
     });
+  }
+
+  onClosingsPageParams(p: PageParams) {
+    this.closingsPage.set(p.page);
+    this.closingsPageSize.set(p.pageSize);
+    const caja = this.selectedCaja();
+    if (caja) this.loadClosings(caja.id);
   }
 
   submit() {

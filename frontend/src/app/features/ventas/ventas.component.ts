@@ -23,6 +23,7 @@ import {
 } from "../../shared/models/models";
 import { ImeiScannerComponent } from "../../shared/components/imei-scanner/imei-scanner.component";
 import { StockItemSelectComponent } from "../../shared/components/stock-item-select/stock-item-select.component";
+import { PaginationComponent, PageParams } from "../../shared/components/pagination/pagination.component";
 import { EscapeCloseDirective } from "../../shared/directives/escape-close.directive";
 import { AutoFocusDirective } from "../../shared/directives/auto-focus.directive";
 import { openIfQueryParam } from "../../shared/utils/open-via-query-param";
@@ -31,7 +32,7 @@ import { confirmDiscard } from "../../shared/utils/confirm-discard";
 @Component({
   selector: "app-ventas",
   standalone: true,
-  imports: [CommonModule, RouterModule, ReactiveFormsModule, ImeiScannerComponent, StockItemSelectComponent, EscapeCloseDirective, AutoFocusDirective],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, ImeiScannerComponent, StockItemSelectComponent, PaginationComponent, EscapeCloseDirective, AutoFocusDirective],
   templateUrl: "./ventas.component.html",
   styleUrls: ["./ventas.component.scss"],
 })
@@ -45,6 +46,8 @@ export class VentasComponent implements OnInit {
 
   sales = signal<Sale[]>([]);
   total = signal(0);
+  page = signal(1);
+  pageSize = signal(100);
   loading = signal(true);
   showModal = signal(false);
   wizardStep = signal(1);
@@ -154,6 +157,8 @@ export class VentasComponent implements OnInit {
         this.search() || undefined,
         this.filterByDate() ? this.dateFrom() : undefined,
         this.filterByDate() ? this.dateTo() : undefined,
+        this.page(),
+        this.pageSize(),
       )
       .subscribe({
         next: (r) => {
@@ -163,6 +168,18 @@ export class VentasComponent implements OnInit {
         },
         error: () => this.loading.set(false),
       });
+  }
+
+  /** Los filtros arrancan siempre desde la página 1 — si no, podés quedar en una página que ya no existe. */
+  applyFilters() {
+    this.page.set(1);
+    this.loadSales();
+  }
+
+  onPageParams(p: PageParams) {
+    this.page.set(p.page);
+    this.pageSize.set(p.pageSize);
+    this.loadSales();
   }
 
   get completedSales() { return this.filteredSales().filter(s => s.status === 'COMPLETED'); }

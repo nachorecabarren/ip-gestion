@@ -96,11 +96,12 @@
           </tbody>
         </table>
       </div>
-      <div class="form-row" style="justify-content:flex-end;margin-top:12px" *ngIf="total() > pageSize">
-        <button class="btn btn--ghost btn--sm" [disabled]="page() <= 1" (click)="prevPage()">← Anterior</button>
-        <span class="filter-count">Página {{ page() }} de {{ ceilDiv(total(), pageSize) }} · {{ total() }} resultados</span>
-        <button class="btn btn--ghost btn--sm" [disabled]="page() * pageSize >= total()" (click)="nextPage()">Siguiente →</button>
-      </div>
+      <app-pagination
+        [page]="page()"
+        [pageSize]="pageSize()"
+        [total]="total()"
+        (paramsChange)="onPageParams($event)"
+      ></app-pagination>
     </div>
   </ng-container>
 

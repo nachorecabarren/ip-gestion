@@ -77,6 +77,12 @@
     <div *ngIf="!loading() && movements().length === 0" class="empty-state">
       <div class="empty-state__title">Sin movimientos registrados</div>
     </div>
+    <app-pagination
+      [page]="movementsPage()"
+      [pageSize]="movementsPageSize()"
+      [total]="movementsTotal()"
+      (paramsChange)="onMovementsPageParams($event)"
+    ></app-pagination>
   </div>
 
   <!-- Historial de cierres -->
@@ -113,6 +119,12 @@
     <div *ngIf="!closingsLoading() && closings().length === 0" class="empty-state">
       <div class="empty-state__title">Sin cierres registrados todavía</div>
     </div>
+    <app-pagination
+      [page]="closingsPage()"
+      [pageSize]="closingsPageSize()"
+      [total]="closingsTotal()"
+      (paramsChange)="onClosingsPageParams($event)"
+    ></app-pagination>
   </div>
 </div>
 

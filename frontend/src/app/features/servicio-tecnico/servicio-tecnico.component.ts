@@ -7,6 +7,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { ConfirmService } from '../../shared/services/confirm.service';
 import { ServiceClientJob, ServiceJobStatus, CatalogModel } from '../../shared/models/models';
 import { ImeiScannerComponent } from '../../shared/components/imei-scanner/imei-scanner.component';
+import { PaginationComponent, PageParams } from '../../shared/components/pagination/pagination.component';
 import { EscapeCloseDirective } from '../../shared/directives/escape-close.directive';
 import { AutoFocusDirective } from '../../shared/directives/auto-focus.directive';
 import { confirmDiscard } from '../../shared/utils/confirm-discard';
@@ -19,7 +20,7 @@ interface TechnicianOption {
 @Component({
   selector: 'app-servicio-tecnico',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, ImeiScannerComponent, EscapeCloseDirective, AutoFocusDirective],
+  imports: [CommonModule, ReactiveFormsModule, ImeiScannerComponent, PaginationComponent, EscapeCloseDirective, AutoFocusDirective],
   templateUrl: './servicio-tecnico.component.html',
   styleUrls: ['./servicio-tecnico.component.scss']
 })
@@ -32,6 +33,8 @@ export class ServicioTecnicoComponent implements OnInit {
 
   jobs = signal<ServiceClientJob[]>([]);
   total = signal(0);
+  page = signal(1);
+  pageSize = signal(100);
   loading = signal(true);
   showModal = signal(false);
   submitting = signal(false);
@@ -127,9 +130,20 @@ export class ServicioTecnicoComponent implements OnInit {
 
   load() {
     this.loading.set(true);
-    this.api.getServiceJobs(this.statusFilter() as any || undefined, this.search() || undefined).subscribe({
+    this.api.getServiceJobs(this.statusFilter() as any || undefined, this.search() || undefined, this.page(), this.pageSize()).subscribe({
       next: r => { this.jobs.set(r.items); this.total.set(r.total); this.loading.set(false); }
     });
+  }
+
+  applyFilters() {
+    this.page.set(1);
+    this.load();
+  }
+
+  onPageParams(p: PageParams) {
+    this.page.set(p.page);
+    this.pageSize.set(p.pageSize);
+    this.load();
   }
 
   submit() {

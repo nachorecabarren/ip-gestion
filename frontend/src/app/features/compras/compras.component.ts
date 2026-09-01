@@ -7,6 +7,7 @@ import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule } fr
 import { ApiService } from '../../core/services/api.service';
 import { Purchase, Entity, CatalogModel, CatalogAccessory, CatalogLocation } from '../../shared/models/models';
 import { ImeiScannerComponent } from '../../shared/components/imei-scanner/imei-scanner.component';
+import { PaginationComponent, PageParams } from '../../shared/components/pagination/pagination.component';
 import { EscapeCloseDirective } from '../../shared/directives/escape-close.directive';
 import { AutoFocusDirective } from '../../shared/directives/auto-focus.directive';
 import { openIfQueryParam } from '../../shared/utils/open-via-query-param';
@@ -15,7 +16,7 @@ import { confirmDiscard } from '../../shared/utils/confirm-discard';
 @Component({
   selector: 'app-compras',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, ImeiScannerComponent, EscapeCloseDirective, AutoFocusDirective],
+  imports: [CommonModule, ReactiveFormsModule, ImeiScannerComponent, PaginationComponent, EscapeCloseDirective, AutoFocusDirective],
   templateUrl: './compras.component.html',
   styleUrls: ['./compras.component.scss']
 })
@@ -29,6 +30,8 @@ export class ComprasComponent implements OnInit {
 
   purchases = signal<Purchase[]>([]);
   total = signal(0);
+  page = signal(1);
+  pageSize = signal(100);
   loading = signal(true);
   showModal = signal(false);
   submitting = signal(false);
@@ -130,9 +133,15 @@ export class ComprasComponent implements OnInit {
 
   loadPurchases() {
     this.loading.set(true);
-    this.api.getPurchases().subscribe({
+    this.api.getPurchases(this.page(), this.pageSize()).subscribe({
       next: r => { this.purchases.set(r.items); this.total.set(r.total); this.loading.set(false); }
     });
+  }
+
+  onPageParams(p: PageParams) {
+    this.page.set(p.page);
+    this.pageSize.set(p.pageSize);
+    this.loadPurchases();
   }
 
   openModal() {
