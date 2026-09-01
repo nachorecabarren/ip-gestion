@@ -20,10 +20,21 @@ export class SidebarComponent {
   auth = inject(AuthService);
   theme = inject(ThemeService);
   tcBlue = signal(1520);
+  collapsed = signal(this.readCollapsedPreference());
   @Output() itemClicked = new EventEmitter<void>();
 
   constructor() {
     this.api.getTcBlue().subscribe(r => this.tcBlue.set(r.rate));
+  }
+
+  private readCollapsedPreference(): boolean {
+    try { return localStorage.getItem('sidebar-collapsed') === '1'; } catch { return false; }
+  }
+
+  toggleCollapsed() {
+    const next = !this.collapsed();
+    this.collapsed.set(next);
+    try { localStorage.setItem('sidebar-collapsed', next ? '1' : '0'); } catch {}
   }
 
   readonly nav: NavGroup[] = [

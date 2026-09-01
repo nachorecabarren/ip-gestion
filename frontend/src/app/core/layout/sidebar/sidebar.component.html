@@ -1,4 +1,16 @@
-<aside class="sidebar">
+<aside class="sidebar" [class.sidebar--collapsed]="collapsed()">
+  <button
+    type="button"
+    class="sidebar__collapse-btn"
+    (click)="toggleCollapsed()"
+    [attr.aria-expanded]="!collapsed()"
+    [attr.aria-label]="collapsed() ? 'Expandir menú' : 'Colapsar menú'"
+  >
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <polyline [attr.points]="collapsed() ? '9 18 15 12 9 6' : '15 18 9 12 15 6'"/>
+    </svg>
+  </button>
+
   <!-- Logo -->
   <div class="sidebar__logo">
     <div class="sidebar__logo-icon">
@@ -25,6 +37,7 @@
          [routerLink]="item.route"
          routerLinkActive="sidebar__item--active"
          class="sidebar__item"
+         [title]="item.label"
          (click)="itemClicked.emit()">
         <!-- Icons -->
         <span class="sidebar__item-icon">
