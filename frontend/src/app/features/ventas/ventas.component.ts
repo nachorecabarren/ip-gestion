@@ -224,6 +224,38 @@ export class VentasComponent implements OnInit {
     return this.items.controls.some(c => c.get('type')?.value === 'EQUIPMENT' && !!c.get('stockItemId')?.value);
   }
 
+  /** Resumen para el paso 4 (Pago): quién compra, qué se lleva y el canje si hay. */
+  summaryClientLabel(): string {
+    const v = this.saleForm.getRawValue();
+    if (v.isConsumerFinal) return v.retailClientName?.trim() || 'Consumidor Final';
+    return this.entities().find(e => e.id === v.entityId)?.name || '—';
+  }
+
+  summaryItems(): { label: string; quantity: number; subtotal: number }[] {
+    return this.items.controls.map(c => {
+      const type = c.get('type')?.value;
+      const quantity = Number(c.get('quantity')?.value) || 1;
+      const priceUsd = Number(c.get('priceUsd')?.value) || 0;
+      let label = type === 'EQUIPMENT' ? 'Equipo sin seleccionar' : 'Accesorio sin seleccionar';
+      if (type === 'EQUIPMENT') {
+        const item = this.availableStock().find(s => s.id === c.get('stockItemId')?.value);
+        if (item) label = `${item.modelName}${item.color ? ' ' + item.color : ''}${item.imeiSerial ? ' — IMEI ' + item.imeiSerial : ''}`;
+      } else {
+        const bulk = this.bulkStock().find(b => b.id === c.get('stockBulkId')?.value);
+        if (bulk) label = `${bulk.accessoryName}${bulk.color ? ' - ' + bulk.color : ''}`;
+      }
+      return { label, quantity, subtotal: quantity * priceUsd };
+    });
+  }
+
+  summaryTradeIn(): { label: string; value: number } | null {
+    const v = this.saleForm.getRawValue();
+    if (!v.tradeInEnabled) return null;
+    const model = this.models().find(m => m.id === v.tradeInModelId);
+    const label = `${model?.name || 'Equipo'}${v.tradeInColor ? ' ' + v.tradeInColor : ''}${v.tradeInStorage ? ' ' + v.tradeInStorage + 'GB' : ''}`;
+    return { label, value: Number(v.tradeInValue) || 0 };
+  }
+
   /** Datos obligatorios por paso: equipo (1), cliente (2, solo si hay equipos) y, si corresponde, email de factura. */
   validateStep(step: number): string | null {
     const v = this.saleForm.getRawValue();

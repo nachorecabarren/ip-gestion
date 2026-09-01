@@ -566,6 +566,27 @@
 
         <!-- STEP 4: Pago -->
         <ng-container *ngIf="wizardStep() === 4">
+          <div class="sale-summary">
+            <h4 class="liquidacion__title">Resumen de la venta</h4>
+            <div class="liquidacion__row">
+              <span>Cliente</span>
+              <strong>{{ summaryClientLabel() }}</strong>
+            </div>
+            <div class="liquidacion__row" *ngFor="let it of summaryItems()">
+              <span>{{ it.label }}{{ it.quantity > 1 ? ' x' + it.quantity : '' }}</span>
+              <strong>{{ formatUsd(it.subtotal) }}</strong>
+            </div>
+            <div class="liquidacion__row" *ngIf="summaryTradeIn() as ti">
+              <span>Canje — {{ ti.label }}</span>
+              <strong class="negative">-{{ formatUsd(ti.value) }}</strong>
+            </div>
+            <div class="liquidacion__divider"></div>
+            <div class="liquidacion__row liquidacion__row--total">
+              <span>Total a pagar</span>
+              <strong>{{ formatUsd(totalPago()) }}</strong>
+            </div>
+          </div>
+
           <div formArrayName="payments">
             <div
               *ngFor="let p of payments.controls; let i = index"
