@@ -1,16 +1,4 @@
 <aside class="sidebar" [class.sidebar--collapsed]="collapsed()">
-  <button
-    type="button"
-    class="sidebar__collapse-btn"
-    (click)="toggleCollapsed()"
-    [attr.aria-expanded]="!collapsed()"
-    [attr.aria-label]="collapsed() ? 'Expandir menú' : 'Colapsar menú'"
-  >
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <polyline [attr.points]="collapsed() ? '9 18 15 12 9 6' : '15 18 9 12 15 6'"/>
-    </svg>
-  </button>
-
   <!-- Logo -->
   <div class="sidebar__logo">
     <div class="sidebar__logo-icon">
@@ -37,8 +25,9 @@
          [routerLink]="item.route"
          routerLinkActive="sidebar__item--active"
          class="sidebar__item"
-         [title]="item.label"
-         (click)="itemClicked.emit()">
+         (mouseenter)="onItemEnter($event, item.label)"
+         (mouseleave)="onItemLeave()"
+         (click)="itemClicked.emit(); onItemLeave()">
         <!-- Icons -->
         <span class="sidebar__item-icon">
           <svg *ngIf="item.icon==='grid'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
@@ -90,3 +79,26 @@
     </button>
   </div>
 </aside>
+
+<!-- Fuera del <aside>: su overflow-y:auto clippea también el eje X, así que
+     el botón y el tooltip (que se salen del borde) viven acá como hermanos. -->
+<button
+  type="button"
+  class="sidebar__collapse-btn"
+  (click)="toggleCollapsed()"
+  [attr.aria-expanded]="!collapsed()"
+  [attr.aria-label]="collapsed() ? 'Expandir menú' : 'Colapsar menú'"
+>
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <polyline [attr.points]="collapsed() ? '9 18 15 12 9 6' : '15 18 9 12 15 6'"/>
+  </svg>
+</button>
+
+<div
+  class="sidebar__flyout-tooltip"
+  *ngIf="collapsed() && hoveredItem() as h"
+  [style.top.px]="h.top"
+  [style.left.px]="h.left"
+>
+  {{ h.label }}
+</div>

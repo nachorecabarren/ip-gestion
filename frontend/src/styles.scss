@@ -121,6 +121,27 @@ html, body {
     &:hover { background: #b91c1c; }
   }
   &--sm { padding: 5px 10px; font-size: 12px; }
+
+  // "Agregar fila" — pensado para reforzar el llamado a la acción de sumar
+  // ítems/filas en formularios largos (ventas, compras, etc.), en vez del
+  // ghost genérico que pasa desapercibido entre los campos.
+  &--add {
+    width: 100%; justify-content: center; gap: 8px; padding: 10px 14px;
+    border: 1.5px dashed var(--color-blue-border); border-radius: 10px;
+    background: var(--color-blue-light); color: var(--color-blue); font-weight: 600;
+
+    &:hover {
+      background: var(--color-blue); color: #fff; border-color: var(--color-blue); border-style: solid;
+      .btn--add-icon { background: #fff; color: var(--color-blue); }
+    }
+  }
+}
+
+.btn--add-icon {
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: var(--color-blue); color: #fff; font-size: 13px; font-weight: 700; line-height: 1;
+  transition: background 0.15s, color 0.15s;
 }
 
 // ─── TABS (global for features using inline tabs) ────────────

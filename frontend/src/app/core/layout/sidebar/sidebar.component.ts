@@ -21,6 +21,15 @@ export class SidebarComponent {
   theme = inject(ThemeService);
   tcBlue = signal(1520);
   collapsed = signal(this.readCollapsedPreference());
+  /**
+   * Tooltip flotante para los ítems cuando el sidebar está colapsado. Se
+   * posiciona con coordenadas de viewport (position: fixed) y se renderiza
+   * como hermano de <aside>, no adentro — el <aside> tiene overflow-y:auto
+   * para poder scrollear, y por regla de CSS eso también clippea el eje X
+   * aunque se pida "visible", así que cualquier cosa que necesite salirse
+   * del borde (este tooltip, el botón de colapsar) tiene que vivir afuera.
+   */
+  hoveredItem = signal<{ label: string; top: number; left: number } | null>(null);
   @Output() itemClicked = new EventEmitter<void>();
 
   constructor() {
@@ -34,7 +43,18 @@ export class SidebarComponent {
   toggleCollapsed() {
     const next = !this.collapsed();
     this.collapsed.set(next);
+    this.hoveredItem.set(null);
     try { localStorage.setItem('sidebar-collapsed', next ? '1' : '0'); } catch {}
+  }
+
+  onItemEnter(event: MouseEvent, label: string) {
+    if (!this.collapsed()) return;
+    const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+    this.hoveredItem.set({ label, top: rect.top + rect.height / 2, left: rect.right + 10 });
+  }
+
+  onItemLeave() {
+    this.hoveredItem.set(null);
   }
 
   readonly nav: NavGroup[] = [
