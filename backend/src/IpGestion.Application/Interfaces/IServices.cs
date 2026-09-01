@@ -121,7 +121,7 @@ public interface IRetentionService
 {
     Task<IEnumerable<RetentionRuleDto>> GetRulesAsync(Guid tenantId, CancellationToken ct = default);
     Task<RetentionRuleDto> UpsertRuleAsync(Guid tenantId, RetentionRuleDto dto, CancellationToken ct = default);
-    Task<IEnumerable<RetentionTouchpointDto>> GetTouchpointsAsync(Guid tenantId, string? status, CancellationToken ct = default);
+    Task<RetentionTouchpointsPageDto> GetTouchpointsAsync(Guid tenantId, string? status, int page, int pageSize, CancellationToken ct = default);
 }
 
 public interface IObjectionService

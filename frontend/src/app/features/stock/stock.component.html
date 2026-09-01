@@ -4,7 +4,7 @@
       <h1 class="page-title">Stock / Inventario</h1>
       <p class="page-sub">Gestión de equipos unitarios, accesorios y canjes</p>
     </div>
-    <div style="display:flex;gap:8px">
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
       <button class="btn btn--ghost" (click)="openCotizador()">📊 Cotizador de Canje</button>
       <button class="btn btn--primary" (click)="openNew()" *ngIf="auth.isOwner()">+ Agregar equipo</button>
     </div>

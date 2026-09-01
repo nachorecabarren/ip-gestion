@@ -1213,7 +1213,7 @@ public class RetentionService(AppDbContext db) : IRetentionService
         return new RetentionRuleDto(rule.Id, rule.RuleType, rule.DaysAfterSale, rule.MessageTemplate, rule.IsActive);
     }
 
-    public async Task<IEnumerable<RetentionTouchpointDto>> GetTouchpointsAsync(Guid tenantId, string? status, CancellationToken ct = default)
+    public async Task<RetentionTouchpointsPageDto> GetTouchpointsAsync(Guid tenantId, string? status, int page, int pageSize, CancellationToken ct = default)
     {
         var rules = await db.RetentionRules.Where(r => r.TenantId == tenantId && r.IsActive).ToListAsync(ct);
         var sales = await db.Sales
@@ -1229,7 +1229,6 @@ public class RetentionService(AppDbContext db) : IRetentionService
                 var triggerDate = sale.SaleDate.AddDays(rule.DaysAfterSale);
                 var tpStatus = triggerDate.Date == now.Date ? "PARA_HOY" :
                                triggerDate < now ? "VENCIDO" : "PENDIENTE";
-                if (status != null && tpStatus != status) continue;
 
                 var clientName = sale.Entity?.Name ?? sale.RetailClientName ?? "Cliente";
                 var modelName = sale.Items
@@ -1245,7 +1244,21 @@ public class RetentionService(AppDbContext db) : IRetentionService
                     sale.Entity?.Phone ?? sale.RetailClientPhone,
                     rule.RuleType, message, triggerDate, tpStatus));
             }
-        return touchpoints.OrderBy(t => t.TriggerDate);
+
+        // Los contadores de las tarjetas de resumen (Para hoy / Vencidos / Total) son
+        // siempre sobre el conjunto completo, sin importar qué pestaña de estado esté
+        // filtrada en la tabla paginada de abajo.
+        var totalAll = touchpoints.Count;
+        var paraHoyCount = touchpoints.Count(t => t.Status == "PARA_HOY");
+        var vencidoCount = touchpoints.Count(t => t.Status == "VENCIDO");
+        var pendienteCount = touchpoints.Count(t => t.Status == "PENDIENTE");
+
+        var filtered = (status != null ? touchpoints.Where(t => t.Status == status) : touchpoints)
+            .OrderBy(t => t.TriggerDate).ToList();
+        var pageItems = filtered.Skip((page - 1) * pageSize).Take(pageSize);
+
+        return new RetentionTouchpointsPageDto(pageItems, filtered.Count, page, pageSize,
+            totalAll, paraHoyCount, vencidoCount, pendienteCount);
     }
 }
 

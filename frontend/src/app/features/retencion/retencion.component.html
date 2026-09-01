@@ -10,24 +10,24 @@
   <div class="ret__kpis">
     <div class="stat-card stat-card--amber">
       <div class="stat-card__label">PARA HOY</div>
-      <div class="stat-card__value">{{ paraHoy }}</div>
+      <div class="stat-card__value">{{ paraHoy() }}</div>
       <div class="stat-card__sub">Contactos pendientes hoy</div>
     </div>
     <div class="stat-card stat-card--red">
       <div class="stat-card__label">VENCIDOS</div>
-      <div class="stat-card__value">{{ vencidos }}</div>
+      <div class="stat-card__value">{{ vencidos() }}</div>
       <div class="stat-card__sub">Sin contactar a tiempo</div>
     </div>
     <div class="stat-card">
       <div class="stat-card__label">TOTAL TOUCHPOINTS</div>
-      <div class="stat-card__value">{{ touchpoints().length }}</div>
+      <div class="stat-card__value">{{ totalAll() }}</div>
     </div>
   </div>
 
   <div class="tabs">
     <button class="tab" [class.active]="tab()==='touchpoints'" (click)="tab.set('touchpoints')">
       Touchpoints
-      <span class="badge badge--amber" *ngIf="paraHoy > 0" style="margin-left:6px">{{ paraHoy }}</span>
+      <span class="badge badge--amber" *ngIf="paraHoy() > 0" style="margin-left:6px">{{ paraHoy() }}</span>
     </button>
     <button class="tab" [class.active]="tab()==='reglas'" (click)="tab.set('reglas')">Reglas</button>
   </div>
@@ -35,10 +35,10 @@
   <!-- TOUCHPOINTS -->
   <ng-container *ngIf="tab() === 'touchpoints'">
     <div class="ret__filters">
-      <button class="filter-btn" [class.active]="filterStatus()===''" (click)="filterStatus.set(''); load()">Todos</button>
-      <button class="filter-btn" [class.active]="filterStatus()==='PARA_HOY'" (click)="filterStatus.set('PARA_HOY'); load()">Para hoy</button>
-      <button class="filter-btn" [class.active]="filterStatus()==='VENCIDO'" (click)="filterStatus.set('VENCIDO'); load()">Vencidos</button>
-      <button class="filter-btn" [class.active]="filterStatus()==='PENDIENTE'" (click)="filterStatus.set('PENDIENTE'); load()">Pendientes</button>
+      <button class="filter-btn" [class.active]="filterStatus()===''" (click)="setFilter('')">Todos</button>
+      <button class="filter-btn" [class.active]="filterStatus()==='PARA_HOY'" (click)="setFilter('PARA_HOY')">Para hoy</button>
+      <button class="filter-btn" [class.active]="filterStatus()==='VENCIDO'" (click)="setFilter('VENCIDO')">Vencidos</button>
+      <button class="filter-btn" [class.active]="filterStatus()==='PENDIENTE'" (click)="setFilter('PENDIENTE')">Pendientes</button>
     </div>
 
     <div class="card">
@@ -95,6 +95,11 @@
             </tr>
           </tbody>
         </table>
+      </div>
+      <div class="form-row" style="justify-content:flex-end;margin-top:12px" *ngIf="total() > pageSize">
+        <button class="btn btn--ghost btn--sm" [disabled]="page() <= 1" (click)="prevPage()">← Anterior</button>
+        <span class="filter-count">Página {{ page() }} de {{ ceilDiv(total(), pageSize) }} · {{ total() }} resultados</span>
+        <button class="btn btn--ghost btn--sm" [disabled]="page() * pageSize >= total()" (click)="nextPage()">Siguiente →</button>
       </div>
     </div>
   </ng-container>

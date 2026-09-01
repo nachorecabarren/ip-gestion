@@ -387,8 +387,9 @@ public class RetencionController(IRetentionService svc) : TenantBaseController
     }
 
     [HttpGet("touchpoints")]
-    public async Task<IActionResult> GetTouchpoints([FromQuery] string? status, CancellationToken ct = default)
-        => Ok(await svc.GetTouchpointsAsync(TenantId, status, ct));
+    public async Task<IActionResult> GetTouchpoints([FromQuery] string? status,
+        [FromQuery] int page = 1, [FromQuery] int pageSize = 25, CancellationToken ct = default)
+        => Ok(await svc.GetTouchpointsAsync(TenantId, status, page, pageSize, ct));
 }
 
 // ─── CATÁLOGOS ─────────────────────────────────────────────

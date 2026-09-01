@@ -473,6 +473,17 @@ public record RetentionTouchpointDto(
     string Status
 );
 
+public record RetentionTouchpointsPageDto(
+    IEnumerable<RetentionTouchpointDto> Items,
+    int Total,
+    int Page,
+    int PageSize,
+    int TotalAll,
+    int ParaHoyCount,
+    int VencidoCount,
+    int PendienteCount
+);
+
 // ─── OBJECIONES ────────────────────────────────────────────
 public record ObjectionDto(
     Guid Id,

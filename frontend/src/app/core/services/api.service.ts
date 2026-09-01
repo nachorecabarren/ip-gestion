@@ -26,6 +26,7 @@ import {
   EntityBalance,
   RetentionRule,
   RetentionTouchpoint,
+  RetentionTouchpointsPage,
   AuditLog,
   Competitor,
   EntityType,
@@ -341,10 +342,10 @@ export class ApiService {
   upsertRetentionRule(dto: RetentionRule): Observable<RetentionRule> {
     return this.http.put<RetentionRule>(`${this.base}/retencion/reglas`, dto);
   }
-  getTouchpoints(status?: string): Observable<RetentionTouchpoint[]> {
-    let params = new HttpParams();
+  getTouchpoints(status?: string, page = 1, pageSize = 25): Observable<RetentionTouchpointsPage> {
+    let params = new HttpParams().set("page", page).set("pageSize", pageSize);
     if (status) params = params.set("status", status);
-    return this.http.get<RetentionTouchpoint[]>(
+    return this.http.get<RetentionTouchpointsPage>(
       `${this.base}/retencion/touchpoints`,
       { params },
     );

@@ -12,7 +12,7 @@
     <button class="filter-btn" [class.active]="statusFilter() === 'SOLD'" (click)="statusFilter.set('SOLD'); load()">Concretadas</button>
     <button class="filter-btn" [class.active]="statusFilter() === 'CANCELLED'" (click)="statusFilter.set('CANCELLED'); load()">Canceladas</button>
     <button class="filter-btn" [class.active]="statusFilter() === ''" (click)="statusFilter.set(''); load()">Todas</button>
-    <span class="filter-count">{{ total() }} reservas</span>
+    <span class="filter-count">{{ total() }} {{ total() === 1 ? 'reserva' : 'reservas' }}</span>
   </div>
 
   <div class="card">

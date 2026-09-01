@@ -129,6 +129,10 @@ export interface AuditLog {
   entityId?: string; details?: string; createdAt: string;
 }
 export interface RetentionTouchpoint { saleId: string; clientName: string; clientPhone?: string; ruleType: string; messageTemplate: string; triggerDate: string; status: string; }
+export interface RetentionTouchpointsPage {
+  items: RetentionTouchpoint[]; total: number; page: number; pageSize: number;
+  totalAll: number; paraHoyCount: number; vencidoCount: number; pendienteCount: number;
+}
 
 export interface Objection { id: string; rawText: string; suggestedResponse?: string; source: string; createdAt: string; }
 export interface CompetitorPrice { modelName: string; storageGb?: number; priceUsd: number; ourPriceUsd?: number; diffUsd?: number; }

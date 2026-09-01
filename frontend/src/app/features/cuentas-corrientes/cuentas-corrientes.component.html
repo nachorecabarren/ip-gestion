@@ -37,7 +37,7 @@
 <div class="modal-overlay" *ngIf="showModal()" (click)="dismissModal()" escapeClose (escapeClose)="dismissModal()">
   <div class="modal" (click)="$event.stopPropagation()">
     <div class="modal__header">
-      <div><h2 class="modal__title">Registrar {{ selectedEntity()?.balanceUsd ?? 0 > 0 ? 'Cobro' : 'Pago' }}</h2>
+      <div><h2 class="modal__title">Registrar {{ (selectedEntity()?.balanceUsd ?? 0) > 0 ? 'Cobro' : 'Pago' }}</h2>
       <p class="modal__sub">{{ selectedEntity()?.entityName }}</p></div>
       <button class="modal__close" (click)="dismissModal()">✕</button>
     </div>

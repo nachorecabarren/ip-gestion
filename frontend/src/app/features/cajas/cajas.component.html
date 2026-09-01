@@ -4,7 +4,7 @@
       <h1 class="page-title">Cajas</h1>
       <p class="page-sub">Saldos por moneda y movimientos de efectivo</p>
     </div>
-    <div style="display:flex;gap:8px">
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
       <button class="btn btn--ghost" (click)="toggleHistory()" *ngIf="selectedCaja()">{{ showHistory() ? 'Ver movimientos' : 'Ver historial de cierres' }}</button>
       <button class="btn btn--ghost" (click)="openCloseModal()" *ngIf="selectedCaja()">Cerrar caja</button>
       <button class="btn btn--primary" (click)="openModal()">+ Nuevo Movimiento</button>
