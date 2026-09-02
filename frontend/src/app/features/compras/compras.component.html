@@ -214,7 +214,10 @@
             </div>
           </div>
         </div>
-        <button type="button" class="btn btn--ghost btn--sm" (click)="addDevice()" *ngIf="!editingPurchaseId()">+ Agregar equipo</button>
+        <button type="button" class="btn btn--add" (click)="addDevice()" *ngIf="!editingPurchaseId()">
+          <span class="btn--add-icon">+</span>
+          Agregar equipo
+        </button>
       </ng-container>
 
       <!-- Bulk -->
@@ -278,7 +281,10 @@
             </div>
           </div>
         </div>
-        <button type="button" class="btn btn--ghost btn--sm" (click)="addBulk()" *ngIf="!editingPurchaseId()">+ Agregar accesorio</button>
+        <button type="button" class="btn btn--add" (click)="addBulk()" *ngIf="!editingPurchaseId()">
+          <span class="btn--add-icon">+</span>
+          Agregar accesorio
+        </button>
       </ng-container>
 
       <div class="cost-summary">
