@@ -60,6 +60,11 @@
 .modal {
   background: var(--color-surface-elevated); border-radius: 14px; box-shadow: var(--shadow-lg);
   width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto; display: flex; flex-direction: column;
+  // Sigue siendo scrolleable (mouse, trackpad, teclado) — solo se oculta la barra visual,
+  // que en un modal angosto se siente más como ruido que como una señal útil.
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar { display: none; }
   &--wide { max-width: 820px; }
 
   &__header {
