@@ -18,14 +18,14 @@
     </div>
     <table class="table" *ngIf="!loading() && purchases().length > 0">
       <thead>
-        <tr><th>FECHA</th><th>PROVEEDOR</th><th>TIPO</th><th>EQUIPOS</th><th>TOTAL</th><th>ESTADO</th><th></th></tr>
+        <tr><th>FECHA</th><th>PROVEEDOR</th><th>TIPO</th><th>ITEMS</th><th>TOTAL</th><th>ESTADO</th><th></th></tr>
       </thead>
       <tbody>
         <tr *ngFor="let p of purchases()">
           <td>{{ p.purchaseDate | date:'dd/MM/yy' }}</td>
           <td>{{ p.providerName ?? '—' }}</td>
           <td><span class="badge badge--blue">{{ p.type === 'DEVICE' ? 'Equipos' : 'Accesorios' }}</span></td>
-          <td>{{ p.stockItems.length }}</td>
+          <td>{{ getItemCount(p) }}</td>
           <td><strong>u$d {{ p.totalUsd.toFixed(2) }}</strong></td>
           <td><span class="badge" [ngClass]="getStatusClass(p.status)">{{ getStatusLabel(p.status) }}</span></td>
           <td>

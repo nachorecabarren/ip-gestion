@@ -251,6 +251,10 @@ export class ComprasComponent implements OnInit {
     this.viewingPurchase.set(null);
   }
 
+  getItemCount(p: Purchase): number {
+    return p.stockItems.length + p.bulkItems.reduce((sum, b) => sum + b.quantity, 0);
+  }
+
   getStatusClass(s: string) {
     return ({ ACTIVE: 'badge--green', PENDING: 'badge--amber', CANCELLED: 'badge--red', DELIVERED: 'badge--blue' } as Record<string,string>)[s] ?? 'badge--gray';
   }
