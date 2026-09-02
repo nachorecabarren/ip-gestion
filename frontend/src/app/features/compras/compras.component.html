@@ -26,9 +26,14 @@
           <td><strong>u$d {{ p.totalUsd.toFixed(2) }}</strong></td>
           <td><span class="badge" [ngClass]="getStatusClass(p.status)">{{ getStatusLabel(p.status) }}</span></td>
           <td>
-            <button class="btn-icon-sm" (click)="voidPurchase(p.id)" title="Anular" *ngIf="p.status === 'ACTIVE' && auth.isOwner()">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>
-            </button>
+            <div class="action-btns">
+              <button class="btn-icon-sm btn-icon-sm--neutral" (click)="viewDetail(p)" title="Ver detalle">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+              <button class="btn-icon-sm" (click)="voidPurchase(p.id)" title="Anular" *ngIf="p.status === 'ACTIVE' && auth.isOwner()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>
+              </button>
+            </div>
           </td>
         </tr>
       </tbody>
@@ -39,6 +44,69 @@
       [total]="total()"
       (paramsChange)="onPageParams($event)"
     ></app-pagination>
+  </div>
+</div>
+
+<!-- Modal Detalle de compra -->
+<div class="modal-overlay" *ngIf="viewingPurchase() as p" (click)="closeDetail()" escapeClose (escapeClose)="closeDetail()">
+  <div class="modal modal--wide" (click)="$event.stopPropagation()">
+    <div class="modal__header">
+      <div>
+        <h2 class="modal__title">Detalle de compra</h2>
+        <p class="modal__sub">{{ p.purchaseDate | date:'dd/MM/yyyy' }} · {{ p.providerName ?? 'Sin proveedor' }}</p>
+      </div>
+      <button class="modal__close" (click)="closeDetail()">✕</button>
+    </div>
+    <div class="modal__body">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Tipo</label>
+          <div><span class="badge badge--blue">{{ p.type === 'DEVICE' ? 'Equipos' : 'Accesorios' }}</span></div>
+        </div>
+        <div class="form-group">
+          <label>Estado</label>
+          <div><span class="badge" [ngClass]="getStatusClass(p.status)">{{ getStatusLabel(p.status) }}</span></div>
+        </div>
+        <div class="form-group">
+          <label>Total</label>
+          <div><strong>u$d {{ p.totalUsd.toFixed(2) }}</strong></div>
+        </div>
+      </div>
+      <div class="form-group" *ngIf="p.notes">
+        <label>Notas</label>
+        <div>{{ p.notes }}</div>
+      </div>
+
+      <div class="page-sub" style="margin:18px 0 8px" *ngIf="p.stockItems.length > 0">Equipos incluidos</div>
+      <table class="table" *ngIf="p.stockItems.length > 0">
+        <thead>
+          <tr><th>MODELO</th><th>IMEI/SERIE</th><th>COLOR</th><th>ALMAC.</th><th>COND.</th><th>BAT.</th><th>COSTO</th><th>PRECIO</th></tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let s of p.stockItems">
+            <td><strong>{{ s.modelName }}</strong></td>
+            <td class="code">{{ s.imeiSerial || '—' }}</td>
+            <td>{{ s.color || '—' }}</td>
+            <td>{{ s.storageGb ? s.storageGb + 'GB' : '—' }}</td>
+            <td>{{ s.condition }}</td>
+            <td>{{ s.batteryPct ? s.batteryPct + '%' : '—' }}</td>
+            <td>u$d {{ s.costUsd }}</td>
+            <td><strong>u$d {{ s.suggestedPriceUsd }}</strong></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="empty-state" *ngIf="p.stockItems.length === 0">
+        <div class="empty-state__title">Sin detalle línea por línea</div>
+        <div class="empty-state__sub">
+          Esta compra fue de accesorios — el sistema suma la cantidad comprada directamente al stock existente
+          sin guardar un registro por accesorio de esta compra en particular.
+        </div>
+      </div>
+    </div>
+    <div class="modal__footer">
+      <button class="btn btn--ghost" (click)="closeDetail()">Cerrar</button>
+    </div>
   </div>
 </div>
 

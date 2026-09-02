@@ -194,6 +194,16 @@ export class ComprasComponent implements OnInit {
     this.api.voidPurchase(id).subscribe(() => this.loadPurchases());
   }
 
+  viewingPurchase = signal<Purchase | null>(null);
+
+  viewDetail(p: Purchase) {
+    this.viewingPurchase.set(p);
+  }
+
+  closeDetail() {
+    this.viewingPurchase.set(null);
+  }
+
   getStatusClass(s: string) {
     return ({ ACTIVE: 'badge--green', PENDING: 'badge--amber', CANCELLED: 'badge--red', DELIVERED: 'badge--blue' } as Record<string,string>)[s] ?? 'badge--gray';
   }
