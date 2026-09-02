@@ -213,9 +213,9 @@ public class EntityService(AppDbContext db) : IEntityService
 public class StockService(AppDbContext db) : IStockService
 {
     private static StockItemDto Map(Domain.Entities.StockItem s) => new(
-        s.Id, s.Model?.Name ?? "", s.InternalCode, s.ImeiSerial, s.Color, s.StorageGb,
+        s.Id, s.ModelId, s.Model?.Name ?? "", s.InternalCode, s.ImeiSerial, s.Color, s.StorageGb,
         s.Condition, s.ConditionGrade, s.BatteryPct, s.CostUsd, s.SuggestedPriceUsd,
-        s.WholesalePriceUsd, s.Status, s.Location?.Name, s.Notes, s.CreatedAt);
+        s.WholesalePriceUsd, s.Status, s.LocationId, s.Location?.Name, s.Notes, s.CreatedAt);
 
     public async Task<PagedResult<StockItemDto>> GetItemsPagedAsync(Guid tenantId, StockStatus? status, StockCondition? condition, string? search, string? color, int? storageGb, int page, int pageSize, CancellationToken ct = default)
     {
@@ -642,6 +642,8 @@ public class PurchaseService(AppDbContext db) : IPurchaseService
     public async Task<PagedResult<PurchaseDto>> GetPagedAsync(Guid tenantId, int page, int pageSize, CancellationToken ct = default)
     {
         var q = db.Purchases.Include(p => p.Provider).Include(p => p.StockItems).ThenInclude(s => s.Model)
+            .Include(p => p.StockItems).ThenInclude(s => s.Location)
+            .Include(p => p.BulkItems).ThenInclude(b => b.Accessory)
             .Where(p => p.TenantId == tenantId);
         var total = await q.CountAsync(ct);
         var items = await q.OrderByDescending(p => p.PurchaseDate)
@@ -652,6 +654,8 @@ public class PurchaseService(AppDbContext db) : IPurchaseService
     public async Task<PurchaseDto?> GetByIdAsync(Guid tenantId, Guid id, CancellationToken ct = default)
     {
         var p = await db.Purchases.Include(x => x.Provider).Include(x => x.StockItems).ThenInclude(s => s.Model)
+            .Include(x => x.StockItems).ThenInclude(s => s.Location)
+            .Include(x => x.BulkItems).ThenInclude(b => b.Accessory)
             .FirstOrDefaultAsync(x => x.TenantId == tenantId && x.Id == id, ct);
         return p == null ? null : Map(p);
     }
@@ -735,6 +739,19 @@ public class PurchaseService(AppDbContext db) : IPurchaseService
                     CostUsd = bulk.CostUsd,
                     SuggestedPriceUsd = bulk.SuggestedPriceUsd
                 });
+
+            // Foto fija de esta línea de la compra — StockBulk arriba es solo el
+            // acumulado total, esto es lo que permite mostrar/editar el detalle
+            // de ESTA compra puntual más adelante.
+            purchase.BulkItems.Add(new Domain.Entities.PurchaseBulkItem
+            {
+                TenantId = tenantId,
+                AccessoryId = bulk.AccessoryId,
+                Color = bulk.Color,
+                Quantity = bulk.Quantity,
+                CostUsd = bulk.CostUsd,
+                SuggestedPriceUsd = bulk.SuggestedPriceUsd
+            });
         }
 
         purchase.TotalUsd = dto.DeviceItems.Sum(i => i.CostUsd) + dto.BulkItems.Sum(i => i.CostUsd * i.Quantity);
@@ -776,11 +793,21 @@ public class PurchaseService(AppDbContext db) : IPurchaseService
 
     public async Task VoidAsync(Guid tenantId, Guid id, CancellationToken ct = default)
     {
-        var p = await db.Purchases.Include(x => x.StockItems)
+        var p = await db.Purchases.Include(x => x.StockItems).Include(x => x.BulkItems)
             .FirstOrDefaultAsync(x => x.TenantId == tenantId && x.Id == id, ct)
             ?? throw new NotFoundException(nameof(Domain.Entities.Purchase), id);
         p.Status = PurchaseStatus.CANCELLED;
         p.StockItems.ToList().ForEach(i => i.Status = StockStatus.VOIDED);
+
+        // Los equipos se marcan VOIDED (arriba) pero siguen "existiendo" para trazabilidad;
+        // los accesorios no tienen ese concepto — lo único que se puede revertir es la
+        // cantidad que esta compra le había sumado al acumulado de StockBulk.
+        foreach (var bulk in p.BulkItems)
+        {
+            var stockBulk = await db.StockBulks.FirstOrDefaultAsync(b =>
+                b.TenantId == tenantId && b.AccessoryId == bulk.AccessoryId && b.Color == bulk.Color, ct);
+            if (stockBulk != null) stockBulk.Quantity = Math.Max(0, stockBulk.Quantity - bulk.Quantity);
+        }
 
         var cajaMovements = await db.CashMovements
             .Where(m => m.TenantId == tenantId && m.ReferenceId == p.Id && m.ReferenceType == "PURCHASE")
@@ -805,11 +832,88 @@ public class PurchaseService(AppDbContext db) : IPurchaseService
     }
 
     private static PurchaseDto Map(Domain.Entities.Purchase p) => new(
-        p.Id, p.Provider?.Name, p.PurchaseDate, p.TotalUsd, p.Type, p.Status, p.Notes,
-        p.StockItems.Select(s => new StockItemDto(s.Id, s.Model?.Name ?? "", s.InternalCode, s.ImeiSerial,
+        p.Id, p.Provider?.Name, p.ProviderId, p.PurchaseDate, p.TotalUsd, p.Type, p.Status, p.Notes,
+        p.StockItems.Select(s => new StockItemDto(s.Id, s.ModelId, s.Model?.Name ?? "", s.InternalCode, s.ImeiSerial,
             s.Color, s.StorageGb, s.Condition, s.ConditionGrade, s.BatteryPct, s.CostUsd, s.SuggestedPriceUsd,
-            s.WholesalePriceUsd, s.Status, null, s.Notes, s.CreatedAt)).ToList()
+            s.WholesalePriceUsd, s.Status, s.LocationId, s.Location?.Name, s.Notes, s.CreatedAt)).ToList(),
+        p.BulkItems.Select(b => new PurchaseBulkItemDto(b.Id, b.AccessoryId, b.Accessory?.Name ?? "",
+            b.Color, b.Quantity, b.CostUsd, b.SuggestedPriceUsd)).ToList()
     );
+
+    public async Task<PurchaseDto> UpdateAsync(Guid tenantId, Guid id, UpdatePurchaseDto dto, CancellationToken ct = default)
+    {
+        var p = await db.Purchases.Include(x => x.StockItems).Include(x => x.BulkItems)
+            .FirstOrDefaultAsync(x => x.TenantId == tenantId && x.Id == id, ct)
+            ?? throw new NotFoundException(nameof(Domain.Entities.Purchase), id);
+
+        if (p.Status != PurchaseStatus.ACTIVE)
+            throw new BusinessException("Solo se pueden editar compras activas.");
+
+        if (dto.ProviderId.HasValue)
+        {
+            var providerExists = await db.Entities.AnyAsync(e => e.TenantId == tenantId && e.Id == dto.ProviderId.Value, ct);
+            if (!providerExists) throw new NotFoundException(nameof(Domain.Entities.Entity), dto.ProviderId.Value);
+        }
+
+        p.ProviderId = dto.ProviderId;
+        p.PurchaseDate = DateUtils.NormalizeToUtc(dto.PurchaseDate);
+        p.Notes = dto.Notes;
+
+        // Solo corrige valores de renglones existentes — no agrega ni quita ítems,
+        // para no tener que lidiar con equipos que ya se vendieron desde que se cargó la compra.
+        foreach (var itemDto in dto.DeviceItems)
+        {
+            var item = p.StockItems.FirstOrDefault(s => s.Id == itemDto.Id)
+                ?? throw new NotFoundException(nameof(Domain.Entities.StockItem), itemDto.Id);
+            item.ModelId = itemDto.ModelId;
+            item.ImeiSerial = itemDto.ImeiSerial;
+            item.Color = itemDto.Color;
+            item.StorageGb = itemDto.StorageGb;
+            item.Condition = itemDto.Condition;
+            item.BatteryPct = itemDto.BatteryPct;
+            item.CostUsd = itemDto.CostUsd;
+            item.SuggestedPriceUsd = itemDto.SuggestedPriceUsd;
+            item.WholesalePriceUsd = itemDto.WholesalePriceUsd;
+        }
+
+        foreach (var bulkDto in dto.BulkItems)
+        {
+            var bulkItem = p.BulkItems.FirstOrDefault(b => b.Id == bulkDto.Id)
+                ?? throw new NotFoundException(nameof(Domain.Entities.PurchaseBulkItem), bulkDto.Id);
+
+            // Si cambió de accesorio/color, hay que revertir la cantidad vieja del
+            // StockBulk anterior y aplicar la nueva al StockBulk correspondiente.
+            var oldStockBulk = await db.StockBulks.FirstOrDefaultAsync(b =>
+                b.TenantId == tenantId && b.AccessoryId == bulkItem.AccessoryId && b.Color == bulkItem.Color, ct);
+            if (oldStockBulk != null) oldStockBulk.Quantity = Math.Max(0, oldStockBulk.Quantity - bulkItem.Quantity);
+
+            var newStockBulk = await db.StockBulks.FirstOrDefaultAsync(b =>
+                b.TenantId == tenantId && b.AccessoryId == bulkDto.AccessoryId && b.Color == bulkDto.Color, ct);
+            if (newStockBulk != null)
+                newStockBulk.Quantity += bulkDto.Quantity;
+            else
+                db.StockBulks.Add(new Domain.Entities.StockBulk
+                {
+                    TenantId = tenantId,
+                    AccessoryId = bulkDto.AccessoryId,
+                    Color = bulkDto.Color,
+                    Quantity = bulkDto.Quantity,
+                    CostUsd = bulkDto.CostUsd,
+                    SuggestedPriceUsd = bulkDto.SuggestedPriceUsd
+                });
+
+            bulkItem.AccessoryId = bulkDto.AccessoryId;
+            bulkItem.Color = bulkDto.Color;
+            bulkItem.Quantity = bulkDto.Quantity;
+            bulkItem.CostUsd = bulkDto.CostUsd;
+            bulkItem.SuggestedPriceUsd = bulkDto.SuggestedPriceUsd;
+        }
+
+        p.TotalUsd = p.StockItems.Sum(i => i.CostUsd) + p.BulkItems.Sum(i => i.CostUsd * i.Quantity);
+
+        await db.SaveChangesAsync(ct);
+        return (await GetByIdAsync(tenantId, p.Id, ct))!;
+    }
 }
 
 // ─── RESERVATION SERVICE ───────────────────────────────────

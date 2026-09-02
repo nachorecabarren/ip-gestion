@@ -17,6 +17,8 @@ public abstract class TenantBaseController : ControllerBase
     protected Guid CurrentUserId => Guid.Parse(User.FindFirstValue("userId")!);
     protected string UserRole => User.FindFirstValue("role") ?? string.Empty;
     protected bool IsOwner => UserRole == nameof(Domain.Enums.UserRole.OWNER);
+    protected bool IsAdmin => UserRole == nameof(Domain.Enums.UserRole.ADMIN);
+    protected bool IsOwnerOrAdmin => IsOwner || IsAdmin;
     protected string CurrentUserName => User.FindFirstValue(ClaimTypes.Name) ?? User.FindFirstValue("email") ?? "Usuario";
 }
 
@@ -199,6 +201,15 @@ public class ComprasController(IPurchaseService svc, IAuditService audit) : Tena
         var result = await svc.CreateAsync(TenantId, dto, ct);
         await audit.LogAsync(TenantId, CurrentUserId, CurrentUserName, "CREATE", "Purchase", result.Id, $"Compra por u$d {result.TotalUsd}", ct);
         return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+    }
+
+    [HttpPut("{id}")]
+    public async Task<IActionResult> Update(Guid id, [FromBody] UpdatePurchaseDto dto, CancellationToken ct = default)
+    {
+        if (!IsOwnerOrAdmin) return Forbid();
+        var result = await svc.UpdateAsync(TenantId, id, dto, ct);
+        await audit.LogAsync(TenantId, CurrentUserId, CurrentUserName, "UPDATE", "Purchase", id, $"Compra editada — total u$d {result.TotalUsd}", ct);
+        return Ok(result);
     }
 
     [HttpDelete("{id}")]

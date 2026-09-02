@@ -70,6 +70,7 @@ public interface IPurchaseService
     Task<PagedResult<PurchaseDto>> GetPagedAsync(Guid tenantId, int page, int pageSize, CancellationToken ct = default);
     Task<PurchaseDto?> GetByIdAsync(Guid tenantId, Guid id, CancellationToken ct = default);
     Task<PurchaseDto> CreateAsync(Guid tenantId, CreatePurchaseDto dto, CancellationToken ct = default);
+    Task<PurchaseDto> UpdateAsync(Guid tenantId, Guid id, UpdatePurchaseDto dto, CancellationToken ct = default);
     Task VoidAsync(Guid tenantId, Guid id, CancellationToken ct = default);
 }
 

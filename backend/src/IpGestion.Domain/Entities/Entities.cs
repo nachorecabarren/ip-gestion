@@ -220,7 +220,28 @@ public class Purchase : TenantEntity
 
     public Entity? Provider { get; set; }
     public ICollection<StockItem> StockItems { get; set; } = [];
+    public ICollection<PurchaseBulkItem> BulkItems { get; set; } = [];
     public ICollection<TransactionPayment> Payments { get; set; } = [];
+}
+
+/// <summary>
+/// Renglón de accesorios de una compra puntual. A diferencia de StockBulk (que es
+/// solo el total acumulado en stock), esto es una foto fija de qué se compró en
+/// ESTA orden — sin esto, una compra de accesorios no tenía forma de mostrar su
+/// propio detalle línea por línea (a diferencia de los equipos, que sí lo tienen
+/// vía StockItem.PurchaseId).
+/// </summary>
+public class PurchaseBulkItem : TenantEntity
+{
+    public Guid PurchaseId { get; set; }
+    public Guid AccessoryId { get; set; }
+    public string? Color { get; set; }
+    public int Quantity { get; set; }
+    public decimal CostUsd { get; set; }
+    public decimal SuggestedPriceUsd { get; set; }
+
+    public Purchase Purchase { get; set; } = null!;
+    public CatalogAccessory Accessory { get; set; } = null!;
 }
 
 // ─── RESERVATION ───────────────────────────────────────────

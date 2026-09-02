@@ -47,10 +47,10 @@ export interface CatalogAccessory { id: string; name: string; requiresModel: boo
 export interface CatalogLocation { id: string; name: string; }
 
 export interface StockItem {
-  id: string; modelName: string; internalCode?: string; imeiSerial?: string; color?: string;
+  id: string; modelId: string; modelName: string; internalCode?: string; imeiSerial?: string; color?: string;
   storageGb?: number; condition: StockCondition; conditionGrade?: string; batteryPct?: number;
   costUsd: number; suggestedPriceUsd: number; wholesalePriceUsd?: number;
-  status: StockStatus; locationName?: string; notes?: string; createdAt: string;
+  status: StockStatus; locationId?: string; locationName?: string; notes?: string; createdAt: string;
 }
 
 export interface StockBulk {
@@ -67,9 +67,14 @@ export interface Sale {
   hasTradeIn: boolean; tradeInValueUsd?: number;
 }
 
+export interface PurchaseBulkItem {
+  id: string; accessoryId: string; accessoryName: string; color?: string;
+  quantity: number; costUsd: number; suggestedPriceUsd: number;
+}
+
 export interface Purchase {
-  id: string; providerName?: string; purchaseDate: string; totalUsd: number;
-  type: PurchaseType; status: PurchaseStatus; notes?: string; stockItems: StockItem[];
+  id: string; providerName?: string; providerId?: string; purchaseDate: string; totalUsd: number;
+  type: PurchaseType; status: PurchaseStatus; notes?: string; stockItems: StockItem[]; bulkItems: PurchaseBulkItem[];
 }
 
 export interface Reservation {

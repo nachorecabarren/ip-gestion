@@ -198,7 +198,7 @@ export class ConfiguracionComponent implements OnInit {
   }
 
   private readonly auditActionLabels: Record<string, string> = {
-    CREATE: 'Creación', VOID: 'Anulación', CANCEL: 'Cancelación', CONVERT: 'Conversión',
+    CREATE: 'Creación', VOID: 'Anulación', CANCEL: 'Cancelación', CONVERT: 'Conversión', UPDATE: 'Edición',
   };
   private readonly auditEntityLabels: Record<string, string> = {
     Sale: 'venta', Purchase: 'compra', StockItem: 'ítem de stock', Reservation: 'reserva',
@@ -212,6 +212,6 @@ export class ConfiguracionComponent implements OnInit {
   }
 
   auditActionClass(action: string): string {
-    return ({ CREATE: 'badge--green', VOID: 'badge--red', CANCEL: 'badge--red', CONVERT: 'badge--blue' } as Record<string, string>)[action] ?? 'badge--gray';
+    return ({ CREATE: 'badge--green', VOID: 'badge--red', CANCEL: 'badge--red', CONVERT: 'badge--blue', UPDATE: 'badge--amber' } as Record<string, string>)[action] ?? 'badge--gray';
   }
 }

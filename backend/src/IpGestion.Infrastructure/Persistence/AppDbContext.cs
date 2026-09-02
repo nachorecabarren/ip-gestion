@@ -17,6 +17,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Sale> Sales => Set<Sale>();
     public DbSet<SaleItem> SaleItems => Set<SaleItem>();
     public DbSet<Purchase> Purchases => Set<Purchase>();
+    public DbSet<PurchaseBulkItem> PurchaseBulkItems => Set<PurchaseBulkItem>();
     public DbSet<Reservation> Reservations => Set<Reservation>();
     public DbSet<ImportSupplierOrder> ImportOrders => Set<ImportSupplierOrder>();
     public DbSet<ImportSupplierOrderItem> ImportOrderItems => Set<ImportSupplierOrderItem>();

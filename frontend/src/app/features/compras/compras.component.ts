@@ -5,7 +5,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ApiService } from '../../core/services/api.service';
-import { Purchase, Entity, CatalogModel, CatalogAccessory, CatalogLocation } from '../../shared/models/models';
+import { Purchase, Entity, CatalogModel, CatalogAccessory, CatalogLocation, StockItem, PurchaseBulkItem } from '../../shared/models/models';
 import { ImeiScannerComponent } from '../../shared/components/imei-scanner/imei-scanner.component';
 import { PaginationComponent, PageParams } from '../../shared/components/pagination/pagination.component';
 import { EscapeCloseDirective } from '../../shared/directives/escape-close.directive';
@@ -46,6 +46,7 @@ export class ComprasComponent implements OnInit {
   addAccessoryOpenIndex = signal<number | null>(null);
   newAccessoryName = signal('');
   addingAccessory = signal(false);
+  editingPurchaseId = signal<string | null>(null);
 
   form!: FormGroup;
 
@@ -73,32 +74,34 @@ export class ComprasComponent implements OnInit {
   get deviceItems() { return this.form.get('deviceItems') as FormArray; }
   get bulkItems() { return this.form.get('bulkItems') as FormArray; }
 
-  addDevice() {
+  addDevice(existing?: StockItem) {
     this.deviceItems.push(this.fb.group({
-      modelId: [null, Validators.required],
-      imeiSerial: [''],
-      color: [''],
-      storageGb: [null],
-      condition: ['NEW', Validators.required],
-      batteryPct: [null],
-      costUsd: [0, [Validators.required, Validators.min(0.01)]],
-      suggestedPriceUsd: [0, [Validators.required, Validators.min(0.01)]],
-      wholesalePriceUsd: [null],
-      locationId: [null],
-      notes: [''],
+      id: [existing?.id ?? null],
+      modelId: [existing?.modelId ?? null, Validators.required],
+      imeiSerial: [existing?.imeiSerial ?? ''],
+      color: [existing?.color ?? ''],
+      storageGb: [existing?.storageGb ?? null],
+      condition: [existing?.condition ?? 'NEW', Validators.required],
+      batteryPct: [existing?.batteryPct ?? null],
+      costUsd: [existing?.costUsd ?? 0, [Validators.required, Validators.min(0.01)]],
+      suggestedPriceUsd: [existing?.suggestedPriceUsd ?? 0, [Validators.required, Validators.min(0.01)]],
+      wholesalePriceUsd: [existing?.wholesalePriceUsd ?? null],
+      locationId: [existing?.locationId ?? null],
+      notes: [existing?.notes ?? ''],
     }));
   }
 
   removeDevice(i: number) { this.deviceItems.removeAt(i); }
 
-  addBulk() {
+  addBulk(existing?: PurchaseBulkItem) {
     this.bulkItems.push(this.fb.group({
-      accessoryId: [null, Validators.required],
+      id: [existing?.id ?? null],
+      accessoryId: [existing?.accessoryId ?? null, Validators.required],
       modelId: [null],
-      color: [''],
-      quantity: [1, [Validators.required, Validators.min(1)]],
-      costUsd: [0, [Validators.required, Validators.min(0.01)]],
-      suggestedPriceUsd: [0, [Validators.required, Validators.min(0.01)]],
+      color: [existing?.color ?? ''],
+      quantity: [existing?.quantity ?? 1, [Validators.required, Validators.min(1)]],
+      costUsd: [existing?.costUsd ?? 0, [Validators.required, Validators.min(0.01)]],
+      suggestedPriceUsd: [existing?.suggestedPriceUsd ?? 0, [Validators.required, Validators.min(0.01)]],
     }));
   }
 
@@ -146,6 +149,7 @@ export class ComprasComponent implements OnInit {
 
   openModal(kind: 'device' | 'bulk') {
     this.initForm();
+    this.editingPurchaseId.set(null);
     this.activeTab.set(kind);
     this.form.patchValue({ type: kind === 'device' ? 'DEVICE' : 'ACCESSORY' });
     this.addAccessoryOpenIndex.set(null);
@@ -153,8 +157,26 @@ export class ComprasComponent implements OnInit {
     this.showModal.set(true);
   }
 
+  openEditModal(p: Purchase) {
+    this.initForm();
+    this.editingPurchaseId.set(p.id);
+    this.activeTab.set(p.type === 'DEVICE' ? 'device' : 'bulk');
+    this.form.patchValue({
+      providerId: p.providerId ?? '',
+      purchaseDate: p.purchaseDate.split('T')[0],
+      type: p.type,
+      notes: p.notes ?? '',
+    });
+    p.stockItems.forEach(item => this.addDevice(item));
+    p.bulkItems.forEach(item => this.addBulk(item));
+    this.addAccessoryOpenIndex.set(null);
+    this.error.set('');
+    this.showModal.set(true);
+  }
+
   async dismissModal() {
     if (!(await confirmDiscard(this.confirm, this.form))) return;
+    this.editingPurchaseId.set(null);
     this.showModal.set(false);
   }
 
@@ -177,6 +199,26 @@ export class ComprasComponent implements OnInit {
 
     this.submitting.set(true);
     const v = this.form.value;
+    const editingId = this.editingPurchaseId();
+
+    if (editingId) {
+      const dto = {
+        providerId: v.providerId || null,
+        purchaseDate: v.purchaseDate,
+        notes: v.notes,
+        deviceItems: v.deviceItems,
+        bulkItems: v.bulkItems,
+      };
+      this.api.updatePurchase(editingId, dto).subscribe({
+        next: () => { this.showModal.set(false); this.editingPurchaseId.set(null); this.loadPurchases(); this.submitting.set(false); },
+        error: (e) => {
+          this.submitting.set(false);
+          this.error.set(e?.error?.error || e?.error?.title || `Error ${e?.status}`);
+        }
+      });
+      return;
+    }
+
     const dto = {
       providerId: v.providerId || null,
       purchaseDate: v.purchaseDate,

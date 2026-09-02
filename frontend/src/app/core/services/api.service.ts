@@ -219,6 +219,9 @@ export class ApiService {
   createPurchase(dto: any): Observable<Purchase> {
     return this.http.post<Purchase>(`${this.base}/compras`, dto);
   }
+  updatePurchase(id: string, dto: any): Observable<Purchase> {
+    return this.http.put<Purchase>(`${this.base}/compras/${id}`, dto);
+  }
   voidPurchase(id: string): Observable<void> {
     return this.http.delete<void>(`${this.base}/compras/${id}`);
   }

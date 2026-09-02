@@ -821,6 +821,50 @@ namespace IpGestion.Infrastructure.Migrations
                     b.ToTable("Purchases");
                 });
 
+            modelBuilder.Entity("IpGestion.Domain.Entities.PurchaseBulkItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AccessoryId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Color")
+                        .HasColumnType("text");
+
+                    b.Property<decimal>("CostUsd")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("PurchaseId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("SuggestedPriceUsd")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccessoryId");
+
+                    b.HasIndex("PurchaseId");
+
+                    b.ToTable("PurchaseBulkItems");
+                });
+
             modelBuilder.Entity("IpGestion.Domain.Entities.Reservation", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1740,6 +1784,25 @@ namespace IpGestion.Infrastructure.Migrations
                     b.Navigation("Provider");
                 });
 
+            modelBuilder.Entity("IpGestion.Domain.Entities.PurchaseBulkItem", b =>
+                {
+                    b.HasOne("IpGestion.Domain.Entities.CatalogAccessory", "Accessory")
+                        .WithMany()
+                        .HasForeignKey("AccessoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("IpGestion.Domain.Entities.Purchase", "Purchase")
+                        .WithMany("BulkItems")
+                        .HasForeignKey("PurchaseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Accessory");
+
+                    b.Navigation("Purchase");
+                });
+
             modelBuilder.Entity("IpGestion.Domain.Entities.Reservation", b =>
                 {
                     b.HasOne("IpGestion.Domain.Entities.Entity", "Entity")
@@ -1978,6 +2041,8 @@ namespace IpGestion.Infrastructure.Migrations
 
             modelBuilder.Entity("IpGestion.Domain.Entities.Purchase", b =>
                 {
+                    b.Navigation("BulkItems");
+
                     b.Navigation("Payments");
 
                     b.Navigation("StockItems");

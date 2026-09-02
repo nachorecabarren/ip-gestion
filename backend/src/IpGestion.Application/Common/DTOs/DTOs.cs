@@ -82,6 +82,7 @@ public record CatalogLocationDto(Guid Id, string Name);
 // ─── STOCK ─────────────────────────────────────────────────
 public record StockItemDto(
     Guid Id,
+    Guid ModelId,
     string ModelName,
     string? InternalCode,
     string? ImeiSerial,
@@ -94,6 +95,7 @@ public record StockItemDto(
     decimal SuggestedPriceUsd,
     decimal? WholesalePriceUsd,
     StockStatus Status,
+    Guid? LocationId,
     string? LocationName,
     string? Notes,
     DateTime CreatedAt
@@ -207,12 +209,24 @@ public record TradeInDto(
 public record PurchaseDto(
     Guid Id,
     string? ProviderName,
+    Guid? ProviderId,
     DateTime PurchaseDate,
     decimal TotalUsd,
     PurchaseType Type,
     PurchaseStatus Status,
     string? Notes,
-    List<StockItemDto> StockItems
+    List<StockItemDto> StockItems,
+    List<PurchaseBulkItemDto> BulkItems
+);
+
+public record PurchaseBulkItemDto(
+    Guid Id,
+    Guid AccessoryId,
+    string AccessoryName,
+    string? Color,
+    int Quantity,
+    decimal CostUsd,
+    decimal SuggestedPriceUsd
 );
 
 public record CreatePurchaseDto(
@@ -228,6 +242,38 @@ public record CreatePurchaseDto(
 public record CreateBulkItemDto(
     Guid AccessoryId,
     Guid? ModelId,
+    string? Color,
+    int Quantity,
+    decimal CostUsd,
+    decimal SuggestedPriceUsd
+);
+
+// Editar una compra existente — solo corrige valores de líneas ya creadas
+// (no agrega/quita ítems); requiere owner o admin, validado en el controller.
+public record UpdatePurchaseDto(
+    Guid? ProviderId,
+    DateTime PurchaseDate,
+    string? Notes,
+    List<UpdatePurchaseDeviceItemDto> DeviceItems,
+    List<UpdatePurchaseBulkItemDto> BulkItems
+);
+
+public record UpdatePurchaseDeviceItemDto(
+    Guid Id,
+    Guid ModelId,
+    string? ImeiSerial,
+    string? Color,
+    int? StorageGb,
+    StockCondition Condition,
+    int? BatteryPct,
+    decimal CostUsd,
+    decimal SuggestedPriceUsd,
+    decimal? WholesalePriceUsd
+);
+
+public record UpdatePurchaseBulkItemDto(
+    Guid Id,
+    Guid AccessoryId,
     string? Color,
     int Quantity,
     decimal CostUsd,

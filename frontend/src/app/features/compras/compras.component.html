@@ -33,6 +33,9 @@
               <button class="btn-icon-sm btn-icon-sm--neutral" (click)="viewDetail(p)" title="Ver detalle">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
               </button>
+              <button class="btn-icon-sm btn-icon-sm--neutral" (click)="openEditModal(p)" title="Editar" *ngIf="p.status === 'ACTIVE' && (auth.isOwner() || auth.isAdmin())">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              </button>
               <button class="btn-icon-sm" (click)="voidPurchase(p.id)" title="Anular" *ngIf="p.status === 'ACTIVE' && auth.isOwner()">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>
               </button>
@@ -99,11 +102,26 @@
         </tbody>
       </table>
 
-      <div class="empty-state" *ngIf="p.stockItems.length === 0">
+      <div class="page-sub" style="margin:18px 0 8px" *ngIf="p.bulkItems.length > 0">Accesorios incluidos</div>
+      <table class="table" *ngIf="p.bulkItems.length > 0">
+        <thead>
+          <tr><th>ACCESORIO</th><th>COLOR</th><th>CANT.</th><th>COSTO C/U</th><th>PRECIO</th></tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let b of p.bulkItems">
+            <td><strong>{{ b.accessoryName }}</strong></td>
+            <td>{{ b.color || '—' }}</td>
+            <td>{{ b.quantity }}</td>
+            <td>u$d {{ b.costUsd }}</td>
+            <td><strong>u$d {{ b.suggestedPriceUsd }}</strong></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="empty-state" *ngIf="p.stockItems.length === 0 && p.bulkItems.length === 0">
         <div class="empty-state__title">Sin detalle línea por línea</div>
         <div class="empty-state__sub">
-          Esta compra fue de accesorios — el sistema suma la cantidad comprada directamente al stock existente
-          sin guardar un registro por accesorio de esta compra en particular.
+          Esta compra no tiene un registro línea por línea guardado (posiblemente fue registrada antes de esta funcionalidad).
         </div>
       </div>
     </div>
@@ -117,7 +135,7 @@
 <div class="modal-overlay" *ngIf="showModal()" (click)="dismissModal()" escapeClose (escapeClose)="dismissModal()">
   <div class="modal modal--wide" (click)="$event.stopPropagation()">
     <div class="modal__header">
-      <div><h2 class="modal__title">{{ activeTab() === 'device' ? 'Nueva compra — iPhones' : 'Nueva compra — Accesorios' }}</h2></div>
+      <div><h2 class="modal__title">{{ editingPurchaseId() ? (activeTab() === 'device' ? 'Editar compra — iPhones' : 'Editar compra — Accesorios') : (activeTab() === 'device' ? 'Nueva compra — iPhones' : 'Nueva compra — Accesorios') }}</h2></div>
       <button class="modal__close" (click)="dismissModal()">✕</button>
     </div>
 
@@ -141,7 +159,7 @@
         <div *ngFor="let item of deviceItems.controls; let i = index" [formGroupName]="i" class="item-row">
           <div class="item-row__header">
             <span>Equipo {{ i + 1 }}</span>
-            <button type="button" class="btn-remove" (click)="removeDevice(i)" *ngIf="deviceItems.length > 1">✕</button>
+            <button type="button" class="btn-remove" (click)="removeDevice(i)" *ngIf="!editingPurchaseId() && deviceItems.length > 1">✕</button>
           </div>
           <div class="form-row">
             <div class="form-group form-group--grow">
@@ -196,7 +214,7 @@
             </div>
           </div>
         </div>
-        <button type="button" class="btn btn--ghost btn--sm" (click)="addDevice()">+ Agregar equipo</button>
+        <button type="button" class="btn btn--ghost btn--sm" (click)="addDevice()" *ngIf="!editingPurchaseId()">+ Agregar equipo</button>
       </ng-container>
 
       <!-- Bulk -->
@@ -204,7 +222,7 @@
         <div *ngFor="let item of bulkItems.controls; let i = index" [formGroupName]="i" class="item-row">
           <div class="item-row__header">
             <span>Accesorio {{ i + 1 }}</span>
-            <button type="button" class="btn-remove" (click)="removeBulk(i)">✕</button>
+            <button type="button" class="btn-remove" (click)="removeBulk(i)" *ngIf="!editingPurchaseId()">✕</button>
           </div>
           <div class="form-row">
             <div class="form-group form-group--grow">
@@ -260,7 +278,7 @@
             </div>
           </div>
         </div>
-        <button type="button" class="btn btn--ghost btn--sm" (click)="addBulk()">+ Agregar accesorio</button>
+        <button type="button" class="btn btn--ghost btn--sm" (click)="addBulk()" *ngIf="!editingPurchaseId()">+ Agregar accesorio</button>
       </ng-container>
 
       <div class="cost-summary">
@@ -279,7 +297,7 @@
       <div style="display:flex;gap:8px;justify-content:flex-end">
         <button class="btn btn--ghost" (click)="dismissModal()">Cancelar</button>
         <button class="btn btn--primary" (click)="submit()" [disabled]="submitting()">
-          {{ submitting() ? 'Guardando...' : 'Registrar Compra' }}
+          {{ submitting() ? 'Guardando...' : (editingPurchaseId() ? 'Guardar cambios' : 'Registrar Compra') }}
         </button>
       </div>
     </div>
