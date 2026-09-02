@@ -5,7 +5,7 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { ApiService } from '../../core/services/api.service';
 import { ConfirmService } from '../../shared/services/confirm.service';
 import { AuthService } from '../../core/services/auth.service';
-import { StockItem, StockBulk, CatalogLocation, CatalogModel, TradeInQuote, TradeInHistoryItem, Entity } from '../../shared/models/models';
+import { StockItem, StockBulk, CatalogLocation, CatalogModel, TradeInQuote, TradeInHistoryItem, Entity, STORAGE_OPTIONS } from '../../shared/models/models';
 import { ImeiScannerComponent } from '../../shared/components/imei-scanner/imei-scanner.component';
 import { PaginationComponent, PageParams } from '../../shared/components/pagination/pagination.component';
 import { EscapeCloseDirective } from '../../shared/directives/escape-close.directive';
@@ -93,7 +93,7 @@ export class StockComponent implements OnInit {
     this.bulkPageSize.set(p.pageSize);
   }
 
-  readonly storageOptions = [64, 128, 256, 512, 1024, 2048];
+  readonly storageOptions = STORAGE_OPTIONS;
 
   // New item modal
   showNewModal = signal(false);

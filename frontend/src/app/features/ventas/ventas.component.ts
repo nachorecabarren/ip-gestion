@@ -20,6 +20,7 @@ import {
   CatalogModel,
   PaymentMethod,
   SaleCategory,
+  STORAGE_OPTIONS,
 } from "../../shared/models/models";
 import { ImeiScannerComponent } from "../../shared/components/imei-scanner/imei-scanner.component";
 import { StockItemSelectComponent } from "../../shared/components/stock-item-select/stock-item-select.component";
@@ -53,6 +54,7 @@ export class VentasComponent implements OnInit {
   wizardStep = signal(1);
   submitting = signal(false);
   submitError = signal('');
+  readonly storageOptions = STORAGE_OPTIONS;
 
   // Catalog data
   entities = signal<Entity[]>([]);

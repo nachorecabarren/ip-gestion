@@ -16,6 +16,9 @@ export type CashMovementType = 'INCOME' | 'EXPENSE' | 'SALE' | 'PURCHASE';
 export type ItemKind = 'EQUIPMENT' | 'ACCESSORY';
 export type ImportOrderStatus = 'PENDING' | 'IN_TRANSIT' | 'RECEIVED' | 'CANCELLED';
 
+// ─── CONSTANTES ─────────────────────────────────────────────
+export const STORAGE_OPTIONS = [64, 128, 256, 512, 1024, 2048];
+
 // ─── INTERFACES ─────────────────────────────────────────────
 export interface PagedResult<T> { items: T[]; total: number; page: number; pageSize: number; }
 

@@ -5,7 +5,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ApiService } from '../../core/services/api.service';
-import { Purchase, Entity, CatalogModel, CatalogAccessory, CatalogLocation, StockItem, PurchaseBulkItem } from '../../shared/models/models';
+import { Purchase, Entity, CatalogModel, CatalogAccessory, CatalogLocation, StockItem, PurchaseBulkItem, STORAGE_OPTIONS } from '../../shared/models/models';
 import { ImeiScannerComponent } from '../../shared/components/imei-scanner/imei-scanner.component';
 import { PaginationComponent, PageParams } from '../../shared/components/pagination/pagination.component';
 import { EscapeCloseDirective } from '../../shared/directives/escape-close.directive';
@@ -49,6 +49,7 @@ export class ComprasComponent implements OnInit {
   editingPurchaseId = signal<string | null>(null);
 
   form!: FormGroup;
+  readonly storageOptions = STORAGE_OPTIONS;
 
   ngOnInit() {
     this.initForm();

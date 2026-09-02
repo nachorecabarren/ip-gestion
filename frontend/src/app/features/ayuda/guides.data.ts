@@ -184,7 +184,7 @@ export const GUIDES: Guide[] = [
       },
     ],
     tips: [
-      'Si vas a cargar varios equipos de una misma compra a la vez, es más rápido usar Compras → Nueva Compra en vez de repetir este paso equipo por equipo.',
+      'Si vas a cargar varios equipos de una misma compra a la vez, es más rápido usar Compras → "+ Agregar equipo(s)" en vez de repetir este paso equipo por equipo.',
     ],
   },
   {
@@ -202,7 +202,7 @@ export const GUIDES: Guide[] = [
         detail: 'Los accesorios con cantidad por debajo de su umbral configurado se marcan con la etiqueta "Stock bajo".',
       },
       {
-        title: 'Para sumar cantidad, cargalos desde Compras → Nueva Compra → pestaña Accesorios',
+        title: 'Para sumar cantidad, cargalos desde Compras → "+ Agregar accesorio(s)"',
         detail: 'Si ya existe un accesorio con el mismo color, la cantidad se suma automáticamente en vez de crear un duplicado.',
       },
     ],
@@ -253,47 +253,47 @@ export const GUIDES: Guide[] = [
     id: 'compra-nueva',
     category: 'Compras',
     title: 'Cómo registrar una compra a un proveedor',
-    summary: 'Carga equipos y/o accesorios de una sola vez, con trazabilidad de costo.',
+    summary: 'Carga equipos y/o accesorios, con trazabilidad de costo.',
     steps: [
       {
-        title: 'Entrá a Compras y hacé clic en "+ Nueva Compra"',
-        detail: 'También podés usar el acceso rápido "Nueva Compra" del Dashboard.',
+        title: 'Entrá a Compras y elegí "+ Agregar equipo(s)" o "+ Agregar accesorio(s)"',
+        detail: 'Son dos botones separados porque un equipo se carga por IMEI/serie y un accesorio se carga por cantidad — cada uno abre su propio formulario.',
       },
       {
         title: 'Elegí el proveedor (opcional) y la fecha de la compra',
         detail: '',
       },
       {
-        title: 'Cargá los equipos en la subpestaña "Equipos"',
-        detail: 'Podés agregar varios equipos, cada uno con su modelo, IMEI, color, condición, costo y precio de venta. Usá "+ Agregar" para sumar más filas.',
-      },
-      {
-        title: 'O cargá accesorios en la subpestaña "Accesorios (Bulk)"',
-        detail: 'Elegí el accesorio del catálogo, la cantidad, costo y precio de venta.',
+        title: 'Cargá los ítems con "+ Agregar equipo" o "+ Agregar accesorio"',
+        detail: 'Para equipos: modelo, IMEI, color, condición, costo y precio de venta. Para accesorios: accesorio del catálogo, color, cantidad, costo y precio de venta. Podés sumar varias filas.',
       },
       {
         title: 'Guardá la compra',
-        detail: 'Los equipos quedan disponibles en Stock al instante, vinculados a esta compra y a su proveedor.',
+        detail: 'Los ítems quedan disponibles en Stock al instante, vinculados a esta compra y a su proveedor.',
       },
     ],
   },
   {
     id: 'compra-anular',
     category: 'Compras',
-    title: 'Cómo anular una compra',
-    summary: 'Da de baja todos los equipos que esa compra había generado.',
+    title: 'Cómo anular o editar una compra',
+    summary: 'Da de baja todos los ítems que esa compra había generado, o corregí sus datos sin anularla.',
     steps: [
       {
         title: 'Entrá a Compras y ubicá la compra en el listado',
-        detail: '',
+        detail: 'La columna "Ver detalle" (ícono de ojo) muestra los equipos y accesorios incluidos en esa compra.',
       },
       {
-        title: 'Hacé clic en "Anular"',
-        detail: 'Solo la ve el dueño de la cuenta, y solo en compras con estado "Activa".',
+        title: 'Para corregir datos, hacé clic en el ícono de lápiz "Editar"',
+        detail: 'Solo lo ven el dueño y los administradores, y solo en compras con estado "Activa". Permite corregir proveedor, fecha, notas y los valores de cada ítem cargado — no agrega ni quita ítems.',
+      },
+      {
+        title: 'Para anular, hacé clic en el ícono de tacho "Anular"',
+        detail: 'Solo lo ve el dueño de la cuenta, y solo en compras con estado "Activa".',
       },
       {
         title: 'Confirmá la anulación',
-        detail: 'Todos los equipos que esa compra había generado en Stock pasan a estado "Anulado".',
+        detail: 'Todos los ítems que esa compra había generado en Stock pasan a estado "Anulado".',
       },
     ],
   },

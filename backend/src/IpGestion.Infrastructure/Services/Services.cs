@@ -639,6 +639,12 @@ public class SaleService(AppDbContext db, IEmailService emailService) : ISaleSer
 // ─── PURCHASE SERVICE ──────────────────────────────────────
 public class PurchaseService(AppDbContext db) : IPurchaseService
 {
+    // NULL, "" y espacios en blanco deben tratarse como "sin color" — si no, un accesorio
+    // cargado sin color por dos vías distintas (ej. NULL de un seed vs "" del form) termina
+    // creando una fila de StockBulk duplicada en vez de sumarse a la existente.
+    private static string NormalizeColorForMatch(string? color) => (color ?? string.Empty).Trim().ToLowerInvariant();
+    private static string? NormalizeColorForStorage(string? color) => string.IsNullOrWhiteSpace(color) ? null : color.Trim();
+
     public async Task<PagedResult<PurchaseDto>> GetPagedAsync(Guid tenantId, int page, int pageSize, CancellationToken ct = default)
     {
         var q = db.Purchases.Include(p => p.Provider).Include(p => p.StockItems).ThenInclude(s => s.Model)
@@ -724,8 +730,10 @@ public class PurchaseService(AppDbContext db) : IPurchaseService
 
         foreach (var bulk in dto.BulkItems)
         {
+            var matchColor = NormalizeColorForMatch(bulk.Color);
             var existing = await db.StockBulks.FirstOrDefaultAsync(b =>
-                b.TenantId == tenantId && b.AccessoryId == bulk.AccessoryId && b.Color == bulk.Color, ct);
+                b.TenantId == tenantId && b.AccessoryId == bulk.AccessoryId
+                && (b.Color ?? "").Trim().ToLower() == matchColor, ct);
             if (existing != null)
                 existing.Quantity += bulk.Quantity;
             else
@@ -734,7 +742,7 @@ public class PurchaseService(AppDbContext db) : IPurchaseService
                     TenantId = tenantId,
                     AccessoryId = bulk.AccessoryId,
                     ModelId = bulk.ModelId,
-                    Color = bulk.Color,
+                    Color = NormalizeColorForStorage(bulk.Color),
                     Quantity = bulk.Quantity,
                     CostUsd = bulk.CostUsd,
                     SuggestedPriceUsd = bulk.SuggestedPriceUsd
@@ -804,8 +812,10 @@ public class PurchaseService(AppDbContext db) : IPurchaseService
         // cantidad que esta compra le había sumado al acumulado de StockBulk.
         foreach (var bulk in p.BulkItems)
         {
+            var voidMatchColor = NormalizeColorForMatch(bulk.Color);
             var stockBulk = await db.StockBulks.FirstOrDefaultAsync(b =>
-                b.TenantId == tenantId && b.AccessoryId == bulk.AccessoryId && b.Color == bulk.Color, ct);
+                b.TenantId == tenantId && b.AccessoryId == bulk.AccessoryId
+                && (b.Color ?? "").Trim().ToLower() == voidMatchColor, ct);
             if (stockBulk != null) stockBulk.Quantity = Math.Max(0, stockBulk.Quantity - bulk.Quantity);
         }
 
@@ -883,12 +893,16 @@ public class PurchaseService(AppDbContext db) : IPurchaseService
 
             // Si cambió de accesorio/color, hay que revertir la cantidad vieja del
             // StockBulk anterior y aplicar la nueva al StockBulk correspondiente.
+            var oldMatchColor = NormalizeColorForMatch(bulkItem.Color);
             var oldStockBulk = await db.StockBulks.FirstOrDefaultAsync(b =>
-                b.TenantId == tenantId && b.AccessoryId == bulkItem.AccessoryId && b.Color == bulkItem.Color, ct);
+                b.TenantId == tenantId && b.AccessoryId == bulkItem.AccessoryId
+                && (b.Color ?? "").Trim().ToLower() == oldMatchColor, ct);
             if (oldStockBulk != null) oldStockBulk.Quantity = Math.Max(0, oldStockBulk.Quantity - bulkItem.Quantity);
 
+            var newMatchColor = NormalizeColorForMatch(bulkDto.Color);
             var newStockBulk = await db.StockBulks.FirstOrDefaultAsync(b =>
-                b.TenantId == tenantId && b.AccessoryId == bulkDto.AccessoryId && b.Color == bulkDto.Color, ct);
+                b.TenantId == tenantId && b.AccessoryId == bulkDto.AccessoryId
+                && (b.Color ?? "").Trim().ToLower() == newMatchColor, ct);
             if (newStockBulk != null)
                 newStockBulk.Quantity += bulkDto.Quantity;
             else
@@ -896,7 +910,7 @@ public class PurchaseService(AppDbContext db) : IPurchaseService
                 {
                     TenantId = tenantId,
                     AccessoryId = bulkDto.AccessoryId,
-                    Color = bulkDto.Color,
+                    Color = NormalizeColorForStorage(bulkDto.Color),
                     Quantity = bulkDto.Quantity,
                     CostUsd = bulkDto.CostUsd,
                     SuggestedPriceUsd = bulkDto.SuggestedPriceUsd

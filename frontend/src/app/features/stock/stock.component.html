@@ -233,11 +233,7 @@
         <div class="form-group form-group--grow">
           <label>Storage GB *</label>
           <select formControlName="storageGb" class="form-control">
-            <option [value]="64">64 GB</option>
-            <option [value]="128">128 GB</option>
-            <option [value]="256">256 GB</option>
-            <option [value]="512">512 GB</option>
-            <option [value]="1024">1 TB</option>
+            <option *ngFor="let gb of storageOptions" [value]="gb">{{ gb >= 1024 ? (gb / 1024) + 'TB' : gb + 'GB' }}</option>
           </select>
         </div>
         <div class="form-group form-group--grow">
@@ -436,7 +432,10 @@
         </div>
         <div class="form-group form-group--sm">
           <label>Storage GB</label>
-          <input type="number" formControlName="storageGb" class="form-control" />
+          <select formControlName="storageGb" class="form-control">
+            <option value="">—</option>
+            <option *ngFor="let gb of storageOptions" [value]="gb">{{ gb >= 1024 ? (gb / 1024) + 'TB' : gb + 'GB' }}</option>
+          </select>
         </div>
       </div>
       <div class="form-row">

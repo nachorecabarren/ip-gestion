@@ -494,11 +494,10 @@
               </div>
               <div class="form-group form-group--sm">
                 <label>Storage GB</label>
-                <input
-                  type="number"
-                  formControlName="tradeInStorage"
-                  class="form-control"
-                />
+                <select formControlName="tradeInStorage" class="form-control">
+                  <option value="">—</option>
+                  <option *ngFor="let gb of storageOptions" [value]="gb">{{ gb >= 1024 ? (gb / 1024) + 'TB' : gb + 'GB' }}</option>
+                </select>
               </div>
             </div>
             <div class="form-row">
