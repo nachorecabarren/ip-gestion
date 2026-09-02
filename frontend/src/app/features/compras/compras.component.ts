@@ -56,7 +56,7 @@ export class ComprasComponent implements OnInit {
     this.api.getCatalogModels().subscribe(m => this.models.set(m));
     this.api.getCatalogAccessories().subscribe(a => this.accessories.set(a));
     this.api.getCatalogLocations().subscribe(l => this.locations.set(l));
-    openIfQueryParam(this.route, this.router, 'nueva', () => this.openModal());
+    openIfQueryParam(this.route, this.router, 'nueva', () => this.openModal('device'));
   }
 
   initForm() {
@@ -144,9 +144,10 @@ export class ComprasComponent implements OnInit {
     this.loadPurchases();
   }
 
-  openModal() {
+  openModal(kind: 'device' | 'bulk') {
     this.initForm();
-    this.activeTab.set('device');
+    this.activeTab.set(kind);
+    this.form.patchValue({ type: kind === 'device' ? 'DEVICE' : 'ACCESSORY' });
     this.addAccessoryOpenIndex.set(null);
     this.error.set('');
     this.showModal.set(true);
@@ -160,8 +161,12 @@ export class ComprasComponent implements OnInit {
   submit() {
     this.error.set('');
 
-    if (this.deviceItems.length === 0 && this.bulkItems.length === 0) {
-      this.error.set('Agregá al menos un equipo o un accesorio antes de guardar.');
+    if (this.activeTab() === 'device' && this.deviceItems.length === 0) {
+      this.error.set('Agregá al menos un iPhone antes de guardar.');
+      return;
+    }
+    if (this.activeTab() === 'bulk' && this.bulkItems.length === 0) {
+      this.error.set('Agregá al menos un accesorio antes de guardar.');
       return;
     }
     if (this.form.invalid) {

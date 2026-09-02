@@ -18,6 +18,7 @@ import { Html5Qrcode } from 'html5-qrcode';
           [placeholder]="placeholder"
           [formControl]="manualControl"
           (keyup.enter)="submitManual()"
+          (blur)="onBlur()"
         />
         <button type="button" class="btn btn--primary btn--sm" (click)="openModal()">📷 Escanear</button>
       </div>
@@ -141,6 +142,27 @@ export class ImeiScannerComponent implements OnDestroy {
     this.feedbackType.set('success');
     this.imeiScanned.emit(cleaned);
     this.closeModal();
+  }
+
+  /**
+   * El input principal solo confirmaba el valor con Enter o vía el modal de
+   * cámara — si el usuario tipeaba el IMEI y hacía clic en otro campo (lo más
+   * natural), el texto quedaba visible pero nunca se emitía imeiScanned, y el
+   * formulario del padre guardaba el IMEI vacío en silencio. Blur también confirma.
+   */
+  onBlur() {
+    const value = (this.manualControl.value || '').replace(/\s+/g, '').trim();
+    if (!value || value === this.value()) return;
+    if (!/^\d{15}$/.test(value)) {
+      this.feedback.set('Ingresá un IMEI válido de 15 dígitos numéricos.');
+      this.feedbackType.set('error');
+      return;
+    }
+
+    this.value.set(value);
+    this.feedback.set('IMEI cargado correctamente.');
+    this.feedbackType.set('success');
+    this.imeiScanned.emit(value);
   }
 
   submitManual() {

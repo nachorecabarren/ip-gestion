@@ -4,7 +4,10 @@
       <h1 class="page-title">Compras</h1>
       <p class="page-sub">Ingreso de equipos y accesorios al stock</p>
     </div>
-    <button class="btn btn--primary" (click)="openModal()">+ Nueva Compra</button>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn--ghost" (click)="openModal('bulk')">+ Agregar accesorios</button>
+      <button class="btn btn--primary" (click)="openModal('device')">+ Agregar iPhones</button>
+    </div>
   </div>
 
   <div class="card">
@@ -114,7 +117,7 @@
 <div class="modal-overlay" *ngIf="showModal()" (click)="dismissModal()" escapeClose (escapeClose)="dismissModal()">
   <div class="modal modal--wide" (click)="$event.stopPropagation()">
     <div class="modal__header">
-      <div><h2 class="modal__title">Nueva Compra</h2></div>
+      <div><h2 class="modal__title">{{ activeTab() === 'device' ? 'Nueva compra — iPhones' : 'Nueva compra — Accesorios' }}</h2></div>
       <button class="modal__close" (click)="dismissModal()">✕</button>
     </div>
 
@@ -131,12 +134,6 @@
           <label>Fecha *</label>
           <input type="date" formControlName="purchaseDate" class="form-control" />
         </div>
-      </div>
-
-      <!-- Subtabs equipos / accesorios -->
-      <div class="tabs" style="margin-bottom:16px">
-        <button type="button" class="tab" [class.active]="activeTab() === 'device'" (click)="activeTab.set('device')">Equipos</button>
-        <button type="button" class="tab" [class.active]="activeTab() === 'bulk'" (click)="activeTab.set('bulk')">Accesorios (Bulk)</button>
       </div>
 
       <!-- Equipos -->
